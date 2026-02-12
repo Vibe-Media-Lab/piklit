@@ -1,0 +1,60 @@
+/* Notion-like Variables */
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css");
+
+:root {
+  /* Colors */
+  --color-bg: #FFFFFF;
+  /* Pure White */
+  --color-surface: #FFFFFF;
+  --color-surface-hover: #F7F6F3;
+  /* Notion hover grey */
+
+  --color-primary: #37352F;
+  /* Notion Dark Grey */
+  --color-text-main: #37352F;
+  --color-text-sub: #787774;
+  /* Notion Grey */
+
+  --color-border: #E3E2E0;
+  /* Notion Border */
+  --color-border-hover: #D3D1CB;
+
+  --color-accent: #2EAADC;
+  /* Notion Blue (for selection/focus) */
+  --color-accent-bg: #E3F2FD;
+
+  --color-success: #27AE60;
+  --color-warning: #EB5757;
+  --color-error: #EB5757;
+
+  /* Shadows (Subtle) */
+  --shadow-sm: 0 1px 2px rgba(15, 15, 15, 0.05);
+  /* Very subtle */
+  --shadow-md: 0 4px 8px rgba(15, 15, 15, 0.05);
+  --shadow-lg: 0 8px 16px rgba(15, 15, 15, 0.05);
+
+  /* Typography */
+  --font-main: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --font-size-sm: 0.875rem;
+  /* 14px */
+  --font-size-base: 1rem;
+  /* 16px */
+  --font-size-lg: 1.125rem;
+  /* 18px */
+  --font-size-xl: 1.5rem;
+  /* 24px */
+  --font-size-2xl: 2.25rem;
+  /* 36px */
+
+  /* Spacing & Radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  /* Slightly tighter than before */
+
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 40px;
+}

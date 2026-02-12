@@ -1,0 +1,237 @@
+/* Notion-Style Components */
+
+/* Input Fields */
+.input-group {
+    margin-bottom: var(--spacing-lg);
+}
+
+.input-label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: var(--spacing-sm);
+    color: var(--color-text-sub);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.input-hint {
+    font-size: 0.8rem;
+    color: var(--color-text-sub);
+    margin-top: var(--spacing-xs);
+}
+
+/* Minimalist Input: No border until focus, or very subtle */
+.text-input {
+    width: 100%;
+    padding: 10px 0;
+    /* Horizontal padding removed or minimal */
+    border: none;
+    border-bottom: 2px solid transparent;
+    /* Prepare for focus */
+    border-radius: 0;
+    font-size: var(--font-size-base);
+    transition: all 0.2s ease;
+    background: transparent;
+    color: var(--color-text-main);
+}
+
+/* On focus, show a blue underline like Notion properties or simple highlight */
+.text-input:focus {
+    outline: none;
+    border-bottom-color: var(--color-accent);
+    background: transparent;
+    box-shadow: none;
+}
+
+/* Validated/Filled state can be subtle */
+.text-input::placeholder {
+    color: rgba(55, 53, 47, 0.3);
+}
+
+
+/* Title Input (Editor) */
+.title-input {
+    font-size: clamp(2rem, 5vw, 2.5rem);
+    font-weight: 700;
+    padding: 20px 0;
+    color: var(--color-text-main);
+    line-height: 1.2;
+    margin-bottom: 20px;
+}
+
+.title-input::placeholder {
+    color: rgba(55, 53, 47, 0.2);
+}
+
+
+/* Block Editor Controls */
+.block-wrapper {
+    margin-bottom: var(--spacing-md);
+    position: relative;
+    padding-left: 24px;
+    /* Space for drag handle */
+}
+
+/* Add Block Button (The '+' icon) */
+.add-block-btn {
+    padding: 6px 12px;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    color: var(--color-text-sub);
+    font-weight: 500;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+}
+
+.add-block-btn:hover {
+    background: var(--color-surface-hover);
+    color: var(--color-text-main);
+    transform: none;
+    box-shadow: none;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Wizard Styles */
+.wizard-container {
+    max-width: 900px;
+    margin: 80px auto;
+    padding: 20px;
+    text-align: center;
+}
+
+.wizard-step {
+    animation: fadeIn 0.4s ease-out;
+}
+
+.wizard-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    letter-spacing: -0.02em;
+}
+
+.wizard-desc {
+    color: var(--color-text-sub);
+    font-size: 1.1rem;
+    margin-bottom: 40px;
+}
+
+/* Category Card */
+.wizard-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    border: 1px solid var(--color-border);
+    /* Thin border */
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    height: 100%;
+    min-height: 140px;
+}
+
+.wizard-card:hover {
+    background: var(--color-surface-hover);
+    /* Subtle darken */
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+    /* Very light shadow */
+}
+
+.wizard-card.selected {
+    border-color: var(--color-accent);
+    background: var(--color-accent-bg);
+    /* Optional notion blue tint? Or just white */
+}
+
+.wizard-card-icon {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+}
+
+.wizard-card-label {
+    font-weight: 500;
+    color: var(--color-text-main);
+    font-size: 1rem;
+}
+
+/* Wizard Buttons */
+.wizard-btn-primary {
+    background: var(--color-primary);
+    /* Dark grey/black */
+    color: white;
+    padding: 12px 32px;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: opacity 0.2s;
+}
+
+.wizard-btn-primary:hover {
+    opacity: 0.9;
+}
+
+.wizard-btn-primary:disabled {
+    background: var(--color-border);
+    cursor: not-allowed;
+}
+
+.wizard-btn-text {
+    color: var(--color-text-sub);
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+    display: inline-block;
+}
+
+.wizard-btn-text:hover {
+    color: var(--color-text-main);
+    text-decoration: underline;
+}
+
+/* Wizard Input */
+.wizard-input {
+    width: 60%;
+    font-size: 2rem;
+    font-weight: 700;
+    text-align: center;
+    border: none;
+    border-bottom: 2px solid var(--color-border);
+    padding: 10px;
+    color: var(--color-text-main);
+    background: transparent;
+    transition: border-color 0.2s;
+    margin-bottom: 40px;
+}
+
+.wizard-input:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    /* Blue focus */
+}
+
+.wizard-input::placeholder {
+    color: rgba(55, 53, 47, 0.2);
+}
+
+.wizard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 16px;
+}
