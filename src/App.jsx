@@ -5,6 +5,7 @@ import { ToastProvider } from './components/common/Toast';
 import PostListPage from './pages/PostListPage';
 import EditorPage from './pages/EditorPage';
 import StartWizardPage from './pages/StartWizardPage';
+import HistoryPage from './pages/HistoryPage';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import './styles/global.css';
 import './styles/components.css';
@@ -16,6 +17,7 @@ function App() {
                 <ToastProvider>
                     <Routes>
                         <Route path="/" element={<PostListPage />} />
+                        <Route path="/history" element={<HistoryPage />} />
                         <Route path="/start" element={<StartWizardPage />} />
                         <Route path="/editor/:id" element={
                             <ErrorBoundary>

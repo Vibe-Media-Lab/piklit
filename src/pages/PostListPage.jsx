@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useEditor } from '../context/EditorContext';
 import '../styles/components.css';
+import '../styles/history.css';
 
 const stripHtml = (html) => {
     const tmp = document.createElement('div');
@@ -142,14 +143,31 @@ const PostListPage = () => {
     return (
         <div className="main-container" style={{ display: 'block', maxWidth: '800px', margin: '0 auto', paddingTop: '40px' }}>
             <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
-                <h1 style={{ color: 'var(--color-primary)' }}>작성 히스토리</h1>
-                <button
-                    className="add-block-btn"
-                    onClick={handleCreate}
-                    style={{ background: 'var(--color-accent)', color: 'white', borderColor: 'var(--color-accent)', padding: '10px 20px', fontSize: '1rem' }}
-                >
-                    + 새 글 작성
-                </button>
+                <h1 style={{ color: 'var(--color-primary)' }}>내 블로그</h1>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                    <Link
+                        to="/history"
+                        style={{
+                            padding: '10px 20px',
+                            fontSize: '0.9rem',
+                            fontWeight: 500,
+                            color: 'var(--color-text-sub)',
+                            textDecoration: 'none',
+                            border: '1px solid var(--color-border)',
+                            borderRadius: 'var(--radius-lg)',
+                            transition: 'all 0.2s',
+                        }}
+                    >
+                        히스토리
+                    </Link>
+                    <button
+                        className="add-block-btn"
+                        onClick={handleCreate}
+                        style={{ background: 'var(--color-accent)', color: 'white', borderColor: 'var(--color-accent)', padding: '10px 20px', fontSize: '1rem' }}
+                    >
+                        + 새 글 작성
+                    </button>
+                </div>
             </header>
 
             {stats && <StatsDashboard stats={stats} />}
@@ -238,10 +256,17 @@ const PostListPage = () => {
                                             ))}
                                         </div>
 
-                                        <div style={{ fontSize: '0.8rem', color: 'var(--color-text-sub)', display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-                                            <span>📝 {charCount.toLocaleString()}자</span>
-                                            <span>📅 생성: {formatDate(post.createdAt)}</span>
-                                            <span>🕒 수정: {formatDate(post.updatedAt)}</span>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--color-text-sub)', display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
+                                            {post.seoScore > 0 && (
+                                                <span className={`seo-badge ${post.seoScore >= 70 ? 'score-high' : post.seoScore >= 40 ? 'score-mid' : 'score-low'}`}>
+                                                    SEO {post.seoScore}점
+                                                </span>
+                                            )}
+                                            {post.mode === 'ai' && (
+                                                <span style={{ padding: '2px 8px', borderRadius: '10px', fontSize: '0.7rem', background: '#F3F0FF', color: '#6c5ce7', fontWeight: 600 }}>AI</span>
+                                            )}
+                                            <span>{charCount.toLocaleString()}자</span>
+                                            <span>{formatDate(post.updatedAt)}</span>
                                         </div>
                                     </div>
                                     <button

@@ -29,10 +29,14 @@ const StartWizardPage = () => {
     const handleStart = () => {
         if (!selectedCategory) return;
 
-        // Create new post ID
-        const newId = createPost();
-
         const autoTone = getToneForCategory(selectedCategory.id);
+
+        // Create new post with metadata
+        const newId = createPost({
+            categoryId: selectedCategory.id,
+            tone: autoTone,
+            mode: mode,
+        });
 
         // Navigate with state to pre-fill editor
         navigate(`/editor/${newId}`, {

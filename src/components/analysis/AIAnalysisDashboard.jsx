@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { useEditor } from '../../context/EditorContext';
 import { useToast } from '../common/Toast';
 import { AIService } from '../../services/openai';
+import PostHistory from './PostHistory';
 
 const AIAnalysisDashboard = () => {
-    const { analysis, content } = useEditor();
+    const { analysis, content, recordAiAction } = useEditor();
     const { checks, issues, keywordDensity, introLength, headingCount } = analysis;
     const score = Object.values(checks).filter(Boolean).length;
     const maxScore = Object.keys(checks).length || 1;
@@ -23,6 +24,7 @@ const AIAnalysisDashboard = () => {
 
         setLoading(true);
         setExtractedTags([]);
+        recordAiAction('tagExtract');
         try {
             const parser = new DOMParser();
             const doc = parser.parseFromString(content, 'text/html');
@@ -176,6 +178,8 @@ const AIAnalysisDashboard = () => {
                 )}
             </div>
 
+            {/* Post History Timeline */}
+            <PostHistory />
         </div>
     );
 };

@@ -18,7 +18,7 @@ const EditorPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const location = useLocation();
-    const { openPost, posts, currentPostId, updateMainKeyword, updateSubKeywords, setSuggestedTone, setContent, content, setTargetLength, editorRef, lastCursorPosRef } = useEditor();
+    const { openPost, posts, currentPostId, updateMainKeyword, updateSubKeywords, setSuggestedTone, setContent, content, setTargetLength, editorRef, lastCursorPosRef, closeSession, recordAiAction, updatePostMeta } = useEditor();
     const { showToast } = useToast();
 
     const loadedRef = useRef(null);
@@ -72,6 +72,11 @@ const EditorPage = () => {
 
     // AI 이미지 생성 드로어 상태
     const [showImageGenDrawer, setShowImageGenDrawer] = useState(false);
+
+    // Close session on unmount (route change)
+    useEffect(() => {
+        return () => { closeSession(); };
+    }, [closeSession]);
 
     // 카테고리 ID (쇼핑/맛집 등 분기용)
     const categoryId = wizardData?.initialCategoryId || location.state?.initialCategoryId || 'daily';
@@ -156,6 +161,7 @@ const EditorPage = () => {
         console.log('[키워드 분석] 시작:', { topic, excludeKeywords: selectedKeywords });
 
         setIsAnalyzingKeywords(true);
+        recordAiAction('keywordAnalysis');
         try {
             // 이미 선택한 키워드를 제외하고 새로운 키워드 요청
             const excludeKeywords = selectedKeywords.map(k => getKw(k)).join(', ');
@@ -253,6 +259,7 @@ const EditorPage = () => {
     const handleAnalyzeCompetitors = async () => {
         if (!mainKeyword.trim()) return showToast('메인 키워드를 먼저 입력해주세요.', 'warning');
         setIsAnalyzingCompetitors(true);
+        recordAiAction('competitorAnalysis');
         try {
             const result = await AIService.analyzeCompetitors(mainKeyword);
             if (result && result.blogs && Array.isArray(result.blogs)) {
@@ -297,6 +304,7 @@ const EditorPage = () => {
         if (photoCount < 1) return showToast('최소 1장의 사진을 업로드해주세요.', 'warning');
 
         setIsAnalyzingPhotos(true);
+        recordAiAction('photoAnalysis');
         try {
             const photoAssets = [];
             for (const slotId in photoData.files) {
@@ -497,6 +505,7 @@ const EditorPage = () => {
 
         setIsGenerating(true);
         setGenerationStep(0);
+        recordAiAction('fullDraft');
         try {
             // Step 0: 준비 중 (이미지 변환)
             let photoAssets = cachedPhotoAssets;
@@ -596,7 +605,7 @@ const EditorPage = () => {
             if (location.state && !locationStateProcessed.current) {
                 setWizardData(location.state);
                 setTimeout(() => {
-                    const { initialMainKeyword, initialTone, initialTemplateId } = location.state;
+                    const { initialMainKeyword, initialTone, initialTemplateId, initialCategoryId, initialMode } = location.state;
                     if (initialMainKeyword) {
                         updateMainKeyword(initialMainKeyword);
                         setMainKeyword(initialMainKeyword);
@@ -605,10 +614,16 @@ const EditorPage = () => {
                         setSuggestedTone(initialTone);
                         setToneState(initialTone);
                     }
-                    if (initialTemplateId && location.state?.initialMode === 'direct') {
+                    if (initialTemplateId && initialMode === 'direct') {
                         const template = getTemplateById(initialTemplateId);
                         if (template) setContent(template.content);
                     }
+                    // Save metadata to post
+                    updatePostMeta(id, {
+                        categoryId: initialCategoryId || 'daily',
+                        tone: initialTone || 'friendly',
+                        mode: initialMode || 'direct',
+                    });
                 }, 200);
                 locationStateProcessed.current = true;
             }
@@ -618,6 +633,7 @@ const EditorPage = () => {
     // 아웃라인 핸들러
     const handleGenerateOutline = async () => {
         setIsGeneratingOutline(true);
+        recordAiAction('outlineGenerate');
         try {
             const keywordStrings = selectedKeywords.map(k => getKw(k));
             const effectiveWizardData = wizardData || location.state;

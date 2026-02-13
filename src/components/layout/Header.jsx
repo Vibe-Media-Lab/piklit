@@ -52,7 +52,22 @@ const Header = () => {
                         NAVER <span>블로그 에디터</span>
                     </NavLink>
                 </div>
-                <div style={{ marginLeft: 'auto', display: 'flex', gap: '12px' }}>
+                <div style={{ marginLeft: 'auto', display: 'flex', gap: '12px', alignItems: 'center' }}>
+                    <NavLink
+                        to="/history"
+                        style={({ isActive }) => ({
+                            padding: '8px 14px',
+                            fontSize: '0.9rem',
+                            fontWeight: 500,
+                            color: isActive ? 'var(--color-accent)' : 'var(--color-text-sub)',
+                            textDecoration: 'none',
+                            borderRadius: 'var(--radius-lg)',
+                            transition: 'color 0.2s, background 0.2s',
+                            background: isActive ? 'var(--color-accent-bg)' : 'transparent',
+                        })}
+                    >
+                        히스토리
+                    </NavLink>
                     <button
                         onClick={() => setIsSettingsOpen(true)}
                         style={{
