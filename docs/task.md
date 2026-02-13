@@ -90,6 +90,53 @@
   - 사진 슬롯 6종: 반려동물/일상/산책/사료·간식/용품/추가
   - `categories.js`, `PhotoUploader.jsx`, `openai.js`, `EditorPage.jsx` 4개 파일 반영
 
+## 완료된 작업 (2026-02-13) — 작성 히스토리 기능 구현 세션
+
+### 신규 기능: 히스토리 대시보드 (`/history`)
+- [x] `HistoryPage.jsx` 신규 생성 — 기간 필터(7일/30일/90일/전체) + 7개 분석 섹션
+- [x] 요약 카드 4개: 총 글수, 금주 작성(전주 대비 증감), 평균 SEO 점수, 총 작성시간
+- [x] 생산성 트렌드: 일별 작성 수 CSS 바 차트 + 연속 작성일 배지
+- [x] SEO 점수 추이: 주간 평균 도트 차트 + 목표 80점 가이드라인
+- [x] 카테고리 분포: CSS `conic-gradient` 도넛 차트 + 범례
+- [x] 키워드 전략: 재사용 vs 신규 비율 스택 바 + 상위 키워드 횡 바 차트
+- [x] AI 활용 비율: AI vs 직접 작성 스택 바 + 기능별 사용 횟수 횡 바 차트
+- [x] 작성 패턴: 요일(7)×시간(24) CSS 히트맵 그리드 (투명도 강도 표현)
+
+### 신규 기능: 글별 히스토리 타임라인 (사이드바)
+- [x] `PostHistory.jsx` 신규 생성 — 에디터 사이드바 접이식 패널
+- [x] SEO 점수 미니 게이지 + 글자수 성장 바
+- [x] 편집 세션 타임라인 (생성/수정 이벤트, 글자수·SEO 변화, 소요 시간)
+- [x] AI 사용 내역 배지 (기능별 활성/비활성 표시)
+- [x] `AIAnalysisDashboard.jsx`에 PostHistory 컴포넌트 통합
+
+### 데이터 레이어 확장
+- [x] `history.js` 유틸리티 신규 생성 — 마이그레이션, 집계, 프루닝, 스토리지 모니터링
+- [x] 글 스키마 확장: `categoryId`, `tone`, `mode`, `seoScore`, `charCount`, `imageCount`, `headingCount`, `editSessions`, `aiUsage` 필드 추가
+- [x] 별도 히스토리 저장소(`naver_blog_history`): 일별 집계 180일, 주간 SEO, 카테고리 분포, 키워드 이력 100개
+- [x] 기존 글 자동 마이그레이션 (앱 로드 시 1회)
+- [x] localStorage 80% 초과 시 경고 표시
+
+### 편집 세션 추적
+- [x] `EditorContext.jsx`에 `sessionRef` 기반 편집 세션 추적 (렌더 비용 없음)
+- [x] `openPostStable()`에서 세션 시작 (charsBefore, seoScoreBefore 기록)
+- [x] `closeSession()`에서 세션 종료 (5초 미만 필터링, editSessions에 저장, dailyStats 갱신)
+- [x] `recordAiAction()` — 6개 AI 기능에 추적 코드 삽입 (키워드·경쟁·사진·본문·아웃라인·태그)
+- [x] `beforeunload` + 라우트 변경 시 자동 세션 종료
+
+### 데이터 수집 연동
+- [x] `EditorPage.jsx` — AI 호출 시 `recordAiAction` 호출 (5개 함수)
+- [x] `StartWizardPage.jsx` — `createPost()`에 `categoryId`, `tone`, `mode` 메타데이터 전달
+- [x] `PostListPage.jsx` — SEO 점수 뱃지(초록/노랑/빨강) + AI 모드 표시 + 히스토리 링크
+- [x] `AIAnalysisDashboard.jsx` — 태그 추출 시 `recordAiAction` 호출
+
+### 라우팅 & 내비게이션
+- [x] `App.jsx`에 `/history` 라우트 추가
+- [x] `Header.jsx`에 "히스토리" NavLink 추가
+- [x] `PostListPage.jsx`에 "히스토리" 버튼 추가
+
+### 스타일
+- [x] `history.css` 신규 생성 (470줄) — 대시보드·차트·타임라인·히트맵·반응형 전용 CSS
+
 ## 이전 완료 작업 (2026-02-06)
 
 ### 버그 수정
