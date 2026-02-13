@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useEditor as useEditorContext } from '../../context/EditorContext';
+import { useToast } from '../common/Toast';
 import { useEditor, EditorContent } from '@tiptap/react';
 import { BubbleMenu } from '@tiptap/react/menus';
 import StarterKit from '@tiptap/starter-kit';
@@ -163,6 +164,7 @@ const AI_FOOTER_MARKER = 'AI 생성 도구를 사용하여 제작되었습니다
 
 const TiptapEditor = () => {
     const { content, setContent, keywords, suggestedTone, editorRef, lastCursorPosRef } = useEditorContext();
+    const { showToast } = useToast();
     const [aiDropdownOpen, setAiDropdownOpen] = useState(false);
     const [aiLoading, setAiLoading] = useState(false);
     const [aiFooterEnabled, setAiFooterEnabled] = useState(() => {
@@ -252,11 +254,11 @@ const TiptapEditor = () => {
             }
         } catch (error) {
             console.error('[AI 재작성] 실패:', error);
-            alert('AI 재작성에 실패했습니다: ' + error.message);
+            showToast('AI 재작성에 실패했습니다: ' + error.message, 'error');
         } finally {
             setAiLoading(false);
         }
-    }, [editor, keywords]);
+    }, [editor, keywords, showToast]);
 
     // Content Sync Logic: 외부(스트리밍 등)에서 content가 변경되면 에디터에 반영
     // emitUpdate=false로 onUpdate 콜백 미발생 → 무한 루프 방지

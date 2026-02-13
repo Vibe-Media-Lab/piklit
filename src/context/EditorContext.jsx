@@ -13,7 +13,7 @@ export const EditorProvider = ({ children }) => {
     const [keywords, setKeywords] = useState({ main: '', sub: ['', '', ''] });
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('<p></p>');
-    const [analysis, setAnalysis] = useState({ checks: {}, issues: [], totalChars: 0, imageCount: 0, hasVideo: false });
+    const [analysis, setAnalysis] = useState({ checks: {}, issues: [], totalChars: 0, imageCount: 0, hasVideo: false, keywordDensity: 0, introLength: 0, headingCount: 0 });
     const [suggestedTone, setSuggestedTone] = useState('friendly');
     const [targetLength, setTargetLength] = useState(1500);
     const editorRef = React.useRef(null);

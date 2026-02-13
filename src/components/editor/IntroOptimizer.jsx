@@ -1,9 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { useEditor } from '../../context/EditorContext';
+import { useToast } from '../common/Toast';
 import { AIService } from '../../services/openai';
 
 const IntroOptimizer = () => {
     const { title, content, setContent, keywords, suggestedTone } = useEditor();
+    const { showToast } = useToast();
     const [alternatives, setAlternatives] = useState([]);
     const [loading, setLoading] = useState(false);
     const [open, setOpen] = useState(false);
@@ -33,35 +35,36 @@ const IntroOptimizer = () => {
     const hasKeywordInIntro = mainKeyword && currentIntro.includes(mainKeyword);
 
     const handleGenerate = async () => {
-        if (!currentIntro) return alert('본문에 도입부가 없습니다. 먼저 글을 작성해주세요.');
-        if (!mainKeyword) return alert('메인 키워드를 먼저 설정해주세요.');
+        if (!currentIntro) return showToast('본문에 도입부가 없습니다. 먼저 글을 작성해주세요.', 'warning');
+        if (!mainKeyword) return showToast('메인 키워드를 먼저 설정해주세요.', 'warning');
 
         const apiKey = AIService.getKey();
-        if (!apiKey) return alert('설정(⚙️)에서 API Key를 먼저 등록해주세요.');
+        if (!apiKey) return showToast('설정(⚙️)에서 API Key를 먼저 등록해주세요.', 'warning');
 
         setLoading(true);
         setAlternatives([]);
         try {
             const subKws = (keywords.sub || []).filter(k => k && k.trim());
-            const result = await AIService.generateIntroAlternatives(currentIntro, mainKeyword, subKws, title, suggestedTone);
+            // 본문 텍스트를 전달하여 실제 톤앤무드를 분석하게 함
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(content, 'text/html');
+            const bodyText = (doc.body.textContent || '').substring(0, 800);
+            const result = await AIService.generateIntroAlternatives(currentIntro, mainKeyword, subKws, title, suggestedTone, bodyText);
             if (result?.alternatives && Array.isArray(result.alternatives)) {
                 setAlternatives(result.alternatives);
             }
         } catch (e) {
             console.error('[도입부 최적화] 오류:', e);
-            alert('도입부 생성 중 오류가 발생했습니다: ' + e.message);
+            showToast('도입부 생성 중 오류가 발생했습니다: ' + e.message, 'error');
         } finally {
             setLoading(false);
         }
     };
 
     const handleApply = (newIntroText) => {
-        // 첫 번째 <p> 태그의 내용을 교체
-        const replaced = content.replace(
-            /(<p[^>]*>)([\s\S]*?)(<\/p>)/i,
-            `$1${newIntroText}$3`
-        );
-        setContent(replaced);
+        // 맨 상단에 새 <p> 태그로 삽입 (정보카드 위에 배치)
+        const newContent = `<p>${newIntroText}</p>` + content;
+        setContent(newContent);
         setAlternatives([]);
     };
 

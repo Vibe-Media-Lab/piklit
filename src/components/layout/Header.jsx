@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { NavLink } from 'react-router-dom';
 import './Layout.css';
 import { useEditor } from '../../context/EditorContext';
-import { copyToClipboard } from '../../utils/clipboard';
+import { copyToClipboard, exportAsMarkdown, exportAsHtml, exportAsText } from '../../utils/clipboard';
 import SettingsModal from '../common/SettingsModal';
 
 const Header = () => {
@@ -10,6 +10,20 @@ const Header = () => {
     const [copyStatus, setCopyStatus] = useState('idle'); // idle, success, error
     const [saveStatus, setSaveStatus] = useState('idle'); // idle, success
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [exportOpen, setExportOpen] = useState(false);
+    const exportRef = useRef(null);
+
+    // 외부 클릭 시 드롭다운 닫힘
+    useEffect(() => {
+        if (!exportOpen) return;
+        const handleClickOutside = (e) => {
+            if (exportRef.current && !exportRef.current.contains(e.target)) {
+                setExportOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [exportOpen]);
 
     const handleSave = () => {
         const success = savePost();
@@ -96,6 +110,38 @@ const Header = () => {
                             <>📋 블로그로 복사</>
                         )}
                     </button>
+                    <div className="export-dropdown" ref={exportRef}>
+                        <button
+                            onClick={() => setExportOpen(prev => !prev)}
+                            style={{
+                                padding: '8px 16px',
+                                backgroundColor: 'var(--color-surface)',
+                                color: 'var(--color-text-main)',
+                                borderRadius: 'var(--radius-lg)',
+                                fontWeight: '600',
+                                border: '1px solid var(--color-border)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            내보내기 ▾
+                        </button>
+                        {exportOpen && (
+                            <div className="export-dropdown-menu">
+                                <button onClick={() => { exportAsMarkdown(title, content); setExportOpen(false); }}>
+                                    Markdown (.md)
+                                </button>
+                                <button onClick={() => { exportAsHtml(title, content); setExportOpen(false); }}>
+                                    HTML (.html)
+                                </button>
+                                <button onClick={() => { exportAsText(title, content); setExportOpen(false); }}>
+                                    텍스트 (.txt)
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </header>
             <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />

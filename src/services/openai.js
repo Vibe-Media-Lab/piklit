@@ -198,10 +198,20 @@ ${excludeInstruction}
 Output strictly a valid JSON:
 {"mainKeyword": "메인 키워드", "subKeywords": ["서브1","서브2","서브3","서브4","서브5","서브6","서브7","서브8","서브9","서브10"]}`;
 
-        const result = await this.generateContent([{ text: prompt }], {
+        // 1차 시도: google_search + thinkingBudget 0
+        let result = await this.generateContent([{ text: prompt }], {
             tools: [{ google_search: {} }],
             thinkingBudget: 0
         }, '키워드 분석');
+
+        // google_search 사용 시 모델이 JSON 대신 텍스트로 응답하는 경우 → JSON 모드로 재시도
+        if (!result?.subKeywords || !Array.isArray(result.subKeywords)) {
+            console.log('[키워드 분석] JSON 파싱 실패, responseMimeType=json으로 재시도...');
+            result = await this.generateContent([{ text: prompt }], {
+                generationConfig: { responseMimeType: 'application/json' },
+                thinkingBudget: 0
+            }, '키워드 분석 (재시도)');
+        }
 
         // 후처리: 문자열 배열 → {keyword} 객체 배열로 변환 (difficulty는 별도 확인)
         if (result?.subKeywords && Array.isArray(result.subKeywords)) {
@@ -812,8 +822,19 @@ ${JSON.stringify(exampleOutput)}`;
      * @param {string} title - 게시글 제목
      * @returns {Promise<{alternatives: Array<{text: string, strategy: string}>}>}
      */
-    async generateIntroAlternatives(currentIntro, mainKeyword, subKeywords = [], title = '', tone = 'friendly') {
+    async generateIntroAlternatives(currentIntro, mainKeyword, subKeywords = [], title = '', tone = 'friendly', bodyText = '') {
         const toneDesc = this._toneMap[tone] || this._toneMap['friendly'];
+
+        // 본문이 있으면 본문 톤 우선, 없으면 설정 톤 사용
+        const toneSection = bodyText
+            ? `[본문 실제 문체 — 반드시 이 문체를 따를 것!!!]
+아래 본문을 읽고 어미·문체·분위기를 정확히 파악해. 도입부도 동일한 어미를 사용해야 함.
+본문이 "~다/~했다" 체면 도입부도 "~다/~했다"로 끝내야 하고,
+본문이 "~해요/~했어요" 체면 도입부도 "~해요/~했어요"로 끝내야 함.
+이모지를 안 쓰면 도입부에도 이모지 금지. 쓰면 도입부에도 사용.
+
+${bodyText}`
+            : `[톤앤무드]\n${toneDesc}`;
 
         const prompt = `너는 네이버 블로그 SEO 전문가야. 네이버 검색 결과에서 클릭률(CTR)을 극대화하는 도입부를 작성해.
 
@@ -821,13 +842,14 @@ ${JSON.stringify(exampleOutput)}`;
 - 제목: ${title || '없음'}
 - 메인 키워드: ${mainKeyword}
 - 서브 키워드: ${subKeywords.join(', ') || '없음'}
-- 톤앤무드: ${toneDesc}
+
+${toneSection}
 
 [현재 도입부]
 ${currentIntro}
 
 [작업]
-현재 도입부를 분석하고, 클릭률을 높일 수 있는 대안 도입부 3개를 작성해.
+위 본문과 동일한 문체·어미로 대안 도입부 3개를 작성해.
 
 [규칙]
 1. 각 도입부는 2~3문장, 80~150자 이내
@@ -837,7 +859,7 @@ ${currentIntro}
    - 첫 번째: 핵심 정보 선행형 (결론/정보를 먼저 제시)
    - 두 번째: 공감 유도형 (독자 상황에 공감하며 시작)
    - 세 번째: 궁금증 유발형 (질문이나 의외의 사실로 시작)
-5. 반드시 위 톤앤무드를 따를 것. 문체, 어미, 분위기를 일관되게 유지
+5. **[절대 규칙]** 본문의 어미를 100% 따라할 것. 본문이 "~다"로 끝나면 "~해요/~합니다/~거예요" 절대 금지. 본문이 "~해요"로 끝나면 "~다/~했다" 절대 금지.
 
 Output strictly a valid JSON:
 {"alternatives":[{"text":"도입부 텍스트","strategy":"전략 설명"},{"text":"도입부 텍스트","strategy":"전략 설명"},{"text":"도입부 텍스트","strategy":"전략 설명"}]}`;

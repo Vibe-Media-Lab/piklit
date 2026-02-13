@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import Header from '../components/layout/Header';
 import MainContainer from '../components/layout/MainContainer';
 import { useEditor } from '../context/EditorContext';
+import { useToast } from '../components/common/Toast';
 import { getTemplateById } from '../data/templates';
 import { AIService } from '../services/openai';
 import { formatParagraphs } from '../utils/analysis';
@@ -18,6 +19,7 @@ const EditorPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { openPost, posts, currentPostId, updateMainKeyword, updateSubKeywords, setSuggestedTone, setContent, content, setTargetLength, editorRef, lastCursorPosRef } = useEditor();
+    const { showToast } = useToast();
 
     const loadedRef = useRef(null);
     const locationStateProcessed = useRef(false);
@@ -25,6 +27,7 @@ const EditorPage = () => {
     // DUAL MODE STATE
     const [editorMode, setEditorMode] = useState(location.state?.initialMode || 'direct');
     const [isGenerating, setIsGenerating] = useState(false);
+    const [generationStep, setGenerationStep] = useState(0); // 0~4 단계별 로딩
     const [wizardData, setWizardData] = useState(null);
 
     // AI 모드 4단계 스텝
@@ -148,7 +151,7 @@ const EditorPage = () => {
     // 키워드 AI 분석 (추가 제안 시 이미 선택한 키워드 제외)
     const handleAnalyzeKeywords = async () => {
         const topic = wizardData?.initialMainKeyword || location.state?.initialMainKeyword || mainKeyword;
-        if (!topic) return alert('주제를 먼저 입력해주세요.');
+        if (!topic) return showToast('주제를 먼저 입력해주세요.', 'warning');
 
         console.log('[키워드 분석] 시작:', { topic, excludeKeywords: selectedKeywords });
 
@@ -200,7 +203,7 @@ const EditorPage = () => {
             }
         } catch (e) {
             console.error('키워드 분석 오류:', e);
-            alert('키워드 분석 중 오류가 발생했습니다.');
+            showToast('키워드 분석 중 오류가 발생했습니다.', 'error');
         } finally {
             setIsAnalyzingKeywords(false);
         }
@@ -234,7 +237,7 @@ const EditorPage = () => {
                 setSelectedKeywords(prev => [...prev, kwObj]);
                 setSuggestedKeywords(prev => prev.filter(k => (k.keyword || k) !== kw));
             } else {
-                alert('서브 키워드는 최대 5개까지 선택할 수 있습니다.');
+                showToast('서브 키워드는 최대 5개까지 선택할 수 있습니다.', 'warning');
             }
         }
     };
@@ -248,7 +251,7 @@ const EditorPage = () => {
 
     // 경쟁 블로그 분석 (캐시 우선, 없으면 단독 API 호출)
     const handleAnalyzeCompetitors = async () => {
-        if (!mainKeyword.trim()) return alert('메인 키워드를 먼저 입력해주세요.');
+        if (!mainKeyword.trim()) return showToast('메인 키워드를 먼저 입력해주세요.', 'warning');
         setIsAnalyzingCompetitors(true);
         try {
             const result = await AIService.analyzeCompetitors(mainKeyword);
@@ -256,14 +259,14 @@ const EditorPage = () => {
                 setCompetitorData(result);
             } else {
                 console.warn('[경쟁 분석] 예상치 못한 응답 형식:', result);
-                alert('분석 결과 형식이 올바르지 않습니다. 다시 시도해주세요.');
+                showToast('분석 결과 형식이 올바르지 않습니다. 다시 시도해주세요.', 'error');
             }
         } catch (e) {
             console.error('경쟁 블로그 분석 오류:', e);
             if (e.message?.includes('429')) {
-                alert('API 호출 제한에 걸렸습니다. 잠시 후(약 30초) 다시 시도해주세요.');
+                showToast('API 호출 제한에 걸렸습니다. 잠시 후(약 30초) 다시 시도해주세요.', 'error');
             } else {
-                alert(`경쟁 블로그 분석 중 오류: ${e.message}`);
+                showToast(`경쟁 블로그 분석 중 오류: ${e.message}`, 'error');
             }
         } finally {
             setIsAnalyzingCompetitors(false);
@@ -291,7 +294,7 @@ const EditorPage = () => {
     // 사진 AI 분석
     const handleAnalyzePhotos = async () => {
         const photoCount = Object.values(photoData.metadata).filter(v => v > 0).length;
-        if (photoCount < 1) return alert('최소 1장의 사진을 업로드해주세요.');
+        if (photoCount < 1) return showToast('최소 1장의 사진을 업로드해주세요.', 'warning');
 
         setIsAnalyzingPhotos(true);
         try {
@@ -328,7 +331,7 @@ const EditorPage = () => {
             }
         } catch (e) {
             console.error('사진 분석 오류:', e);
-            alert('사진 분석 중 오류가 발생했습니다.');
+            showToast('사진 분석 중 오류가 발생했습니다.', 'error');
         } finally {
             setIsAnalyzingPhotos(false);
         }
@@ -493,8 +496,9 @@ const EditorPage = () => {
         const effectiveWizardData = wizardData || location.state;
 
         setIsGenerating(true);
+        setGenerationStep(0);
         try {
-            // 캐시된 base64 이미지 사용 (Step 2에서 변환 완료된 경우)
+            // Step 0: 준비 중 (이미지 변환)
             let photoAssets = cachedPhotoAssets;
             if (photoAssets.length === 0) {
                 photoAssets = [];
@@ -518,6 +522,9 @@ const EditorPage = () => {
                 photoCount: photoAssets.length
             });
 
+            // Step 1: 사진 분석 중
+            setGenerationStep(1);
+
             // 이미지 ALT 텍스트가 없으면 본문 생성 전에 생성 시도 (ref로 최신 값 참조)
             if (Object.keys(imageAltsRef.current).length === 0) {
                 const uploadedSlots = Object.entries(photoData.metadata)
@@ -537,6 +544,17 @@ const EditorPage = () => {
                     }
                 }
             }
+
+            // Step 2: 경쟁 분석 중 (이미 있으면 스킵)
+            if (!competitorData) {
+                setGenerationStep(2);
+            }
+
+            // Step 3: ALT 텍스트 생성 중
+            setGenerationStep(3);
+
+            // Step 4: 본문 작성 중
+            setGenerationStep(4);
 
             const result = await AIService.generateFullDraft(
                 effectiveWizardData?.initialCategoryId || 'daily',
@@ -559,11 +577,11 @@ const EditorPage = () => {
                 // 메인 키워드 업데이트
                 updateMainKeyword(mainKeyword);
             } else {
-                alert('AI 응답 형식이 올바르지 않습니다. 다시 시도해주세요.');
+                showToast('AI 응답 형식이 올바르지 않습니다. 다시 시도해주세요.', 'error');
             }
         } catch (e) {
             console.error('[AI Generate] 오류:', e);
-            alert("AI 작성 중 오류가 발생했습니다: " + e.message);
+            showToast("AI 작성 중 오류가 발생했습니다: " + e.message, 'error');
         } finally {
             setIsGenerating(false);
             setEditorMode('direct');
@@ -613,7 +631,7 @@ const EditorPage = () => {
             }
         } catch (e) {
             console.error('[아웃라인] 생성 오류:', e);
-            alert('아웃라인 생성 중 오류가 발생했습니다: ' + e.message);
+            showToast('아웃라인 생성 중 오류가 발생했습니다: ' + e.message, 'error');
         } finally {
             setIsGeneratingOutline(false);
         }
@@ -1293,8 +1311,17 @@ const EditorPage = () => {
         );
     }
 
-    // 생성 중 로딩 UI
+    // 생성 중 로딩 UI (단계별 체크리스트 + 프로그레스 바)
     if (isGenerating) {
+        const GENERATION_STEPS = [
+            { label: '준비 중 (이미지 변환)', icon: '📦' },
+            { label: '사진 분석 중', icon: '🔍' },
+            { label: '경쟁 분석 중', icon: '📊' },
+            { label: 'ALT 텍스트 생성 중', icon: '🏷️' },
+            { label: '본문 작성 중', icon: '✍️' },
+        ];
+        const progressPercent = Math.round((generationStep / (GENERATION_STEPS.length - 1)) * 100);
+
         return (
             <div className="app-layout">
                 <Header />
@@ -1309,33 +1336,66 @@ const EditorPage = () => {
                 }}>
                     <div style={{
                         textAlign: 'center',
-                        padding: '60px',
+                        padding: '48px 60px',
                         background: 'white',
                         borderRadius: '20px',
-                        boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                        minWidth: '400px'
                     }}>
-                        <div style={{ fontSize: '4rem', marginBottom: '24px' }}>✨</div>
-                        <h2 style={{ marginBottom: '16px' }}>AI가 글을 작성하고 있어요</h2>
-                        <p style={{ color: '#666', marginBottom: '24px' }}>
-                            사진을 분석하고, 검색 결과를 참고하여<br />
-                            SEO에 최적화된 블로그 글을 작성 중입니다.
+                        <div style={{ fontSize: '3rem', marginBottom: '16px' }}>✨</div>
+                        <h2 style={{ marginBottom: '8px' }}>AI가 글을 작성하고 있어요</h2>
+                        <p style={{ color: '#666', marginBottom: '28px', fontSize: '0.9rem' }}>
+                            잠시만 기다려주세요. 곧 완성됩니다!
                         </p>
+
+                        {/* 프로그레스 바 */}
                         <div style={{
-                            width: '200px', height: '4px', background: '#E0E0E0', borderRadius: '2px',
-                            overflow: 'hidden', margin: '0 auto'
+                            width: '100%', height: '6px', background: '#E0E0E0', borderRadius: '3px',
+                            overflow: 'hidden', marginBottom: '28px'
                         }}>
                             <div style={{
-                                width: '40%', height: '100%', background: 'var(--color-accent)',
-                                animation: 'progress 1.5s ease-in-out infinite'
+                                width: `${progressPercent}%`, height: '100%',
+                                background: 'linear-gradient(90deg, var(--color-accent), var(--color-primary))',
+                                borderRadius: '3px',
+                                transition: 'width 0.5s ease'
                             }} />
+                        </div>
+
+                        {/* 단계별 체크리스트 */}
+                        <div style={{ textAlign: 'left' }}>
+                            {GENERATION_STEPS.map((step, idx) => {
+                                const isDone = idx < generationStep;
+                                const isCurrent = idx === generationStep;
+                                return (
+                                    <div key={idx} style={{
+                                        display: 'flex', alignItems: 'center', gap: '12px',
+                                        padding: '8px 0',
+                                        color: isDone ? '#16A34A' : isCurrent ? 'var(--color-primary)' : '#ccc',
+                                        fontWeight: isCurrent ? '600' : '400',
+                                        fontSize: '0.9rem'
+                                    }}>
+                                        <span style={{ width: '24px', textAlign: 'center' }}>
+                                            {isDone ? '✅' : isCurrent ? step.icon : '⬜'}
+                                        </span>
+                                        <span>{step.label}</span>
+                                        {isCurrent && (
+                                            <span style={{
+                                                marginLeft: 'auto',
+                                                fontSize: '0.75rem',
+                                                color: 'var(--color-accent)',
+                                                animation: 'pulse 1.5s infinite'
+                                            }}>진행 중...</span>
+                                        )}
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
                 </div>
                 <style>{`
-                    @keyframes progress {
-                        0% { transform: translateX(-100%); }
-                        50% { transform: translateX(150%); }
-                        100% { transform: translateX(-100%); }
+                    @keyframes pulse {
+                        0%, 100% { opacity: 1; }
+                        50% { opacity: 0.4; }
                     }
                 `}</style>
             </div>

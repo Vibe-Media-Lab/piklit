@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useToast } from './Toast';
 
 const SettingsModal = ({ isOpen, onClose }) => {
+    const { showToast } = useToast();
     const [apiKey, setApiKey] = useState('');
 
     useEffect(() => {
@@ -12,7 +14,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
     const handleSave = () => {
         localStorage.setItem('openai_api_key', apiKey);
         onClose();
-        alert('API Key가 저장되었습니다.');
+        showToast('API Key가 저장되었습니다.', 'success');
     };
 
     if (!isOpen) return null;

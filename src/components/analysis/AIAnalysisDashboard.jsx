@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { useEditor } from '../../context/EditorContext';
+import { useToast } from '../common/Toast';
 import { AIService } from '../../services/openai';
 
 const AIAnalysisDashboard = () => {
-    const { analysis, content, keywords, setKeywords } = useEditor();
-    const { checks, issues } = analysis;
+    const { analysis, content } = useEditor();
+    const { checks, issues, keywordDensity, introLength, headingCount } = analysis;
     const score = Object.values(checks).filter(Boolean).length;
-    const maxScore = Object.keys(checks).length;
+    const maxScore = Object.keys(checks).length || 1;
     const percentage = Math.round((score / maxScore) * 100);
+    const { showToast } = useToast();
 
     const [loading, setLoading] = useState(false);
     const [extractedTags, setExtractedTags] = useState([]);
@@ -15,9 +17,9 @@ const AIAnalysisDashboard = () => {
     const [copiedAll, setCopiedAll] = useState(false); // 전체 복사 피드백
 
     const handleExtractTags = async () => {
-        if (content.length < 50) return alert("본문 내용을 좀 더 작성해주세요.");
+        if (content.length < 50) return showToast("본문 내용을 좀 더 작성해주세요.", "warning");
         const apiKey = AIService.getKey();
-        if (!apiKey) return alert("설정에서 API Key를 먼저 등록해주세요.");
+        if (!apiKey) return showToast("설정에서 API Key를 먼저 등록해주세요.", "warning");
 
         setLoading(true);
         setExtractedTags([]);
@@ -30,7 +32,7 @@ const AIAnalysisDashboard = () => {
             const cleanTags = (Array.isArray(tags) ? tags : []).map(t => t.replace('#', ''));
             setExtractedTags(cleanTags);
         } catch (e) {
-            alert("태그 추출 오류: " + e.message);
+            showToast("태그 추출 오류: " + e.message, "error");
         } finally {
             setLoading(false);
         }
@@ -66,6 +68,22 @@ const AIAnalysisDashboard = () => {
                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
                     <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>{percentage}점</div>
                     <div style={{ fontSize: '0.7rem', color: '#888' }}>SEO 점수</div>
+                </div>
+            </div>
+
+            {/* Metrics Cards */}
+            <div className="metrics-grid">
+                <div className="metric-card">
+                    <div className="metric-value">{keywordDensity != null ? `${keywordDensity}%` : '-'}</div>
+                    <div className="metric-label">키워드 밀도</div>
+                </div>
+                <div className="metric-card">
+                    <div className="metric-value">{introLength != null ? `${introLength}자` : '-'}</div>
+                    <div className="metric-label">도입부 길이</div>
+                </div>
+                <div className="metric-card">
+                    <div className="metric-value">{headingCount != null ? headingCount : '-'}</div>
+                    <div className="metric-label">소제목 수</div>
                 </div>
             </div>
 
@@ -150,7 +168,7 @@ const AIAnalysisDashboard = () => {
                                 fontSize: '0.85rem',
                                 display: 'flex', alignItems: 'start', gap: '8px'
                             }}>
-                                <span>{issue.type === 'error' ? '' : ''}</span>
+                                <span>{issue.type === 'error' ? '❌' : issue.type === 'warning' ? '⚠️' : 'ℹ️'}</span>
                                 {issue.text}
                             </li>
                         ))}

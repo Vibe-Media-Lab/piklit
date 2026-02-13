@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useEditor } from '../../context/EditorContext';
+import { useToast } from '../common/Toast';
 import { AIService } from '../../services/openai';
 
 const TitleInput = () => {
     const { title, setTitle, keywords, content } = useEditor();
+    const { showToast } = useToast();
     const [recommendations, setRecommendations] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -13,10 +15,10 @@ const TitleInput = () => {
     const startsWithKeyword = mainKeyword && title.startsWith(mainKeyword);
 
     const handleRecommendToken = async () => {
-        if (!mainKeyword) return alert('메인 키워드를 먼저 설정해주세요.');
+        if (!mainKeyword) return showToast('메인 키워드를 먼저 설정해주세요.', 'warning');
 
         const apiKey = AIService.getKey();
-        if (!apiKey) return alert('설정(⚙️)에서 API Key를 먼저 등록해주세요.');
+        if (!apiKey) return showToast('설정(⚙️)에서 API Key를 먼저 등록해주세요.', 'warning');
 
         setLoading(true);
         setError(null);

@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { EditorProvider } from './context/EditorContext';
+import { ToastProvider } from './components/common/Toast';
 import PostListPage from './pages/PostListPage';
 import EditorPage from './pages/EditorPage';
 import StartWizardPage from './pages/StartWizardPage';
@@ -12,15 +13,17 @@ function App() {
     return (
         <Router>
             <EditorProvider>
-                <Routes>
-                    <Route path="/" element={<PostListPage />} />
-                    <Route path="/start" element={<StartWizardPage />} />
-                    <Route path="/editor/:id" element={
-                        <ErrorBoundary>
-                            <EditorPage />
-                        </ErrorBoundary>
-                    } />
-                </Routes>
+                <ToastProvider>
+                    <Routes>
+                        <Route path="/" element={<PostListPage />} />
+                        <Route path="/start" element={<StartWizardPage />} />
+                        <Route path="/editor/:id" element={
+                            <ErrorBoundary>
+                                <EditorPage />
+                            </ErrorBoundary>
+                        } />
+                    </Routes>
+                </ToastProvider>
             </EditorProvider>
         </Router>
     );

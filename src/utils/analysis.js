@@ -113,7 +113,11 @@ export const analyzePost = (title, htmlContent, keywords, targetLength = 1500) =
         contentLength: false,
         structure: false, // H2/H3 usage
         imageCount: false, // 5-15장 권장
-        videoPresence: false // 동영상 1개 이상 권장 (체류 시간 증가)
+        videoPresence: false, // 동영상 1개 이상 권장 (체류 시간 증가)
+        headingKeywords: false, // H2/H3에 메인 키워드 포함 여부
+        keywordDensityPercent: false, // 키워드 밀도 1~3%
+        imageAltText: false, // 이미지 Alt 속성 존재 + 중복 여부
+        introParagraphLength: false // 첫 문단 140~160자
     };
 
     const mainKeyword = keywords.main.trim();
@@ -223,5 +227,78 @@ export const analyzePost = (title, htmlContent, keywords, targetLength = 1500) =
         issues.push({ id: 'video_missing', type: 'info', text: '🎬 동영상을 추가하면 체류 시간이 증가합니다 (SEO 가점).' });
     }
 
-    return { checks, issues, totalChars, imageCount, hasVideo };
+    // 8. Heading Keywords — H2/H3 텍스트에 메인 키워드 포함 여부
+    const headings = doc.querySelectorAll('h2, h3');
+    const headingCount = headings.length;
+    if (mainKeyword && headingCount > 0) {
+        const headingWithKeyword = Array.from(headings).some(
+            h => h.textContent.toLowerCase().includes(mainKeyword.toLowerCase())
+        );
+        if (headingWithKeyword) {
+            checks.headingKeywords = true;
+        } else {
+            issues.push({ id: 'heading_keyword', type: 'warning', text: '소제목(H2/H3)에 메인 키워드를 포함하면 SEO에 유리합니다.' });
+        }
+    } else if (!mainKeyword) {
+        // 키워드 없으면 체크 스킵 (패스 처리)
+        checks.headingKeywords = true;
+    } else {
+        issues.push({ id: 'heading_keyword', type: 'info', text: '소제목이 없어 키워드 포함 여부를 확인할 수 없습니다.' });
+    }
+
+    // 9. Keyword Density Percent — 글 길이 대비 키워드 밀도 (적정: 1~3%)
+    let keywordDensity = 0;
+    if (mainKeyword && totalChars > 0) {
+        const escapedKey = mainKeyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const densityRegex = new RegExp(escapedKey, 'gi');
+        const densityMatches = fullText.match(densityRegex);
+        const keywordCharTotal = (densityMatches ? densityMatches.length : 0) * mainKeyword.length;
+        keywordDensity = Math.round((keywordCharTotal / totalChars) * 1000) / 10; // 소수점 1자리
+        if (keywordDensity >= 1 && keywordDensity <= 3) {
+            checks.keywordDensityPercent = true;
+        } else if (keywordDensity < 1) {
+            issues.push({ id: 'keyword_density_low', type: 'warning', text: `키워드 밀도가 낮습니다 (${keywordDensity}%, 적정: 1~3%).` });
+        } else {
+            issues.push({ id: 'keyword_density_high', type: 'warning', text: `키워드 밀도가 높습니다 (${keywordDensity}%, 적정: 1~3%). 과최적화 주의.` });
+        }
+    } else {
+        checks.keywordDensityPercent = true; // 키워드 없으면 패스
+    }
+
+    // 10. Image Alt Text — 이미지 Alt 속성 존재 + 중복 여부
+    const images = doc.querySelectorAll('img');
+    if (images.length > 0) {
+        const alts = Array.from(images).map(img => img.getAttribute('alt') || '');
+        const missingAlt = alts.filter(a => !a.trim()).length;
+        const uniqueAlts = new Set(alts.filter(a => a.trim()));
+        const hasDuplicates = uniqueAlts.size < alts.filter(a => a.trim()).length;
+
+        if (missingAlt === 0 && !hasDuplicates) {
+            checks.imageAltText = true;
+        } else {
+            if (missingAlt > 0) {
+                issues.push({ id: 'img_alt_missing', type: 'warning', text: `${missingAlt}개 이미지에 Alt 텍스트가 없습니다.` });
+            }
+            if (hasDuplicates) {
+                issues.push({ id: 'img_alt_duplicate', type: 'info', text: '이미지 Alt 텍스트가 중복됩니다. 고유한 설명을 사용하세요.' });
+            }
+        }
+    } else {
+        checks.imageAltText = true; // 이미지 없으면 패스
+    }
+
+    // 11. Intro Paragraph Length — 첫 문단 140~160자 (메타 디스크립션 역할)
+    const firstParagraph = doc.querySelector('p');
+    const introLength = firstParagraph ? (firstParagraph.textContent || '').replace(/\s/g, '').length : 0;
+    if (introLength >= 140 && introLength <= 160) {
+        checks.introParagraphLength = true;
+    } else if (introLength > 0 && introLength < 140) {
+        issues.push({ id: 'intro_short', type: 'info', text: `도입부가 짧습니다 (${introLength}자, 권장: 140~160자).` });
+    } else if (introLength > 160) {
+        issues.push({ id: 'intro_long', type: 'info', text: `도입부가 깁니다 (${introLength}자, 권장: 140~160자).` });
+    } else {
+        checks.introParagraphLength = true; // 본문 없으면 패스
+    }
+
+    return { checks, issues, totalChars, imageCount, hasVideo, keywordDensity, introLength, headingCount };
 };

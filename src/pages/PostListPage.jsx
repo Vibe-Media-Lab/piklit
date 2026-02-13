@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useEditor } from '../context/EditorContext';
 import '../styles/components.css';
@@ -9,9 +9,110 @@ const stripHtml = (html) => {
     return tmp.textContent || tmp.innerText || '';
 };
 
+const calculateStats = (posts) => {
+    if (!posts || posts.length === 0) return null;
+
+    const totalPosts = posts.length;
+
+    // 평균 글자수
+    const charCounts = posts.map(p => stripHtml(p.content).length);
+    const avgChars = Math.round(charCounts.reduce((a, b) => a + b, 0) / totalPosts);
+
+    // 키워드 빈도 Top 5 (main + sub 합산)
+    const kwFreq = {};
+    posts.forEach(p => {
+        if (p.keywords?.main) {
+            const kw = p.keywords.main.trim();
+            if (kw) kwFreq[kw] = (kwFreq[kw] || 0) + 1;
+        }
+        (p.keywords?.sub || []).forEach(s => {
+            const kw = s?.trim();
+            if (kw) kwFreq[kw] = (kwFreq[kw] || 0) + 1;
+        });
+    });
+    const topKeywords = Object.entries(kwFreq)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5);
+    const maxKwCount = topKeywords.length > 0 ? topKeywords[0][1] : 1;
+
+    // 최근 7일 작성 활동
+    const now = new Date();
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        const key = d.toISOString().slice(0, 10);
+        const label = `${d.getMonth() + 1}/${d.getDate()}`;
+        const count = posts.filter(p => p.createdAt && p.createdAt.slice(0, 10) === key).length;
+        days.push({ key, label, count });
+    }
+    const maxDayCount = Math.max(...days.map(d => d.count), 1);
+
+    return { totalPosts, avgChars, topKeywords, maxKwCount, days, maxDayCount };
+};
+
+const StatsDashboard = ({ stats }) => {
+    if (!stats) return null;
+    return (
+        <div className="stats-dashboard">
+            <h3 style={{ marginBottom: '20px', color: 'var(--color-text-main)' }}>작성 통계</h3>
+            <div className="stats-grid">
+                <div className="stat-card">
+                    <div className="stat-value">{stats.totalPosts}</div>
+                    <div className="stat-label">총 글 수</div>
+                </div>
+                <div className="stat-card">
+                    <div className="stat-value">{stats.avgChars.toLocaleString()}</div>
+                    <div className="stat-label">평균 글자수</div>
+                </div>
+            </div>
+
+            {stats.topKeywords.length > 0 && (
+                <div style={{ marginTop: '20px' }}>
+                    <h4 style={{ fontSize: '0.9rem', marginBottom: '12px', color: 'var(--color-text-sub)' }}>키워드 Top 5</h4>
+                    <div className="keyword-bar-list">
+                        {stats.topKeywords.map(([kw, count]) => (
+                            <div key={kw} className="keyword-bar-row">
+                                <span className="keyword-bar-label">{kw}</span>
+                                <div className="keyword-bar-track">
+                                    <div
+                                        className="keyword-bar-fill"
+                                        style={{ width: `${(count / stats.maxKwCount) * 100}%` }}
+                                    />
+                                </div>
+                                <span className="keyword-bar-count">{count}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            <div style={{ marginTop: '20px' }}>
+                <h4 style={{ fontSize: '0.9rem', marginBottom: '12px', color: 'var(--color-text-sub)' }}>최근 7일 활동</h4>
+                <div className="activity-chart">
+                    {stats.days.map(d => (
+                        <div key={d.key} className="activity-bar-col">
+                            <div className="activity-bar-wrapper">
+                                <div
+                                    className="activity-bar-fill"
+                                    style={{ height: d.count > 0 ? `${(d.count / stats.maxDayCount) * 100}%` : '0%' }}
+                                />
+                            </div>
+                            <span className="activity-bar-label">{d.label}</span>
+                            {d.count > 0 && <span className="activity-bar-count">{d.count}</span>}
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const PostListPage = () => {
     const navigate = useNavigate();
     const { posts, createPost, deletePost } = useEditor();
+
+    const stats = useMemo(() => calculateStats(posts), [posts]);
 
     const handleCreate = () => {
         navigate('/start');
@@ -50,6 +151,8 @@ const PostListPage = () => {
                     + 새 글 작성
                 </button>
             </header>
+
+            {stats && <StatsDashboard stats={stats} />}
 
             <div className="post-list">
                 {sortedPosts.length === 0 ? (
