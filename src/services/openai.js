@@ -179,6 +179,14 @@ export const AIService = {
             ? `\n다음 키워드는 반드시 제외: ${excludeKeywords}`
             : '';
 
+        // 시즌/트렌드 반영을 위한 날짜·계절 변수
+        const now = new Date();
+        const month = now.getMonth() + 1;
+        const seasonMap = {12:'겨울',1:'겨울',2:'겨울',3:'봄',4:'봄',5:'봄',6:'여름',7:'여름',8:'여름',9:'가을',10:'가을',11:'가을'};
+        const season = seasonMap[month];
+        const nextMonth = month === 12 ? 1 : month + 1;
+        const nextSeason = seasonMap[nextMonth];
+
         const prompt = `너는 네이버 블로그 SEO 키워드 전문가야.
 "${topic}"에 대해 네이버 검색 유입을 극대화할 키워드를 추천해줘.
 구글 검색으로 "${topic}" 관련 블로그, 카페, 리뷰를 조사해.
@@ -190,6 +198,11 @@ ${excludeInstruction}
 3. 일반 사용자가 실제로 검색할 법한 키워드
 4. 롱테일 키워드 포함 (3~5어절)
 5. 메인 키워드는 검색량이 가장 많을 핵심 키워드
+
+[시즌/트렌드 반영]
+현재: ${now.getFullYear()}년 ${month}월 (${season}). 다음 달: ${nextMonth}월 (${nextSeason}).
+6. 현재 시즌(${season})과 다가올 시즌(${nextSeason})에 검색량이 오를 키워드를 2~3개 포함
+7. 명절·방학·연휴 등 시기적 이벤트 관련 롱테일 키워드 우선 고려
 
 [출력]
 - 메인 키워드 1개
@@ -219,6 +232,73 @@ Output strictly a valid JSON:
                 const word = typeof kw === 'string' ? kw : (kw.keyword || kw);
                 return { keyword: word };
             });
+        }
+
+        return result;
+    },
+
+    /**
+     * 시즌/트렌드 키워드 추천 (방향 B — 사용자 명시적 트리거)
+     * @param {string} topic - 주제
+     * @param {string} category - 카테고리 ID
+     * @param {string[]} existingKeywords - 이미 선택/제안된 키워드 (중복 방지)
+     * @returns {Promise<{seasonKeywords: Array<{keyword: string, reason: string, timing: string}>}>}
+     */
+    async analyzeSeasonKeywords(topic, category = 'daily', existingKeywords = []) {
+        const now = new Date();
+        const month = now.getMonth() + 1;
+        const seasonMap = {12:'겨울',1:'겨울',2:'겨울',3:'봄',4:'봄',5:'봄',6:'여름',7:'여름',8:'여름',9:'가을',10:'가을',11:'가을'};
+        const season = seasonMap[month];
+        const nextMonth = month === 12 ? 1 : month + 1;
+        const nextSeason = seasonMap[nextMonth];
+
+        const excludeList = existingKeywords.length > 0
+            ? `\n다음 키워드와 중복되지 않게 해: ${existingKeywords.join(', ')}`
+            : '';
+
+        const prompt = `너는 네이버 블로그 SEO 시즌 키워드 전문가야.
+구글 검색으로 "${topic}" (카테고리: ${category}) 관련 시즌/트렌드 키워드를 조사해.
+
+현재: ${now.getFullYear()}년 ${month}월 (${season}). 다음 달: ${nextMonth}월 (${nextSeason}).
+${excludeList}
+
+[작업]
+1. 현재 시즌(${season})과 다가올 시즌(${nextSeason})에 "${topic}" 관련 검색량이 급증하는 키워드 5개 추천
+2. 명절·방학·연휴·시즌 이벤트 관련 롱테일 키워드 우선
+3. 1~2개월 후 검색 피크를 맞을 키워드도 포함 (선제적 SEO)
+
+[규칙]
+- 각 키워드는 3~5어절의 구체적인 롱테일 키워드
+- 일반 사용자가 실제로 검색할 법한 표현
+- 각 키워드에 추천 이유(reason)와 검색 피크 시기(timing) 포함
+
+Output strictly a valid JSON:
+{"seasonKeywords":[{"keyword":"시즌 키워드","reason":"추천 이유","timing":"검색 피크 시기"},{"keyword":"시즌 키워드","reason":"추천 이유","timing":"검색 피크 시기"},{"keyword":"시즌 키워드","reason":"추천 이유","timing":"검색 피크 시기"},{"keyword":"시즌 키워드","reason":"추천 이유","timing":"검색 피크 시기"},{"keyword":"시즌 키워드","reason":"추천 이유","timing":"검색 피크 시기"}]}`;
+
+        // 1차 시도: google_search + thinkingBudget 0
+        let result = await this.generateContent([{ text: prompt }], {
+            tools: [{ google_search: {} }],
+            thinkingBudget: 0
+        }, '시즌 키워드 추천');
+
+        // JSON 파싱 실패 시 재시도
+        if (!result?.seasonKeywords || !Array.isArray(result.seasonKeywords)) {
+            console.log('[시즌 키워드] JSON 파싱 실패, responseMimeType=json으로 재시도...');
+            result = await this.generateContent([{ text: prompt }], {
+                generationConfig: { responseMimeType: 'application/json' },
+                thinkingBudget: 0
+            }, '시즌 키워드 추천 (재시도)');
+        }
+
+        // 후처리: 기존 키워드와 중복 필터
+        if (result?.seasonKeywords && Array.isArray(result.seasonKeywords)) {
+            result.seasonKeywords = result.seasonKeywords
+                .map(item => ({
+                    keyword: item.keyword || item,
+                    reason: item.reason || '',
+                    timing: item.timing || ''
+                }))
+                .filter(item => !existingKeywords.includes(item.keyword));
         }
 
         return result;

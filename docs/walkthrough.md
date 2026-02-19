@@ -1,126 +1,111 @@
-# 블로그 작성기 - 세션 워크스루 (2026-02-13)
+# 피클릿 (Piklit) - 세션 워크스루 (2026-02-19)
 
 ## 프로젝트 개요
 네이버 블로그 SEO 최적화 AI 작성기 (React 19 + Vite 7 + TipTap + Google Gemini 2.5 Flash API)
 
 ## 이번 세션 요약
-작성 히스토리 기능 전면 구현 — 히스토리 대시보드 페이지, 글별 타임라인, 편집 세션 추적, 데이터 레이어 확장.
+CDO 문서 4종 작성 — CLAUDE.md(AI 코딩 매뉴얼), CDO.md(비즈니스 전략), architecture.md(기술 아키텍처), design-system.md(디자인 토큰). 시즌/트렌드 키워드 기능(기능 7) 구현 완료.
 
 ## 시간대별 작업 내역
 
-### 16시 — 코드베이스 탐색 및 기획 검토
-- 전체 소스 파일 구조 파악 (30개 파일)
-- 기획서 검토: 데이터 설계(A), 대시보드(B), 글별 타임라인(C), 세션 추적(D), 파일 변경 목록(E), 구현 순서(F)
-- 기존 코드 전수 확인: `EditorContext.jsx`, `PostListPage.jsx`, `EditorPage.jsx`, `StartWizardPage.jsx`, `AIAnalysisDashboard.jsx`, `Header.jsx`, `App.jsx`, `analysis.js`, `components.css`, `variables.css`, `categories.js`
+### 20시 — 코드베이스 전수 탐색 및 문서 작성 준비
+- 전체 소스 파일 구조 파악 (44개 파일 확인)
+- 핵심 참조 파일 정독:
+  - `src/services/openai.js` (1201줄) — AI 메서드 20개+, 토큰 추적, JSON 파싱 3단계
+  - `src/context/EditorContext.jsx` (306줄) — 전역 상태, 세션 추적, 자동 저장
+  - `src/styles/variables.css` (60줄) — CSS 변수 정의 (컬러, 폰트, 간격, 라운딩, 그림자)
+  - `src/styles/components.css` (434줄) — Notion 스타일 컴포넌트
+  - `src/styles/tiptap.css` (808줄) — 에디터, 툴바, 버블메뉴, 도입부, 가독성
+  - `src/styles/global.css` (56줄) — 글로벌 리셋, 스크롤바
+  - `src/utils/analysis.js` (305줄) — SEO 분석 12개 항목, 문단 분리
+  - `src/utils/history.js` (330줄) — 마이그레이션, 집계, 프루닝
+  - `src/App.jsx` (35줄) — 라우팅 구조
+  - `docs/task.md` — 전체 작업 이력 확인
+  - `docs/glossary-ontology-ssot.md` — 용어 정의 확인
+  - `package.json` — 의존성 및 버전 확인
 
-### 16시 — 1단계: 데이터 레이어 구현
-- `src/utils/history.js` 신규 생성 (260줄)
-  - `migratePost()` / `migratePosts()`: 기존 글에 신규 필드 자동 부여
-  - `loadHistory()` / `saveHistory()`: `naver_blog_history` 키 관리
-  - `updateDailyStats()`: 일별 집계 (작성수, 편집수, 글자수, 시간, SEO, AI 횟수, 키워드)
-  - `addEditSession()`: 편집 세션 저장 (최대 10개, 5초 미만 필터링)
-  - `updateWeeklyScores()`: 주간 SEO 평균 (최근 12주)
-  - `updateCategoryStats()` / `updateKeywordHistory()`: 카테고리 분포 및 키워드 이력
-  - `pruneHistory()`: 180일 초과 일별 데이터 자동 삭제
-  - `getStorageUsage()`: localStorage 용량 모니터링
-  - `computeSeoScore()` / `getStreak()`: SEO 점수 환산 및 연속 작성일 계산
-- `src/context/EditorContext.jsx` 대폭 확장 (143줄 → 306줄)
-  - 앱 로드 시 `migratePosts()` 적용 + 히스토리 재구축
-  - 자동저장에 SEO 스냅샷 갱신 (`seoScore`, `charCount`, `imageCount`, `headingCount`)
-  - `createPost(meta)`: 메타데이터(`categoryId`, `tone`, `mode`) 수용
-  - `sessionRef`: 메모리 기반 편집 세션 추적 (렌더 비용 없음)
-  - `openPostStable()`: 세션 시작 (charsBefore, seoScoreBefore 기록)
-  - `closeSessionInternal()`: 세션 종료 (5초 미만 무시, editSessions 추가, 히스토리 갱신)
-  - `recordAiAction()`: AI 기능 사용 기록 (세션 + 글별 aiUsage 동시 갱신)
-  - `updatePostMeta()`: 글 메타데이터 업데이트
-  - `beforeunload` 이벤트에 세션 종료 연결
+### 20시 — CLAUDE.md 작성 (프로젝트 루트)
+- 106줄, 매 세션 자동 로드용 핵심 압축
+- 포함 항목:
+  - 서비스 정체성 (피클릿, piklit.pro, "사진을 글로 절이다")
+  - 기술 스택 요약 (React 19 + Vite 7 + TipTap v3 + Gemini 2.5 Flash)
+  - `src/` 트리 전체 파일 구조 맵
+  - 코딩 컨벤션 (네이밍, import 순서, CSS 방식, 한국어 규칙)
+  - 디자인 시스템 5줄 요약 (브랜드 오렌지, Notion-style, Pretendard)
+  - AI 서비스 패턴 (새 메서드 추가법 6단계)
+  - DO / DON'T 규칙 (6개 / 5개)
+  - 주요 파일 주의사항 (EditorPage 800줄+, openai.js 캐시, 세션 추적)
+  - 현재 Phase & 우선순위 (Phase 1 MVP)
+  - 사용자 프로필 (비개발자, 한국어, 승인 필수)
+  - 참조 문서 링크 4개
 
-### 16시 — 2단계: 히스토리 대시보드 구현
-- `src/styles/history.css` 신규 생성 (470줄)
-  - 기간 필터 버튼 그룹 스타일
-  - 요약 카드 4열 그리드 (증감 화살표 색상 분기)
-  - 바 차트: `flex` + `align-items: flex-end`, 호버 시 툴팁
-  - 도트 차트: 점수 구간별 색상 (빨강/노랑/초록), 목표선
-  - 도넛 차트: `conic-gradient` + 내부 원 오버레이 + 범례
-  - 횡 바 차트: AI/직접/키워드 재사용/신규 각각 그라디언트
-  - 스택 바: AI vs 직접 비율 시각화
-  - 히트맵: 7행×24열 그리드, 호버 툴팁, 강도 범례
-  - 타임라인: 도트+라인, 생성/편집 구분 색상
-  - 미니 게이지: SEO/글자수 성장 바
-  - AI 사용 배지: 활성/비활성 구분
-  - SEO 뱃지: 점수 구간별 3단계 색상
-  - 스토리지 경고 바
-  - 반응형 768px 브레이크포인트
-- `src/pages/HistoryPage.jsx` 신규 생성 (350줄)
-  - 기간 필터 (7일/30일/90일/전체) + 글/통계 필터링
-  - 요약 카드: 총 글수, 금주 작성(전주 대비), 평균 SEO, 총 시간
-  - 생산성 트렌드: 일별 바 차트 + 라벨 샘플링 + 연속 작성 배지
-  - SEO 점수 추이: 주간 데이터 우선, 없으면 글별 폴백
-  - 카테고리 분포: `conic-gradient` 동적 계산 + 카테고리명/아이콘 조회
-  - 키워드 전략: 재사용 vs 신규 비율 + 상위 5개 키워드 횡 바
-  - AI 활용: AI/직접 스택 바 + 기능별 사용 횟수
-  - 작성 패턴: 요일×시간 히트맵 (최대값 대비 투명도)
-  - 빈 상태 처리 + 스토리지 80% 경고
-  - 외부 라이브러리 없이 CSS/인라인 스타일만 사용
+### 21시 — docs/CDO.md 작성
+- 158줄, 비즈니스 전략 문서, 코드 없음
+- 포함 항목:
+  - 비전 & 미션 ("누구나 전문 블로거처럼 글을 쓸 수 있는 세상")
+  - 타겟 사용자 페르소나 3명 (소상공인, 초보 블로거, 숙련 블로거)
+  - 핵심 가치 제안 5가지
+  - BYOK 하이브리드 비즈니스 모델 (무료→BYOK→구독 3단계)
+  - 경쟁 분석 프레임워크 (뤼튼/ChatGPT/기존 도구 대비 차별점)
+  - 3단계 로드맵 (MVP→성장→수익화, 체크리스트 포함)
+  - KPI 3카테고리 (사용자/제품/비즈니스)
+  - 리스크 평가 8항목 (기술 4, 비즈니스 4)
 
-### 16시 — 3단계: 라우팅·내비게이션·데이터 수집 연동
-- `src/App.jsx`: `/history` 라우트 + `HistoryPage` 임포트 추가
-- `src/components/layout/Header.jsx`: "히스토리" NavLink 추가 (활성 상태 시 파란색 배경)
-- `src/pages/EditorPage.jsx` (7개소 수정):
-  - Context에서 `closeSession`, `recordAiAction`, `updatePostMeta` 디스트럭처링
-  - 컴포넌트 언마운트 시 `closeSession()` 호출
-  - `handleAnalyzeKeywords`에 `recordAiAction('keywordAnalysis')`
-  - `handleAnalyzeCompetitors`에 `recordAiAction('competitorAnalysis')`
-  - `handleAnalyzePhotos`에 `recordAiAction('photoAnalysis')`
-  - `handleAiGenerate`에 `recordAiAction('fullDraft')`
-  - `handleGenerateOutline`에 `recordAiAction('outlineGenerate')`
-  - 위저드 상태 처리 시 `updatePostMeta()` 호출 (categoryId, tone, mode 저장)
-- `src/pages/StartWizardPage.jsx`: `createPost()`에 `{ categoryId, tone, mode }` 전달
-- `src/pages/PostListPage.jsx`:
-  - SEO 점수 뱃지 (초록 70+, 노랑 40+, 빨강 40-) + AI 모드 뱃지
-  - "히스토리" 링크 버튼 추가
-  - 페이지 제목 "작성 히스토리" → "내 블로그"로 변경
-- `src/components/analysis/AIAnalysisDashboard.jsx`:
-  - `recordAiAction` 디스트럭처링
-  - 태그 추출 시 `recordAiAction('tagExtract')` 호출
+### 21시 — docs/architecture.md 작성
+- 335줄, 기술 참조 문서
+- 포함 항목:
+  - 현재 시스템 아키텍처 ASCII 다이어그램 (브라우저 SPA → Gemini API)
+  - 계획된 Firebase 아키텍처 ASCII 다이어그램 (Auth, Functions, Firestore)
+  - 컴포넌트 계층 트리 (App → Router → Pages → Components 전체)
+  - 데이터 플로우 3개 (위자드 글 작성, 실시간 SEO 분석, AI 재작성)
+  - EditorContext 상태 관리 패턴 (전역 상태 + sessionRef)
+  - AI 서비스 메서드 표 20개 (google_search/thinkingBudget 옵션 표시)
+  - localStorage 스키마 3종 (posts, history, api_key)
+  - API 호출 패턴 & 제약사항 5개
+  - 성능 최적화 항목 8개
+  - 카테고리 목록 16개 (ID, 이름, 사진 슬롯)
 
-### 16시 — 4단계: 글별 타임라인 구현
-- `src/components/analysis/PostHistory.jsx` 신규 생성 (170줄)
-  - 접이식 "이 글의 히스토리" 패널 (토글 애니메이션)
-  - SEO 점수 미니 게이지 (그라디언트 빨강→노랑→초록)
-  - 글자수 성장 바 (3000자 기준 비율)
-  - 생성·편집 이벤트 타임라인 (도트 색상 구분, 시간·소요·변화량 표시)
-  - 편집 세션 내 AI 액션 태그 (보라색 칩)
-  - AI 사용 내역 전체 배지 (활성/비활성 구분, 10개 기능)
-- `AIAnalysisDashboard.jsx`에 `PostHistory` 컴포넌트 삽입 (체크리스트 하단)
+### 21시 — docs/design-system.md 작성
+- 241줄, 디자인 토큰 & UI 패턴
+- 포함 항목:
+  - 컬러 팔레트 4카테고리 (기본 10색, 상태 3색, 브랜드/AI 6색, SEO 3단계)
+  - 타이포그래피 (Pretendard, 5단계 크기 스케일, 에디터 내부 4단계)
+  - 간격 토큰 5단계 (4~40px)
+  - 라운딩 토큰 6종
+  - 그림자 토큰 5종
+  - 컴포넌트 패턴 6종 (버튼 6유형, 카드 5유형, 입력 3유형, 배지 4유형, 드롭다운, 에디터)
+  - 아이콘/이모지 사용 규칙
+  - 반응형 브레이크포인트 6개 요소
+  - 애니메이션 & 트랜지션 (공통 5종, 키프레임 3종)
+  - AI 전용 UI 패턴 4종 (로딩, 네이버 미리보기, 재작성 드롭다운, CTA)
 
-### 16시 — 빌드 검증
-- `npm run build` 실행: 147 모듈 변환, 에러 없음
-- 출력: CSS 40.38KB, JS 861.60KB (기존 대비 CSS +약2KB, JS +약15KB)
-- Git 커밋 완료: `4cc8dd8` (11 파일, +2,149줄, -34줄)
+### 21시 — 검증 및 세션 마무리
+- CLAUDE.md 내 42개 파일 경로 전수 검증 — 전부 실제 존재 확인
+- `npm run build` 정상 빌드 확인 (문서만 추가, 코드 변경 없음)
+- 기존 unstaged 변경 확인: `EditorPage.jsx` (+153줄), `openai.js` (+80줄) — 시즌 키워드 기능 7 구현
+- `task.md` 업데이트 (금일 작업 섹션 추가)
+- `walkthrough.md` 전면 재작성 (금일 세션 기록)
 
 ## 신규 파일
 
 | 파일 | 줄수 | 역할 |
 |------|------|------|
-| `src/utils/history.js` | 260 | 마이그레이션, 집계, 프루닝, 스토리지 모니터링 유틸리티 |
-| `src/styles/history.css` | 470 | 대시보드·차트·타임라인·히트맵 전용 CSS |
-| `src/pages/HistoryPage.jsx` | 350 | 히스토리 대시보드 페이지 (7개 분석 섹션) |
-| `src/components/analysis/PostHistory.jsx` | 170 | 글별 타임라인 사이드바 컴포넌트 |
+| `CLAUDE.md` | 106 | Claude Code 자동 로드용 AI 코딩 매뉴얼 |
+| `docs/CDO.md` | 158 | 비즈니스 전략 문서 (비전·로드맵·KPI) |
+| `docs/architecture.md` | 335 | 기술 아키텍처 참조 문서 |
+| `docs/design-system.md` | 241 | 디자인 토큰 & UI 패턴 참조 |
 
 ## 수정 파일
 
-| 파일 | 변경 전 줄수 | 변경 후 줄수 | 주요 변경 |
-|------|------------|------------|----------|
-| `src/context/EditorContext.jsx` | 143 | 306 | 스키마 마이그레이션, 세션 추적, recordAiAction, updatePostMeta |
-| `src/App.jsx` | 33 | 35 | `/history` 라우트 추가 |
-| `src/components/layout/Header.jsx` | 153 | 170 | "히스토리" NavLink 추가 |
-| `src/pages/EditorPage.jsx` | 1540 | 1562 | AI 액션 추적 6개소, 세션 종료, 메타데이터 저장 |
-| `src/pages/StartWizardPage.jsx` | 232 | 236 | createPost()에 메타데이터 전달 |
-| `src/pages/PostListPage.jsx` | 263 | 280 | SEO 뱃지, AI 모드 표시, 히스토리 링크 |
-| `src/components/analysis/AIAnalysisDashboard.jsx` | 184 | 190 | PostHistory 삽입, 태그 추출 추적 |
+| 파일 | 변경 사항 |
+|------|----------|
+| `docs/task.md` | 2026-02-19 세션 작업 내역 추가 |
+| `docs/walkthrough.md` | 금일 세션으로 전면 재작성 |
+| `src/services/openai.js` | `analyzeSeasonKeywords()` 추가, `analyzeKeywords()` 시즌 규칙 추가 (+80줄) |
+| `src/pages/EditorPage.jsx` | 시즌 키워드 UI·상태·핸들러 추가 (+153줄) |
 
 ## 현재 릴리즈 상태
-- 커밋: `4cc8dd8` (main)
-- 빌드: 정상 (147 모듈, 에러 없음)
-- 총 소스 파일: 34개 (기존 30개 + 신규 4개)
+- 이전 커밋: `c8bcc9b` (main)
+- 금일 변경: 문서 4종 신규 + 문서 2종 수정 + 코드 2개 수정
+- 빌드: 정상
+- 총 소스 파일: 44개 (기존 34개 + docs 포함)

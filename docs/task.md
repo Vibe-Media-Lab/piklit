@@ -137,6 +137,31 @@
 ### 스타일
 - [x] `history.css` 신규 생성 (470줄) — 대시보드·차트·타임라인·히트맵·반응형 전용 CSS
 
+## 완료된 작업 (2026-02-19) — CDO 문서 4종 + 시즌 키워드 기능 세션
+
+### 신규 문서: CDO 문서 4종
+- [x] `CLAUDE.md` (프로젝트 루트, 106줄) — Claude Code 자동 로드용 AI 코딩 매뉴얼
+  - 서비스 정체성, 기술 스택, 파일 구조 맵, 코딩 컨벤션, DO/DON'T, 현재 Phase, 사용자 프로필
+- [x] `docs/CDO.md` (158줄) — 비즈니스 전략 문서
+  - 비전·미션, 페르소나 3명, 가치 제안, BYOK 모델, 경쟁 분석, 3단계 로드맵, KPI, 리스크
+- [x] `docs/architecture.md` (335줄) — 기술 아키텍처 참조 문서
+  - ASCII 다이어그램(현재/Firebase 계획), 컴포넌트 트리, 데이터 플로우 3개, AI 메서드 표 20개, localStorage 스키마, API 패턴
+- [x] `docs/design-system.md` (241줄) — 디자인 토큰 & UI 패턴
+  - 컬러 팔레트, 타이포그래피, 간격·라운딩·그림자, 컴포넌트 패턴, 애니메이션, AI 전용 UI
+- [x] CLAUDE.md 내 42개 파일 경로 전수 검증 완료
+- [x] `npm run build` 정상 확인 (문서만 추가, 코드 영향 없음)
+
+### 기능 구현: 시즌/트렌드 키워드 추천 (기능 7 — 보류 해제)
+- [x] `openai.js`에 `analyzeSeasonKeywords()` 메서드 추가 (google_search + thinkingBudget 0)
+  - 현재 시즌/다음 시즌 자동 계산, 기존 키워드 중복 필터, JSON 파싱 재시도
+- [x] `analyzeKeywords()`에 시즌/트렌드 반영 규칙 추가 (규칙 6~7번)
+- [x] `EditorPage.jsx` 위자드 3단계에 시즌 키워드 UI 추가
+  - 시즌 분석 버튼, 시즌 키워드 칩 (이유·시기 툴팁), 선택/해제 연동
+  - `recordAiAction('seasonKeywordAnalysis')` 추적
+
+### 보류
+- [ ] 기능 8: 내부 링크/시리즈 관리 (보류)
+
 ## 이전 완료 작업 (2026-02-06)
 
 ### 버그 수정

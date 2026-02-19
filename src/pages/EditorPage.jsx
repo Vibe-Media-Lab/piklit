@@ -43,6 +43,10 @@ const EditorPage = () => {
     const [isCheckingDifficulty, setIsCheckingDifficulty] = useState(false);
     const [difficultyChecked, setDifficultyChecked] = useState(false);
 
+    // 시즌 키워드 상태
+    const [seasonKeywords, setSeasonKeywords] = useState([]);      // [{keyword, reason, timing}]
+    const [isAnalyzingSeason, setIsAnalyzingSeason] = useState(false);
+
     // 경쟁 블로그 분석 상태
     const [competitorData, setCompetitorData] = useState(null);
     const [isAnalyzingCompetitors, setIsAnalyzingCompetitors] = useState(false);
@@ -248,11 +252,57 @@ const EditorPage = () => {
         }
     };
 
-    // 선택한 키워드 제거 (다시 제안 목록으로)
+    // 선택한 키워드 제거 (isSeason이면 시즌 목록으로, 아니면 제안 목록으로 복귀)
     const handleRemoveSelectedKeyword = (kwObj) => {
         const kw = kwObj.keyword || kwObj;
         setSelectedKeywords(prev => prev.filter(k => (k.keyword || k) !== kw));
-        setSuggestedKeywords(prev => [...prev, kwObj]);
+        if (kwObj.isSeason) {
+            setSeasonKeywords(prev => [...prev, { keyword: kw, reason: kwObj.reason || '', timing: kwObj.timing || '' }]);
+        } else {
+            setSuggestedKeywords(prev => [...prev, kwObj]);
+        }
+    };
+
+    // 시즌 트렌드 키워드 분석
+    const handleAnalyzeSeasonKeywords = async () => {
+        const topic = wizardData?.initialMainKeyword || location.state?.initialMainKeyword || mainKeyword;
+        if (!topic) return showToast('메인 키워드를 먼저 입력해주세요.', 'warning');
+
+        setIsAnalyzingSeason(true);
+        recordAiAction('seasonKeywordAnalysis');
+        try {
+            const existingKws = [
+                ...selectedKeywords.map(k => getKw(k)),
+                ...suggestedKeywords.map(k => getKw(k))
+            ];
+            const result = await AIService.analyzeSeasonKeywords(topic, categoryId, existingKws);
+            if (result?.seasonKeywords && Array.isArray(result.seasonKeywords)) {
+                // 기존 키워드와 중복 필터
+                const existingSet = new Set(existingKws);
+                const filtered = result.seasonKeywords.filter(sk => !existingSet.has(sk.keyword));
+                setSeasonKeywords(filtered);
+            }
+        } catch (e) {
+            console.error('시즌 키워드 분석 오류:', e);
+            showToast('시즌 키워드 분석 중 오류가 발생했습니다.', 'error');
+        } finally {
+            setIsAnalyzingSeason(false);
+        }
+    };
+
+    // 시즌 키워드 선택 → selectedKeywords에 추가
+    const handleAddSeasonKeyword = (seasonKw) => {
+        if (selectedKeywords.length >= 5) {
+            return showToast('서브 키워드는 최대 5개까지 선택할 수 있습니다.', 'warning');
+        }
+        setSelectedKeywords(prev => [...prev, {
+            keyword: seasonKw.keyword,
+            difficulty: 'medium',
+            isSeason: true,
+            reason: seasonKw.reason,
+            timing: seasonKw.timing
+        }]);
+        setSeasonKeywords(prev => prev.filter(sk => sk.keyword !== seasonKw.keyword));
     };
 
     // 경쟁 블로그 분석 (캐시 우선, 없으면 단독 API 호출)
@@ -790,7 +840,9 @@ const EditorPage = () => {
                                                     onClick={() => handleRemoveSelectedKeyword(kwObj)}
                                                     style={{
                                                         padding: '10px 16px',
-                                                        background: 'linear-gradient(135deg, #10B981, #059669)',
+                                                        background: kwObj.isSeason
+                                                            ? 'linear-gradient(135deg, #FF6B35, #F7931E)'
+                                                            : 'linear-gradient(135deg, #10B981, #059669)',
                                                         color: 'white',
                                                         borderRadius: '20px',
                                                         fontSize: '0.95rem',
@@ -801,7 +853,7 @@ const EditorPage = () => {
                                                         gap: '8px'
                                                     }}
                                                 >
-                                                    {getKw(kwObj)}
+                                                    {kwObj.isSeason && '🔥 '}{getKw(kwObj)}
                                                     {difficultyChecked && <DifficultyBadge difficulty={getDifficulty(kwObj)} />}
                                                     <span style={{ fontSize: '1.1rem' }}>×</span>
                                                 </span>
@@ -900,6 +952,99 @@ const EditorPage = () => {
                                         </div>
                                     </div>
                                 )}
+
+                                {/* 시즌 트렌드 키워드 섹션 */}
+                                <div style={{ marginBottom: '24px', marginTop: '8px' }}>
+                                    <button
+                                        onClick={handleAnalyzeSeasonKeywords}
+                                        disabled={isAnalyzingSeason || !mainKeyword.trim()}
+                                        style={{
+                                            padding: '12px 24px',
+                                            background: !mainKeyword.trim() ? '#ccc' : 'linear-gradient(135deg, #FF6B35, #F7931E)',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '8px',
+                                            cursor: !mainKeyword.trim() ? 'not-allowed' : 'pointer',
+                                            fontSize: '0.95rem',
+                                            fontWeight: '600',
+                                            opacity: isAnalyzingSeason ? 0.7 : 1,
+                                            width: '100%'
+                                        }}
+                                    >
+                                        {isAnalyzingSeason
+                                            ? '⏳ 시즌 트렌드를 분석하고 있습니다...'
+                                            : seasonKeywords.length > 0
+                                                ? '🔄 시즌 트렌드 키워드 다시 추천받기'
+                                                : '🔥 시즌 트렌드 키워드 추천받기'
+                                        }
+                                    </button>
+
+                                    {isAnalyzingSeason && (
+                                        <div style={{
+                                            marginTop: '12px',
+                                            padding: '16px',
+                                            background: 'linear-gradient(135deg, #FFF7ED, #FFEDD5)',
+                                            borderRadius: '12px',
+                                            border: '1px solid #FDBA74',
+                                            textAlign: 'center'
+                                        }}>
+                                            <p style={{ margin: 0, color: '#C2410C', fontSize: '0.9rem' }}>
+                                                🔥 시즌 트렌드를 분석하고 있습니다...
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {seasonKeywords.length > 0 && !isAnalyzingSeason && (
+                                        <div style={{
+                                            marginTop: '12px',
+                                            padding: '20px',
+                                            border: '2px solid #FB923C',
+                                            borderRadius: '12px',
+                                            background: '#FFFBF5'
+                                        }}>
+                                            <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '12px', color: '#C2410C' }}>
+                                                🔥 시즌 트렌드 키워드
+                                            </label>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                                {seasonKeywords.map((sk, i) => (
+                                                    <div key={i} style={{
+                                                        display: 'flex', alignItems: 'center', gap: '12px',
+                                                        padding: '12px 16px',
+                                                        background: 'white',
+                                                        borderRadius: '10px',
+                                                        border: '1px solid #FED7AA'
+                                                    }}>
+                                                        <div style={{ flex: 1 }}>
+                                                            <div style={{ fontWeight: '600', fontSize: '0.95rem', color: '#C2410C' }}>
+                                                                🔥 {sk.keyword}
+                                                            </div>
+                                                            <div style={{ fontSize: '0.8rem', color: '#888', marginTop: '4px' }}>
+                                                                {sk.reason} · {sk.timing}
+                                                            </div>
+                                                        </div>
+                                                        <button
+                                                            onClick={() => handleAddSeasonKeyword(sk)}
+                                                            disabled={selectedKeywords.length >= 5}
+                                                            style={{
+                                                                padding: '6px 14px',
+                                                                background: selectedKeywords.length >= 5 ? '#ccc' : 'linear-gradient(135deg, #FF6B35, #F7931E)',
+                                                                color: 'white',
+                                                                border: 'none',
+                                                                borderRadius: '6px',
+                                                                cursor: selectedKeywords.length >= 5 ? 'not-allowed' : 'pointer',
+                                                                fontSize: '0.85rem',
+                                                                fontWeight: '500',
+                                                                flexShrink: 0
+                                                            }}
+                                                        >
+                                                            + 선택
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
 
                                 {/* 진행 상태 */}
                                 <div style={{
