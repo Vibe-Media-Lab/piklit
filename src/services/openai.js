@@ -1,3 +1,5 @@
+import { callGeminiProxy, callGeminiImageProxy } from './firebase';
+
 export const AIService = {
     // 누적 토큰 집계
     _tokenStats: {
@@ -42,8 +44,9 @@ export const AIService = {
         );
     },
 
-    getKey: () => {
-        return localStorage.getItem('openai_api_key') || import.meta.env.VITE_GEMINI_API_KEY;
+    // BYOK: 사용자가 직접 등록한 API 키 (없으면 null → 서버 키 사용)
+    getUserApiKey: () => {
+        return localStorage.getItem('openai_api_key') || null;
     },
 
     /**
@@ -78,9 +81,6 @@ export const AIService = {
     },
 
     async generateContent(contentParts, options = {}, label = '') {
-        const apiKey = this.getKey();
-        if (!apiKey) throw new Error('API Key가 설정되지 않았습니다.');
-
         const maxRetries = 5;
         let attempt = 0;
 
@@ -91,7 +91,6 @@ export const AIService = {
         while (attempt < maxRetries) {
             try {
                 const generationConfig = { ...options.generationConfig };
-                // thinkingBudget 설정: 0이면 thinking 비활성화
                 if (options.thinkingBudget !== undefined) {
                     generationConfig.thinkingConfig = { thinkingBudget: options.thinkingBudget };
                 }
@@ -105,27 +104,15 @@ export const AIService = {
                     body.tools = options.tools;
                 }
 
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(body)
+                // Firebase Functions 프록시를 통해 호출
+                const userApiKey = this.getUserApiKey();
+                const result = await callGeminiProxy({
+                    body,
+                    model: 'gemini-2.5-flash',
+                    userApiKey,
                 });
 
-                if (response.status === 429) {
-                    attempt++;
-                    console.warn(`Rate limit hit. Retrying attempt ${attempt}/${maxRetries}...`);
-                    if (attempt === maxRetries) throw new Error('이용량이 초과되었습니다. 잠시 후 다시 시도해주세요. (429 Resource Exhausted)');
-                    const delay = (2000 * Math.pow(2, attempt - 1)) + (Math.random() * 1000);
-                    await new Promise(resolve => setTimeout(resolve, delay));
-                    continue;
-                }
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error?.message || `API Error: ${response.status}`);
-                }
-
-                const data = await response.json();
+                const data = result.data;
 
                 // 토큰 사용량 누적 집계
                 if (data.usageMetadata) {
@@ -157,10 +144,22 @@ export const AIService = {
                 return { html: cleanText, text: cleanText };
 
             } catch (error) {
-                if (attempt === maxRetries || !error.message.includes('429')) {
-                    console.error('AI Error:', error);
-                    throw error;
+                // Firebase Functions의 resource-exhausted 에러 (무료 체험 소진)
+                if (error.code === 'functions/resource-exhausted') {
+                    throw new Error(error.message);
                 }
+                // Rate limit 재시도
+                if (error.message?.includes('429') || error.code === 'functions/internal') {
+                    attempt++;
+                    if (attempt >= maxRetries) {
+                        throw new Error('이용량이 초과되었습니다. 잠시 후 다시 시도해주세요.');
+                    }
+                    const delay = (2000 * Math.pow(2, attempt - 1)) + (Math.random() * 1000);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    continue;
+                }
+                console.error('AI Error:', error);
+                throw error;
             }
         }
     },
@@ -1062,8 +1061,6 @@ Output strictly a valid JSON:
     },
 
     async enhanceImagePrompt(userInput, style = 'illustration') {
-        const apiKey = this.getKey();
-        if (!apiKey) return userInput;
 
         const styleDesc = this._imageStyleMap[style] || this._imageStyleMap.illustration;
         const prompt = `# Role
@@ -1101,9 +1098,6 @@ ${styleDesc}
     },
 
     async generateImage(userPrompt, options = {}) {
-        const apiKey = this.getKey();
-        if (!apiKey) throw new Error('API Key가 설정되지 않았습니다.');
-
         const { aspectRatio = '3:4', enhanced = false, style = 'illustration' } = options;
         let fullPrompt;
         if (enhanced) {
@@ -1118,36 +1112,19 @@ ${styleDesc}
 
         while (attempt < maxRetries) {
             try {
-                const response = await fetch(
-                    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${apiKey}`,
-                    {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            contents: [{ parts: [{ text: fullPrompt }] }],
-                            generationConfig: {
-                                responseModalities: ['TEXT', 'IMAGE'],
-                                imageConfig: {
-                                    aspectRatio: aspectRatio.replace(':', ':')
-                                }
-                            }
-                        })
-                    }
-                );
+                const userApiKey = this.getUserApiKey();
+                const result = await callGeminiImageProxy({
+                    body: {
+                        contents: [{ parts: [{ text: fullPrompt }] }],
+                        generationConfig: {
+                            responseModalities: ['TEXT', 'IMAGE'],
+                            imageConfig: { aspectRatio }
+                        }
+                    },
+                    userApiKey,
+                });
 
-                if (response.status === 429) {
-                    attempt++;
-                    if (attempt === maxRetries) throw new Error('이미지 생성 이용량 초과. 잠시 후 다시 시도해주세요.');
-                    await new Promise(r => setTimeout(r, 2000 * Math.pow(2, attempt - 1)));
-                    continue;
-                }
-
-                if (!response.ok) {
-                    const errData = await response.json().catch(() => ({}));
-                    throw new Error(errData.error?.message || `Image API Error: ${response.status}`);
-                }
-
-                const data = await response.json();
+                const data = result.data;
                 const parts = data.candidates?.[0]?.content?.parts || [];
                 const imagePart = parts.find(p => p.inlineData);
 
@@ -1161,11 +1138,17 @@ ${styleDesc}
                     mimeType: imagePart.inlineData.mimeType || 'image/png'
                 };
             } catch (error) {
-                if (attempt >= maxRetries - 1 || !error.message.includes('429')) {
-                    console.error('[이미지 생성] 오류:', error);
-                    throw error;
+                if (error.code === 'functions/resource-exhausted') {
+                    throw new Error(error.message);
                 }
-                attempt++;
+                if (error.message?.includes('429')) {
+                    attempt++;
+                    if (attempt >= maxRetries) throw new Error('이미지 생성 이용량 초과. 잠시 후 다시 시도해주세요.');
+                    await new Promise(r => setTimeout(r, 2000 * Math.pow(2, attempt - 1)));
+                    continue;
+                }
+                console.error('[이미지 생성] 오류:', error);
+                throw error;
             }
         }
     },

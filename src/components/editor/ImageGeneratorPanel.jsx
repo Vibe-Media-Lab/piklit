@@ -53,11 +53,6 @@ const ImageGeneratorPanel = ({ mainKeyword, onInsertImage }) => {
     };
 
     const handleGenerate = async () => {
-        const apiKey = AIService.getKey();
-        if (!apiKey) {
-            setError('설정에서 API Key를 먼저 등록해주세요.');
-            return;
-        }
         const finalPrompt = prompt.trim() || userInput.trim();
         if (!finalPrompt) return;
 

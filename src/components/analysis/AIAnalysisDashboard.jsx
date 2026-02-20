@@ -19,9 +19,6 @@ const AIAnalysisDashboard = () => {
 
     const handleExtractTags = async () => {
         if (content.length < 50) return showToast("본문 내용을 좀 더 작성해주세요.", "warning");
-        const apiKey = AIService.getKey();
-        if (!apiKey) return showToast("설정에서 API Key를 먼저 등록해주세요.", "warning");
-
         setLoading(true);
         setExtractedTags([]);
         recordAiAction('tagExtract');

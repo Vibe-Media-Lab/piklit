@@ -274,7 +274,7 @@ const HistoryPage = () => {
                         ))}
                     </div>
                     <div className="history-nav-btns">
-                        <Link to="/">글 목록</Link>
+                        <Link to="/posts">글 목록</Link>
                     </div>
                 </div>
             </div>

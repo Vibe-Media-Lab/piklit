@@ -317,11 +317,6 @@ const PhotoUploader = ({ keyword, onUpdate, categoryId }) => {
     };
 
     const handleAiGenerate = async () => {
-        const apiKey = AIService.getKey();
-        if (!apiKey) {
-            setAiModal(prev => ({ ...prev, error: '설정에서 API Key를 먼저 등록해주세요.' }));
-            return;
-        }
         setAiModal(prev => ({ ...prev, loading: true, error: null, preview: null }));
         try {
             const result = await AIService.generateImage(aiModal.prompt, {

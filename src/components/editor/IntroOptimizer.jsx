@@ -38,9 +38,6 @@ const IntroOptimizer = () => {
         if (!currentIntro) return showToast('본문에 도입부가 없습니다. 먼저 글을 작성해주세요.', 'warning');
         if (!mainKeyword) return showToast('메인 키워드를 먼저 설정해주세요.', 'warning');
 
-        const apiKey = AIService.getKey();
-        if (!apiKey) return showToast('설정(⚙️)에서 API Key를 먼저 등록해주세요.', 'warning');
-
         setLoading(true);
         setAlternatives([]);
         try {

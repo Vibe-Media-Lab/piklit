@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import './Layout.css';
 import { useEditor } from '../../context/EditorContext';
+import { useAuth } from '../../context/AuthContext';
 import { copyToClipboard, exportAsMarkdown, exportAsHtml, exportAsText } from '../../utils/clipboard';
 import SettingsModal from '../common/SettingsModal';
 
 const Header = () => {
     const { title, content, savePost, currentPostId } = useEditor();
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
     const [copyStatus, setCopyStatus] = useState('idle'); // idle, success, error
     const [saveStatus, setSaveStatus] = useState('idle'); // idle, success
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -48,8 +51,8 @@ const Header = () => {
         <>
             <header className="header">
                 <div className="header-logo">
-                    <NavLink to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
-                        NAVER <span>블로그 에디터</span>
+                    <NavLink to="/posts" style={{ textDecoration: 'none', color: '#FF6B35', fontWeight: 700 }}>
+                        피클릿
                     </NavLink>
                 </div>
                 <div style={{ marginLeft: 'auto', display: 'flex', gap: '12px', alignItems: 'center' }}>
@@ -157,6 +160,31 @@ const Header = () => {
                             </div>
                         )}
                     </div>
+                    {/* 사용자 프로필 */}
+                    {user && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '4px', borderLeft: '1px solid var(--color-border)', paddingLeft: '12px' }}>
+                            <img
+                                src={user.photoURL}
+                                alt={user.displayName}
+                                style={{ width: 28, height: 28, borderRadius: '50%' }}
+                                referrerPolicy="no-referrer"
+                            />
+                            <button
+                                onClick={async () => { await logout(); navigate('/'); }}
+                                style={{
+                                    padding: '4px 10px',
+                                    fontSize: '0.8rem',
+                                    color: 'var(--color-text-sub)',
+                                    background: 'transparent',
+                                    border: '1px solid var(--color-border)',
+                                    borderRadius: 'var(--radius-sm)',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                로그아웃
+                            </button>
+                        </div>
+                    )}
                 </div>
             </header>
             <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
