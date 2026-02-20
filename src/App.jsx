@@ -6,7 +6,6 @@ import { ToastProvider } from './components/common/Toast';
 import LandingPage from './pages/LandingPage';
 import PostListPage from './pages/PostListPage';
 import EditorPage from './pages/EditorPage';
-import StartWizardPage from './pages/StartWizardPage';
 import HistoryPage from './pages/HistoryPage';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import './styles/global.css';
@@ -48,12 +47,7 @@ function AppRoutes() {
                     <HistoryPage />
                 </ProtectedRoute>
             } />
-            <Route path="/start" element={
-                <ProtectedRoute>
-                    <StartWizardPage />
-                </ProtectedRoute>
-            } />
-            <Route path="/editor/:id" element={
+<Route path="/editor/:id" element={
                 <ProtectedRoute>
                     <ErrorBoundary>
                         <EditorPage />

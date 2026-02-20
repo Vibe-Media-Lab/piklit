@@ -116,7 +116,8 @@ const PostListPage = () => {
     const stats = useMemo(() => calculateStats(posts), [posts]);
 
     const handleCreate = () => {
-        navigate('/start');
+        const newId = createPost({ mode: 'ai' });
+        navigate(`/editor/${newId}`, { state: { isNew: true } });
     };
 
     const handleEdit = (id) => {

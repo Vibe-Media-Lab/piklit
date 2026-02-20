@@ -11,6 +11,7 @@ import PhotoUploader from '../components/editor/PhotoUploader';
 import ImageSeoGuide from '../components/editor/ImageSeoGuide';
 import ImageGeneratorPanel from '../components/editor/ImageGeneratorPanel';
 import CompetitorAnalysis from '../components/analysis/CompetitorAnalysis';
+import { CATEGORIES, getToneForCategory } from '../data/categories';
 import '../styles/components.css';
 import '../styles/ImageSeoGuide.css';
 
@@ -25,13 +26,21 @@ const EditorPage = () => {
     const locationStateProcessed = useRef(false);
 
     // DUAL MODE STATE
-    const [editorMode, setEditorMode] = useState(location.state?.initialMode || 'direct');
+    const isNewPost = !!location.state?.isNew;
+    const [editorMode, setEditorMode] = useState(
+        location.state?.isNew ? 'ai' : (location.state?.initialMode || 'direct')
+    );
     const [isGenerating, setIsGenerating] = useState(false);
     const [generationStep, setGenerationStep] = useState(0); // 0~4 단계별 로딩
     const [wizardData, setWizardData] = useState(null);
 
-    // AI 모드 4단계 스텝
-    const [aiStep, setAiStep] = useState(1); // 1: 키워드, 2: 이미지, 3: 본문 설정, 4: 아웃라인
+    // 카테고리 + 주제 (StartWizardPage에서 통합)
+    const [selectedCategory, setSelectedCategory] = useState(null);
+    const [topicInput, setTopicInput] = useState('');
+    const [showSettings, setShowSettings] = useState(false); // 세부 설정 토글
+
+    // AI 모드 3단계 스텝
+    const [aiStep, setAiStep] = useState(1); // 1: 주제+키워드+설정, 2: 이미지, 3: 아웃라인+생성
 
     // Step 1: 키워드 상태 (제안형 + 선택형)
     const [mainKeyword, setMainKeyword] = useState('');
@@ -83,7 +92,7 @@ const EditorPage = () => {
     }, [closeSession]);
 
     // 카테고리 ID (쇼핑/맛집 등 분기용)
-    const categoryId = wizardData?.initialCategoryId || location.state?.initialCategoryId || 'daily';
+    const categoryId = selectedCategory?.id || wizardData?.initialCategoryId || location.state?.initialCategoryId || 'daily';
 
     // 글자수 선택 시 Context의 targetLength도 동기화
     const setSelectedLength = (val) => {
@@ -345,8 +354,8 @@ const EditorPage = () => {
     const getKw = (item) => item?.keyword || item;
     const getDifficulty = (item) => item?.difficulty || 'medium';
 
-    // Step 1 → 2 이동 가능 여부 (최소 3개 선택)
-    const canProceedToStep2 = mainKeyword.trim() && selectedKeywords.length >= 3;
+    // Step 1 → 2 이동 가능 여부 (카테고리 선택 + 주제 입력 + 최소 3개 키워드)
+    const canProceedToStep2 = (isNewPost ? (selectedCategory && topicInput.trim()) : true) && mainKeyword.trim() && selectedKeywords.length >= 3;
 
     // 사진 AI 분석
     const handleAnalyzePhotos = async () => {
@@ -616,7 +625,7 @@ const EditorPage = () => {
             setGenerationStep(4);
 
             const result = await AIService.generateFullDraft(
-                effectiveWizardData?.initialCategoryId || 'daily',
+                categoryId,
                 mainKeyword,
                 selectedTone,
                 photoData.metadata,
@@ -689,7 +698,7 @@ const EditorPage = () => {
             const effectiveWizardData = wizardData || location.state;
             const result = await AIService.generateOutline(
                 mainKeyword, keywordStrings, selectedTone,
-                effectiveWizardData?.initialCategoryId || 'daily',
+                categoryId,
                 competitorData
             );
             if (result?.outline && Array.isArray(result.outline)) {
@@ -735,12 +744,43 @@ const EditorPage = () => {
         });
     };
 
-    const STEP_LABELS = ['키워드 분석', '이미지 업로드', '본문 설정', '아웃라인'];
+    const STEP_LABELS = ['주제 + 키워드', '이미지 업로드', '아웃라인 + 생성'];
+
+    // 카테고리별 placeholder
+    const CATEGORY_PLACEHOLDERS = {
+        food: '예: 제주 김선문 식당',
+        cafe: '예: 성수동 카페 온도',
+        shopping: '예: 애플 맥미니 M4',
+        comparison: '예: 다이슨 에어랩 vs 샤오미 드라이어',
+        review: '예: 삼성 갤럭시 S25 울트라',
+        travel: '예: 제주도 2박3일 여행',
+        tech: '예: 애플 비전프로 개발자 리뷰',
+        recipe: '예: 초간단 원팬 파스타',
+        parenting: '예: 12개월 아기 이유식',
+        tips: '예: 자취방 곰팡이 제거 꿀팁',
+    };
+
+    // "직접 작성" 전환 핸들러
+    const handleSwitchToDirect = () => {
+        if (selectedCategory) {
+            const template = getTemplateById(selectedCategory.templateId);
+            if (template) setContent(template.content);
+            updatePostMeta(id, {
+                mode: 'direct',
+                categoryId: selectedCategory.id,
+                tone: getToneForCategory(selectedCategory.id)
+            });
+        }
+        if (topicInput.trim()) {
+            updateMainKeyword(topicInput.trim());
+        }
+        setEditorMode('direct');
+    };
 
     // Progress Indicator 컴포넌트
     const StepIndicator = () => (
         <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginBottom: '40px', flexWrap: 'wrap' }}>
-            {[1, 2, 3, 4].map(s => (
+            {[1, 2, 3].map(s => (
                 <div key={s} style={{
                     display: 'flex', alignItems: 'center', gap: '8px'
                 }}>
@@ -760,7 +800,7 @@ const EditorPage = () => {
                     }}>
                         {STEP_LABELS[s - 1]}
                     </span>
-                    {s < 4 && <span style={{ color: '#ddd', margin: '0 8px' }}>→</span>}
+                    {s < 3 && <span style={{ color: '#ddd', margin: '0 8px' }}>→</span>}
                 </div>
             ))}
         </div>
@@ -781,12 +821,15 @@ const EditorPage = () => {
                     <div style={{ maxWidth: '800px', margin: '0 auto' }}>
                         <h1 style={{ textAlign: 'center', marginBottom: '8px' }}>AI 본문 자동 작성</h1>
                         <p style={{ textAlign: 'center', color: '#666', marginBottom: '40px' }}>
-                            주제: <strong>{wizardData?.initialMainKeyword || location.state?.initialMainKeyword || '주제 없음'}</strong>
+                            {mainKeyword
+                                ? <>주제: <strong>{mainKeyword}</strong></>
+                                : '주제를 입력하고 키워드를 분석해보세요'
+                            }
                         </p>
 
                         <StepIndicator />
 
-                        {/* STEP 1: 키워드 분석 */}
+                        {/* STEP 1: 주제 설정 + 키워드 분석 + 세부 설정 */}
                         {aiStep === 1 && (
                             <div style={{
                                 background: 'white',
@@ -794,29 +837,102 @@ const EditorPage = () => {
                                 padding: '40px',
                                 boxShadow: '0 2px 12px rgba(0,0,0,0.08)'
                             }}>
-                                <h2 style={{ marginBottom: '24px' }}>🔍 Step 1: 키워드 분석</h2>
+                                <h2 style={{ marginBottom: '24px' }}>🔍 Step 1: 주제 설정 + 키워드 분석</h2>
                                 <p style={{ color: '#666', marginBottom: '32px' }}>
-                                    AI가 주제를 분석하여 SEO에 최적화된 키워드를 제안합니다.<br />
-                                    제안된 키워드 중 원하는 것을 선택하세요. (최소 3개, 최대 5개)
+                                    카테고리와 주제를 선택하고, AI가 SEO 최적화 키워드를 제안합니다.
                                 </p>
 
-                                {/* 메인 키워드 */}
-                                <div style={{ marginBottom: '32px' }}>
-                                    <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px' }}>
-                                        📌 메인 키워드 <span style={{ color: 'red' }}>*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={mainKeyword}
-                                        onChange={e => setMainKeyword(e.target.value)}
-                                        placeholder="예: 제주 김선문 식당"
-                                        style={{
-                                            width: '100%', padding: '14px', fontSize: '1rem',
-                                            border: '2px solid #E0E0E0', borderRadius: '8px',
-                                            boxSizing: 'border-box'
-                                        }}
-                                    />
-                                </div>
+                                {/* 카테고리 그리드 */}
+                                {isNewPost && (
+                                    <div style={{ marginBottom: '28px' }}>
+                                        <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '12px' }}>
+                                            📂 카테고리 선택 <span style={{ color: 'red' }}>*</span>
+                                        </label>
+                                        <div style={{
+                                            display: 'grid',
+                                            gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+                                            gap: '10px'
+                                        }}>
+                                            {CATEGORIES.map(cat => (
+                                                <div
+                                                    key={cat.id}
+                                                    onClick={() => {
+                                                        setSelectedCategory(cat);
+                                                        setToneState(getToneForCategory(cat.id));
+                                                        updatePostMeta(id, { categoryId: cat.id, tone: getToneForCategory(cat.id) });
+                                                    }}
+                                                    style={{
+                                                        padding: '14px 12px',
+                                                        borderRadius: '10px',
+                                                        border: selectedCategory?.id === cat.id
+                                                            ? '2px solid var(--color-primary)'
+                                                            : '1px solid #E0E0E0',
+                                                        background: selectedCategory?.id === cat.id
+                                                            ? 'var(--color-primary-light)'
+                                                            : 'white',
+                                                        cursor: 'pointer',
+                                                        textAlign: 'center',
+                                                        transition: 'all 0.2s',
+                                                        fontSize: '0.9rem'
+                                                    }}
+                                                >
+                                                    <span style={{ fontSize: '1.3rem', display: 'block', marginBottom: '4px' }}>{cat.icon}</span>
+                                                    <span style={{
+                                                        fontWeight: selectedCategory?.id === cat.id ? 'bold' : 'normal',
+                                                        color: selectedCategory?.id === cat.id ? 'var(--color-primary)' : 'var(--color-text-main)'
+                                                    }}>
+                                                        {cat.label}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* 주제 입력 */}
+                                {isNewPost && (
+                                    <div style={{ marginBottom: '28px' }}>
+                                        <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px' }}>
+                                            📝 주제 입력 <span style={{ color: 'red' }}>*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={topicInput}
+                                            onChange={e => {
+                                                setTopicInput(e.target.value);
+                                                setMainKeyword(e.target.value);
+                                                updateMainKeyword(e.target.value);
+                                            }}
+                                            placeholder={CATEGORY_PLACEHOLDERS[selectedCategory?.id] || '예: 작성할 주제를 입력하세요'}
+                                            style={{
+                                                width: '100%', padding: '14px', fontSize: '1rem',
+                                                border: '2px solid #E0E0E0', borderRadius: '8px',
+                                                boxSizing: 'border-box'
+                                            }}
+                                            autoFocus
+                                        />
+                                    </div>
+                                )}
+
+                                {/* 메인 키워드 (기존 글 재편집 시 표시) */}
+                                {!isNewPost && (
+                                    <div style={{ marginBottom: '32px' }}>
+                                        <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px' }}>
+                                            📌 메인 키워드 <span style={{ color: 'red' }}>*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={mainKeyword}
+                                            onChange={e => setMainKeyword(e.target.value)}
+                                            placeholder="예: 제주 김선문 식당"
+                                            style={{
+                                                width: '100%', padding: '14px', fontSize: '1rem',
+                                                border: '2px solid #E0E0E0', borderRadius: '8px',
+                                                boxSizing: 'border-box'
+                                            }}
+                                        />
+                                    </div>
+                                )}
 
                                 {/* 선택된 키워드 */}
                                 <div style={{ marginBottom: '24px' }}>
@@ -1075,12 +1191,105 @@ const EditorPage = () => {
                                     />
                                 </div>
 
+                                {/* 세부 설정 (톤앤무드 + 글자수) — 접힌 상태 */}
+                                <div style={{ marginTop: '32px' }}>
+                                    <button
+                                        onClick={() => setShowSettings(!showSettings)}
+                                        style={{
+                                            width: '100%',
+                                            padding: '14px 20px',
+                                            background: '#F8F9FA',
+                                            border: '1px solid #E0E0E0',
+                                            borderRadius: '10px',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            fontSize: '0.95rem',
+                                            fontWeight: '600',
+                                            color: 'var(--color-text-main)'
+                                        }}
+                                    >
+                                        <span>⚙️ 세부 설정 (톤앤무드 · 글자수)</span>
+                                        <span style={{ transform: showSettings ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>▼</span>
+                                    </button>
+
+                                    {showSettings && (
+                                        <div style={{
+                                            padding: '24px',
+                                            border: '1px solid #E0E0E0',
+                                            borderTop: 'none',
+                                            borderRadius: '0 0 10px 10px',
+                                            background: 'white'
+                                        }}>
+                                            {/* 글자수 선택 */}
+                                            <div style={{ marginBottom: '24px' }}>
+                                                <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '12px' }}>
+                                                    📝 글자수 선택
+                                                </label>
+                                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+                                                    {LENGTH_OPTIONS.map(l => (
+                                                        <button
+                                                            key={l}
+                                                            style={{
+                                                                padding: '14px 8px', borderRadius: '10px',
+                                                                border: selectedLength === l ? '2px solid var(--color-primary)' : '1px solid #ddd',
+                                                                background: selectedLength === l ? 'var(--color-primary-light)' : 'white',
+                                                                cursor: 'pointer', fontSize: '0.9rem', fontWeight: selectedLength === l ? 'bold' : 'normal'
+                                                            }}
+                                                            onClick={() => setSelectedLength(l)}
+                                                        >
+                                                            {l}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                                {competitorData?.average?.charCount && (
+                                                    <p style={{
+                                                        marginTop: '10px',
+                                                        fontSize: '0.85rem',
+                                                        color: '#6366F1',
+                                                        background: '#EEF2FF',
+                                                        padding: '8px 12px',
+                                                        borderRadius: '8px'
+                                                    }}>
+                                                        📊 경쟁 블로그 평균 {competitorData.average.charCount.toLocaleString()}자 기준으로 <strong>{recommendLength(competitorData.average.charCount)}</strong>를 추천합니다
+                                                    </p>
+                                                )}
+                                            </div>
+
+                                            {/* 톤앤무드 선택 */}
+                                            <div>
+                                                <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '12px' }}>
+                                                    🎨 톤앤무드 선택
+                                                </label>
+                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                                    {TONES.map(t => (
+                                                        <div
+                                                            key={t.id}
+                                                            style={{
+                                                                padding: '16px', borderRadius: '12px',
+                                                                border: selectedTone === t.id ? '2px solid var(--color-accent)' : '1px solid #ddd',
+                                                                background: selectedTone === t.id ? 'var(--color-accent-light)' : 'white',
+                                                                cursor: 'pointer'
+                                                            }}
+                                                            onClick={() => setToneState(t.id)}
+                                                        >
+                                                            <div style={{ fontWeight: 'bold', fontSize: '0.95rem' }}>{t.label}</div>
+                                                            <div style={{ fontSize: '0.8rem', color: '#888', marginTop: '4px' }}>{t.desc}</div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '40px' }}>
                                     <button
-                                        onClick={() => setEditorMode('direct')}
+                                        onClick={isNewPost ? handleSwitchToDirect : () => setEditorMode('direct')}
                                         style={{ background: 'none', border: 'none', color: '#999', cursor: 'pointer' }}
                                     >
-                                        ← 취소하고 직접 쓰기
+                                        ← 직접 작성으로 전환
                                     </button>
                                     <button
                                         onClick={() => setAiStep(2)}
@@ -1154,7 +1363,7 @@ const EditorPage = () => {
                                         onClick={() => setAiStep(1)}
                                         style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer' }}
                                     >
-                                        ← 이전: 키워드 분석
+                                        ← 이전: 주제 + 키워드
                                     </button>
                                     <button
                                         onClick={() => setAiStep(3)}
@@ -1162,13 +1371,13 @@ const EditorPage = () => {
                                         className="wizard-btn-primary"
                                         style={{ opacity: canProceedToStep3 ? 1 : 0.5 }}
                                     >
-                                        다음: 본문 설정 →
+                                        다음: 아웃라인 + 생성 →
                                     </button>
                                 </div>
                             </div>
                         )}
 
-                        {/* STEP 3: 본문 작성 설정 */}
+                        {/* STEP 3: 아웃라인 + 생성 */}
                         {aiStep === 3 && (
                             <div style={{
                                 background: 'white',
@@ -1176,69 +1385,12 @@ const EditorPage = () => {
                                 padding: '40px',
                                 boxShadow: '0 2px 12px rgba(0,0,0,0.08)'
                             }}>
-                                <h2 style={{ marginBottom: '24px' }}>✍️ Step 3: 본문 작성 설정</h2>
+                                <h2 style={{ marginBottom: '24px' }}>🏗️ Step 3: 아웃라인 + 생성</h2>
                                 <p style={{ color: '#666', marginBottom: '32px' }}>
-                                    글의 길이와 톤을 선택하면 AI가 본문을 작성합니다.
+                                    AI가 소제목 구조를 먼저 생성합니다. 순서 변경, 추가/삭제, 수정 후 본문을 생성하세요.
                                 </p>
 
-                                <div style={{ marginBottom: '32px' }}>
-                                    <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '12px' }}>
-                                        📝 글자수 선택
-                                    </label>
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
-                                        {LENGTH_OPTIONS.map(l => (
-                                            <button
-                                                key={l}
-                                                style={{
-                                                    padding: '14px 8px', borderRadius: '10px',
-                                                    border: selectedLength === l ? '2px solid var(--color-primary)' : '1px solid #ddd',
-                                                    background: selectedLength === l ? 'var(--color-primary-light)' : 'white',
-                                                    cursor: 'pointer', fontSize: '0.9rem', fontWeight: selectedLength === l ? 'bold' : 'normal'
-                                                }}
-                                                onClick={() => setSelectedLength(l)}
-                                            >
-                                                {l}
-                                            </button>
-                                        ))}
-                                    </div>
-                                    {competitorData?.average?.charCount && (
-                                        <p style={{
-                                            marginTop: '10px',
-                                            fontSize: '0.85rem',
-                                            color: '#6366F1',
-                                            background: '#EEF2FF',
-                                            padding: '8px 12px',
-                                            borderRadius: '8px'
-                                        }}>
-                                            📊 경쟁 블로그 평균 {competitorData.average.charCount.toLocaleString()}자 기준으로 <strong>{recommendLength(competitorData.average.charCount)}</strong>를 추천합니다
-                                        </p>
-                                    )}
-                                </div>
-
-                                <div style={{ marginBottom: '32px' }}>
-                                    <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '12px' }}>
-                                        🎨 톤앤무드 선택
-                                    </label>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                                        {TONES.map(t => (
-                                            <div
-                                                key={t.id}
-                                                style={{
-                                                    padding: '16px', borderRadius: '12px',
-                                                    border: selectedTone === t.id ? '2px solid var(--color-accent)' : '1px solid #ddd',
-                                                    background: selectedTone === t.id ? 'var(--color-accent-light)' : 'white',
-                                                    cursor: 'pointer'
-                                                }}
-                                                onClick={() => setToneState(t.id)}
-                                            >
-                                                <div style={{ fontWeight: 'bold', fontSize: '0.95rem' }}>{t.label}</div>
-                                                <div style={{ fontSize: '0.8rem', color: '#888', marginTop: '4px' }}>{t.desc}</div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* 요약 정보 */}
+                                {/* 작성 정보 요약 */}
                                 <div style={{
                                     padding: '20px',
                                     background: '#F8F9FA',
@@ -1253,68 +1405,16 @@ const EditorPage = () => {
                                         <strong>서브 키워드:</strong> {selectedKeywords.map(k => getKw(k)).join(', ')}
                                     </p>
                                     <p style={{ margin: '4px 0', fontSize: '0.9rem' }}>
-                                        <strong>경쟁 분석:</strong>{' '}
-                                        {competitorData?.average
-                                            ? `반영됨 (평균 ${competitorData.average.charCount?.toLocaleString()}자, 이미지 ${competitorData.average.imageCount}장, 소제목 ${competitorData.average.headingCount}개)`
-                                            : '미분석 (기본 설정 사용)'}
+                                        <strong>톤:</strong> {TONES.find(t => t.id === selectedTone)?.label || selectedTone} / <strong>글자수:</strong> {selectedLength}
                                     </p>
                                     <p style={{ margin: '4px 0', fontSize: '0.9rem' }}>
-                                        <strong>업로드 사진:</strong>{' '}
+                                        <strong>사진:</strong>{' '}
                                         {(() => {
-                                            const SUMMARY_LABELS = {
-                                                food: { entrance: '첫인상', parking: '주차정보', menu: '메뉴판', interior: '인테리어', food: '음식/메뉴', extra: '그외' },
-                                                shopping: { unboxing: '언박싱', product: '제품 외관', detail: '디테일', usage: '실사용', compare: '비교', extra: '추가' },
-                                                tips: { problem: '문제 상황', tools: '준비물', step: '과정', result: '결과', compare: '비교', extra: '추가 팁' },
-                                                travel: { transport: '교통', accommodation: '숙소', spot: '명소', restaurant: '맛집', scenery: '풍경', extra: '기념품' },
-                                                recipe: { ingredients: '재료', prep: '손질', cooking: '조리', complete: '완성', plating: '플레이팅', extra: '보관팁' },
-                                                tutorial: { setup: '준비', config: '설정', step1: '단계1', step2: '단계2', result: '결과', extra: '트러블슈팅' },
-                                                comparison: { productA: '제품A', productB: '제품B', spec: '스펙비교', usage: '실사용', detail: '디테일', extra: '추가' },
-                                                parenting: { baby: '아이', product: '육아용품', activity: '활동', milestone: '성장', tip: '꿀팁', extra: '추가' },
-                                                pet: { pet: '반려동물', daily: '일상', walk: '산책', food: '사료/간식', product: '용품', extra: '추가' },
-                                                info: { main: '대표', data: '데이터', detail: '상세', example: '사례', reference: '참고', extra: '추가' },
-                                                daily: { main: '메인', scene1: '장면1', scene2: '장면2', food: '먹거리', selfie: '셀피', extra: '추가' },
-                                            };
-                                            const labelKey = { cafe: 'food', review: 'shopping', tech: 'shopping', economy: 'info', medical: 'info', law: 'info' }[categoryId] || categoryId;
-                                            const slotNames = SUMMARY_LABELS[labelKey] || SUMMARY_LABELS.food;
                                             const total = Object.values(photoData.metadata).reduce((sum, v) => sum + v, 0);
-                                            const details = Object.entries(photoData.metadata)
-                                                .filter(([_, count]) => count > 0)
-                                                .map(([slot, count]) => `${slotNames[slot] || slot}: ${count}장`)
-                                                .join(', ');
-                                            return total > 0 ? `총 ${total}장 (${details})` : '없음';
+                                            return total > 0 ? `${total}장` : '없음';
                                         })()}
                                     </p>
                                 </div>
-
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '40px' }}>
-                                    <button
-                                        onClick={() => setAiStep(2)}
-                                        style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer' }}
-                                    >
-                                        ← 이전: 이미지 업로드
-                                    </button>
-                                    <button
-                                        onClick={() => setAiStep(4)}
-                                        className="wizard-btn-primary"
-                                    >
-                                        다음: 아웃라인 →
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* STEP 4: 아웃라인 편집 */}
-                        {aiStep === 4 && (
-                            <div style={{
-                                background: 'white',
-                                borderRadius: '16px',
-                                padding: '40px',
-                                boxShadow: '0 2px 12px rgba(0,0,0,0.08)'
-                            }}>
-                                <h2 style={{ marginBottom: '24px' }}>🏗️ Step 4: 글 구조 아웃라인</h2>
-                                <p style={{ color: '#666', marginBottom: '32px' }}>
-                                    AI가 소제목 구조를 먼저 생성합니다. 순서 변경, 추가/삭제, 수정 후 본문을 생성하세요.
-                                </p>
 
                                 {/* 아웃라인 생성 버튼 */}
                                 <div style={{ textAlign: 'center', marginBottom: '24px' }}>
@@ -1447,10 +1547,10 @@ const EditorPage = () => {
 
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '40px' }}>
                                     <button
-                                        onClick={() => setAiStep(3)}
+                                        onClick={() => setAiStep(2)}
                                         style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer' }}
                                     >
-                                        ← 이전: 본문 설정
+                                        ← 이전: 이미지 업로드
                                     </button>
                                     <button
                                         onClick={handleAiGenerate}
