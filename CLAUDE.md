@@ -6,6 +6,14 @@
 - **핵심**: 사진 업로드 → SEO 최적화 네이버 블로그 글 자동 생성
 - **타겟**: 개인 블로거 (네이버 블로그 중심)
 
+## 핵심 규칙
+- **행동 우선**: 파일 탐색 최소화. 읽기와 수정을 같은 턴에 수행
+- **구현 순서**: 요청 이해 → 필요 파일만 확인 → 1~3줄 계획 제시 → 승인 → 즉시 구현
+- **세션 시작 시**: `docs/task.md`와 `docs/walkthrough.md`만 확인 (전체 탐색 금지)
+- **매 변경 후**: `npm run build`로 빌드 검증 (훅이 자동 실행)
+- **과도한 계획 금지**: 5줄 이상의 계획 설명 불필요. 코드로 보여줄 것
+- **반복 읽기 금지**: 같은 파일을 세션 내에서 2회 이상 읽지 않음
+
 ## 기술 스택
 - React 19.2 + Vite 7 + React Router v7
 - TipTap v3 (에디터) + BubbleMenu
@@ -14,6 +22,12 @@
 - 스타일: CSS Variables (Notion-style) + Pretendard 폰트
 - 저장: localStorage (posts, history)
 - 계획: Firebase (Auth/Firestore/Hosting/Functions)
+
+## 환경 제약
+- macOS / zsh 환경, `sudo` 사용 금지
+- `gh` CLI 미설치 — GitHub 작업은 수동
+- 로컬 개발 전용: `npm run dev` (dev 서버), `npm run build` (빌드 확인)
+- `.env`에 `VITE_GEMINI_API_KEY` 설정 필수
 
 ## 파일 구조
 ```
@@ -64,6 +78,19 @@ src/
 6. EditorPage에서 호출 + recordAiAction() 추적
 ```
 
+## API 통합 규칙
+### 변경 전 체크리스트
+- [ ] 모델 ID 확인: `gemini-2.5-flash` (공식 문서 기준, 임의 변경 금지)
+- [ ] API URL: `https://generativelanguage.googleapis.com/v1beta/models/`
+- [ ] API 키: `import.meta.env.VITE_GEMINI_API_KEY` (하드코딩 절대 금지)
+- [ ] `google_search` 사용 시 `responseMimeType` 제거 확인
+
+### 흔한 실수 방지
+- 모델 ID를 추측하지 말 것 (예: `gemini-2.5-flash-preview` ❌)
+- API 키를 소스 코드에 직접 넣지 말 것
+- `thinkingBudget` 값 변경 시 기존 동작 테스트 필수
+- 새 AI 메서드 추가 시 반드시 `openai.js`의 기존 패턴 따를 것
+
 ## DO / DON'T
 ### DO
 - `variables.css` 토큰 사용
@@ -79,6 +106,13 @@ src/
 - `google_search` + `responseMimeType` 동시 사용 금지 (비호환)
 - 서비스명으로 "Antigravity", "바이브 미디어 랩" 사용 금지 → "피클릿 (Piklit)"
 - 불필요한 파일 생성 금지 (기존 파일 수정 우선)
+
+## 테스트 & 검증
+- **모든 코드 변경 후**: `npm run build` 필수 (빌드 훅이 자동 실행)
+- **lint 확인**: `npm run lint` (경고 0개 목표)
+- **AI 메서드 변경 시**: 브라우저에서 해당 기능 수동 테스트 안내
+- **상태(Context) 변경 시**: 의존하는 컴포넌트 목록 확인 후 수정
+- **빌드 실패 시**: 즉시 수정, 다음 작업 진행 금지
 
 ## 주요 파일 주의사항
 - `EditorPage.jsx` — 위자드 4단계 + 에디터 통합, 800줄+ 대형 파일
