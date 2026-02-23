@@ -515,21 +515,22 @@ const EditorPage = () => {
         const slotAliases = slotCfg.aliases;
         const slotLabels = slotCfg.labels;
 
-        // [[IMAGE:slot]], [IMAGE:slot], [IMAGE:1] 등 다양한 형식 대응
+        // [[IMAGE:slot]], [IMAGE:slot], [IMAGE:1] 등 다양한 형식 대응 (공백 포함 슬롯명 지원)
         let slotInsertIndex = 0; // 인식 못 하는 슬롯명은 순서대로 매핑
         const insertedSlots = new Set(); // 중복 삽입 방지
-        injectedHtml = injectedHtml.replace(/\[{1,2}IMAGE\s*:\s*([^\]\s]+)\]{1,2}/gi, (match, rawType) => {
-            // 숫자면 슬롯 순서로 매핑, 아니면 별칭 매핑
-            let slotName = rawType.trim().toLowerCase();
+        injectedHtml = injectedHtml.replace(/\[{1,2}IMAGE\s*:\s*([^\]]+)\]{1,2}/gi, (match, rawType) => {
+            // 공백 제거 + 숫자면 슬롯 순서로 매핑, 아니면 별칭 매핑
+            let slotName = rawType.trim().replace(/\s+/g, '').toLowerCase();
             if (/^\d+$/.test(slotName)) {
                 const idx = parseInt(slotName, 10) - 1;
                 slotName = slotOrder[idx] || 'extra';
             }
             slotName = slotAliases[slotName] || slotName;
 
-            // 슬롯명이 현재 카테고리에 없으면 → 순서 기반 매핑
+            // 별칭에 없으면 부분 매칭 시도 (예: '카페외관정면' → '외관' 포함 → entrance)
             if (!slotLabels[slotName]) {
-                slotName = slotOrder[slotInsertIndex] || 'extra';
+                const partialMatch = Object.keys(slotAliases).find(alias => slotName.includes(alias) && alias.length > 1);
+                slotName = partialMatch ? slotAliases[partialMatch] : slotOrder[slotInsertIndex] || 'extra';
             }
             slotInsertIndex++;
 
@@ -564,6 +565,9 @@ const EditorPage = () => {
 
         // 3. 후처리: 긴 문단 강제 분리 (AI가 규칙 안 따라도 보장)
         injectedHtml = formatParagraphs(injectedHtml);
+
+        // 4. 이모지 전용 <p> 태그를 다음 문단과 병합 (이모지가 별도 줄로 분리되는 현상 방지)
+        injectedHtml = injectedHtml.replace(/<p>\s*([\u{1F300}-\u{1FAD6}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{200D}\u{20E3}\u{E0020}-\u{E007F}\s]{1,6})\s*<\/p>\s*<p>/gu, '<p>$1 ');
 
         const chunkSize = 20;
         let currentPos = 0;
@@ -608,8 +612,15 @@ const EditorPage = () => {
                 photoCount: photoAssets.length
             });
 
-            // Step 1: 사진 분석 중
-            setGenerationStep(1);
+            // 경쟁 분석 없이 생성하는 경우 안내
+            if (!competitorData) {
+                showToast('경쟁 분석 없이 생성합니다. 더 나은 결과를 위해 경쟁 분석을 권장합니다.', 'info');
+            }
+
+            let stepIdx = 0;
+
+            // Step: 사진 분석 중
+            setGenerationStep(++stepIdx);
 
             // 이미지 ALT 텍스트가 없으면 본문 생성 전에 생성 시도 (ref로 최신 값 참조)
             if (Object.keys(imageAltsRef.current).length === 0) {
@@ -631,16 +642,11 @@ const EditorPage = () => {
                 }
             }
 
-            // Step 2: 경쟁 분석 중 (이미 있으면 스킵)
-            if (!competitorData) {
-                setGenerationStep(2);
-            }
+            // Step: ALT 텍스트 생성 중
+            setGenerationStep(++stepIdx);
 
-            // Step 3: ALT 텍스트 생성 중
-            setGenerationStep(3);
-
-            // Step 4: 본문 작성 중
-            setGenerationStep(4);
+            // Step: 본문 작성 중
+            setGenerationStep(++stepIdx);
 
             const result = await AIService.generateFullDraft(
                 categoryId,
@@ -840,7 +846,7 @@ const EditorPage = () => {
                                 <StepIndicator />
 
                                 <h2 style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <Search size={20} /> Step 1: 주제 설정 + 키워드 분석
+                                    <Search size={20} style={{ color: 'var(--color-brand)' }} /> Step 1: 주제 설정 + 키워드 분석
                                 </h2>
                                 <p style={{ color: 'var(--color-text-sub)', marginBottom: '32px' }}>
                                     카테고리와 주제를 선택하고, AI가 SEO 최적화 키워드를 제안합니다.
@@ -1343,7 +1349,7 @@ const EditorPage = () => {
                                 <StepIndicator />
 
                                 <h2 style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <Camera size={20} /> Step 2: 이미지 업로드 & AI 분석
+                                    <Camera size={20} style={{ color: 'var(--color-brand)' }} /> Step 2: 이미지 업로드 & AI 분석
                                 </h2>
                                 <p style={{ color: 'var(--color-text-sub)', marginBottom: '32px' }}>
                                     주제에 맞는 이미지를 업로드하면 AI가 분석하여 본문 작성에 활용합니다.
@@ -1397,19 +1403,66 @@ const EditorPage = () => {
                                 )}
 
                                 {photoAnalysis && (
-                                    <div style={{
-                                        marginTop: '24px',
-                                        padding: '20px',
-                                        background: '#F0FDF4',
-                                        borderRadius: '12px',
-                                        border: '1px solid #86EFAC'
-                                    }}>
-                                        <h4 style={{ marginBottom: '12px', color: '#16A34A', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <div className="photo-analysis-result">
+                                        <h4 className="photo-analysis-header">
                                             <CheckCircle size={16} /> AI 분석 결과
                                         </h4>
-                                        <p style={{ fontSize: '0.9rem', color: '#333', whiteSpace: 'pre-wrap' }}>
-                                            {typeof photoAnalysis === 'string' ? photoAnalysis : JSON.stringify(photoAnalysis, null, 2)}
-                                        </p>
+                                        <div className="photo-analysis-body">
+                                            {(() => {
+                                                const raw = typeof photoAnalysis === 'string' ? photoAnalysis : JSON.stringify(photoAnalysis, null, 2);
+                                                const blocks = raw.split(/\n{2,}|\n(?=\*{2}\d+\.)/).filter(b => b.trim());
+                                                // 사진별로 그룹핑: 제목 블록을 만나면 새 그룹
+                                                const groups = [];
+                                                let current = null;
+                                                blocks.forEach(block => {
+                                                    const trimmed = block.trim();
+                                                    if (/^-{3,}$/.test(trimmed)) return;
+                                                    const titleMatch = trimmed.match(/^\*{0,2}(\d+)\.\s*(?:사진\s*\d*:\s*)?(.+?)\*{0,2}$/);
+                                                    if (titleMatch) {
+                                                        current = { num: titleMatch[1], title: titleMatch[2].replace(/\*{1,2}/g, ''), items: [] };
+                                                        groups.push(current);
+                                                    } else if (current) {
+                                                        current.items.push(trimmed);
+                                                    } else {
+                                                        // 제목 없는 항목 (인트로 텍스트 등)
+                                                        groups.push({ num: null, title: null, items: [trimmed] });
+                                                    }
+                                                });
+                                                return groups.map((group, gi) => {
+                                                    if (!group.num) {
+                                                        // 인트로 텍스트
+                                                        return <p key={gi} className="photo-analysis-item" style={{ marginBottom: '8px' }}>{group.items.join(' ').replace(/\*{1,2}/g, '')}</p>;
+                                                    }
+                                                    return (
+                                                        <div key={gi} className="photo-analysis-card">
+                                                            <h5 className="photo-analysis-section-title">
+                                                                <span className="photo-analysis-num">{group.num}</span>
+                                                                {group.title}
+                                                            </h5>
+                                                            {group.items.map((block, bi) => {
+                                                                const lines = block.split('\n').filter(l => l.trim());
+                                                                return (
+                                                                    <div key={bi} className="photo-analysis-items">
+                                                                        {lines.map((line, j) => {
+                                                                            let text = line.replace(/^\s*[\*\-]\s*/, '').trim();
+                                                                            const labelMatch = text.match(/^\*{0,2}([^:*]+)\*{0,2}:\s*(.+)$/);
+                                                                            if (labelMatch) {
+                                                                                return (
+                                                                                    <p key={j} className="photo-analysis-item">
+                                                                                        <strong>{labelMatch[1].replace(/\*{1,2}/g, '')}:</strong> {labelMatch[2].replace(/\*{1,2}/g, '')}
+                                                                                    </p>
+                                                                                );
+                                                                            }
+                                                                            return <p key={j} className="photo-analysis-item">{text.replace(/\*{1,2}/g, '')}</p>;
+                                                                        })}
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    );
+                                                });
+                                            })()}
+                                        </div>
                                     </div>
                                 )}
 
@@ -1453,7 +1506,7 @@ const EditorPage = () => {
                                 <StepIndicator />
 
                                 <h2 style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <Wand2 size={20} /> Step 3: 아웃라인 + 생성
+                                    <Wand2 size={20} style={{ color: 'var(--color-brand)' }} /> Step 3: 아웃라인 + 생성
                                 </h2>
                                 <p style={{ color: 'var(--color-text-sub)', marginBottom: '32px' }}>
                                     AI가 소제목 구조를 먼저 생성합니다. 순서 변경, 추가/삭제, 수정 후 본문을 생성하세요.
@@ -1471,7 +1524,7 @@ const EditorPage = () => {
                                     </div>
                                     <div className="wizard-summary-card">
                                         <div className="summary-label">톤앤무드</div>
-                                        <div className="summary-value">{TONES.find(t => t.id === selectedTone)?.label?.replace(/^[^\s]+\s/, '') || selectedTone}</div>
+                                        <div className="summary-value">{TONES.find(t => t.id === selectedTone)?.label?.replace(/^[^\s]+\s/, '') || '미선택'}</div>
                                     </div>
                                     <div className="wizard-summary-card">
                                         <div className="summary-label">사진</div>
@@ -1529,119 +1582,73 @@ const EditorPage = () => {
 
                                 {/* 아웃라인 편집 UI */}
                                 {outlineItems.length > 0 && (
-                                    <div style={{ marginBottom: '24px' }}>
-                                        <div style={{
-                                            display: 'flex', justifyContent: 'space-between',
-                                            alignItems: 'center', marginBottom: '16px'
-                                        }}>
-                                            <label style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <div className="outline-editor">
+                                        <div className="outline-header">
+                                            <label>
                                                 <ClipboardList size={16} /> 소제목 구조
                                             </label>
-                                            <span style={{ fontSize: '0.85rem', color: 'var(--color-text-sub)' }}>
-                                                H2: {outlineItems.filter(i => i.level === 'h2').length}개 / H3: {outlineItems.filter(i => i.level === 'h3').length}개
+                                            <span className="outline-count">
+                                                H2 {outlineItems.filter(i => i.level === 'h2').length} / H3 {outlineItems.filter(i => i.level === 'h3').length}
                                             </span>
                                         </div>
 
-                                        {outlineItems.map((item, idx) => (
-                                            <div key={idx} style={{
-                                                display: 'flex', alignItems: 'center', gap: '8px',
-                                                marginBottom: '8px',
-                                                paddingLeft: item.level === 'h3' ? '32px' : '0'
-                                            }}>
-                                                {/* H2/H3 토글 */}
-                                                <button
-                                                    onClick={() => handleOutlineToggleLevel(idx)}
-                                                    style={{
-                                                        padding: '4px 8px', borderRadius: 'var(--radius-sm)',
-                                                        border: '1px solid var(--color-border)', background: item.level === 'h2' ? '#EEF2FF' : 'var(--color-surface-hover)',
-                                                        color: item.level === 'h2' ? '#4338CA' : 'var(--color-text-sub)',
-                                                        fontWeight: 'bold', fontSize: '0.75rem',
-                                                        cursor: 'pointer', flexShrink: 0, width: '36px'
-                                                    }}
-                                                    title="H2/H3 전환"
-                                                >
-                                                    {item.level.toUpperCase()}
-                                                </button>
+                                        <div className="outline-list">
+                                            {outlineItems.map((item, idx) => (
+                                                <div key={idx} className={`outline-row ${item.level === 'h3' ? 'is-h3' : ''}`}>
+                                                    <button
+                                                        onClick={() => handleOutlineToggleLevel(idx)}
+                                                        className={`outline-level-btn ${item.level}`}
+                                                        title="H2/H3 전환"
+                                                    >
+                                                        {item.level.toUpperCase()}
+                                                    </button>
 
-                                                {/* 제목 입력 */}
-                                                <input
-                                                    type="text"
-                                                    value={item.title}
-                                                    onChange={(e) => handleOutlineEdit(idx, e.target.value)}
-                                                    placeholder="소제목 입력..."
-                                                    style={{
-                                                        flex: 1, padding: '8px 12px',
-                                                        border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)',
-                                                        fontSize: item.level === 'h2' ? '0.95rem' : '0.88rem',
-                                                        fontWeight: item.level === 'h2' ? '600' : '400'
-                                                    }}
-                                                />
+                                                    <input
+                                                        type="text"
+                                                        value={item.title}
+                                                        onChange={(e) => handleOutlineEdit(idx, e.target.value)}
+                                                        placeholder="소제목 입력..."
+                                                        className={`outline-input ${item.level}`}
+                                                    />
 
-                                                {/* 이동 버튼 */}
-                                                <button
-                                                    onClick={() => handleOutlineMove(idx, -1)}
-                                                    disabled={idx === 0}
-                                                    style={{
-                                                        padding: '4px 6px', border: '1px solid var(--color-border)',
-                                                        borderRadius: 'var(--radius-sm)', background: 'white',
-                                                        cursor: idx === 0 ? 'not-allowed' : 'pointer',
-                                                        opacity: idx === 0 ? 0.3 : 1, display: 'flex', alignItems: 'center'
-                                                    }}
-                                                    title="위로 이동"
-                                                ><ChevronUp size={14} /></button>
-                                                <button
-                                                    onClick={() => handleOutlineMove(idx, 1)}
-                                                    disabled={idx === outlineItems.length - 1}
-                                                    style={{
-                                                        padding: '4px 6px', border: '1px solid var(--color-border)',
-                                                        borderRadius: 'var(--radius-sm)', background: 'white',
-                                                        cursor: idx === outlineItems.length - 1 ? 'not-allowed' : 'pointer',
-                                                        opacity: idx === outlineItems.length - 1 ? 0.3 : 1, display: 'flex', alignItems: 'center'
-                                                    }}
-                                                    title="아래로 이동"
-                                                ><ChevronDown size={14} /></button>
+                                                    <div className="outline-actions">
+                                                        <button
+                                                            onClick={() => handleOutlineMove(idx, -1)}
+                                                            disabled={idx === 0}
+                                                            className="outline-action-btn"
+                                                            title="위로 이동"
+                                                        ><ChevronUp size={14} /></button>
+                                                        <button
+                                                            onClick={() => handleOutlineMove(idx, 1)}
+                                                            disabled={idx === outlineItems.length - 1}
+                                                            className="outline-action-btn"
+                                                            title="아래로 이동"
+                                                        ><ChevronDown size={14} /></button>
+                                                        <button
+                                                            onClick={() => handleOutlineAdd(idx)}
+                                                            className="outline-action-btn add"
+                                                            title="아래에 항목 추가"
+                                                        ><Plus size={14} /></button>
+                                                        <button
+                                                            onClick={() => handleOutlineDelete(idx)}
+                                                            disabled={outlineItems.length <= 1}
+                                                            className="outline-action-btn delete"
+                                                            title="삭제"
+                                                        ><Trash2 size={14} /></button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
 
-                                                {/* 추가/삭제 */}
-                                                <button
-                                                    onClick={() => handleOutlineAdd(idx)}
-                                                    style={{
-                                                        padding: '4px 6px', border: '1px solid var(--color-border)',
-                                                        borderRadius: 'var(--radius-sm)', background: 'white',
-                                                        cursor: 'pointer', color: '#16A34A', display: 'flex', alignItems: 'center'
-                                                    }}
-                                                    title="아래에 항목 추가"
-                                                ><Plus size={14} /></button>
-                                                <button
-                                                    onClick={() => handleOutlineDelete(idx)}
-                                                    disabled={outlineItems.length <= 1}
-                                                    style={{
-                                                        padding: '4px 6px', border: '1px solid var(--color-border)',
-                                                        borderRadius: 'var(--radius-sm)', background: 'white',
-                                                        cursor: outlineItems.length <= 1 ? 'not-allowed' : 'pointer',
-                                                        opacity: outlineItems.length <= 1 ? 0.3 : 1,
-                                                        color: '#EF4444', display: 'flex', alignItems: 'center'
-                                                    }}
-                                                    title="삭제"
-                                                ><Trash2 size={14} /></button>
-                                            </div>
-                                        ))}
-
-                                        {/* 경쟁 분석 비교 */}
                                         {competitorData?.average?.headingCount && (
-                                            <p style={{
-                                                marginTop: '12px', fontSize: '0.85rem',
-                                                color: outlineItems.length >= competitorData.average.headingCount ? '#16A34A' : '#EF4444',
-                                                background: outlineItems.length >= competitorData.average.headingCount ? '#F0FDF4' : '#FEF2F2',
-                                                padding: '8px 12px', borderRadius: '8px'
-                                            }}>
-                                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                                                    <BarChart3 size={14} /> 경쟁 블로그 평균 소제목 {competitorData.average.headingCount}개 — 현재 {outlineItems.length}개
-                                                    {outlineItems.length >= competitorData.average.headingCount
-                                                        ? <> <CheckCircle size={14} /> 충분</>
-                                                        : ' ⚠️ 부족'
-                                                    }
-                                                </span>
-                                            </p>
+                                            <div className={`outline-competitor-bar ${outlineItems.length >= competitorData.average.headingCount ? 'sufficient' : 'insufficient'}`}>
+                                                <BarChart3 size={14} />
+                                                경쟁 블로그 평균 소제목 {competitorData.average.headingCount}개 — 현재 {outlineItems.length}개
+                                                {outlineItems.length >= competitorData.average.headingCount
+                                                    ? <><CheckCircle size={14} /> 충분</>
+                                                    : ' — 부족'
+                                                }
+                                            </div>
                                         )}
                                     </div>
                                 )}
@@ -1678,7 +1685,6 @@ const EditorPage = () => {
         const GENERATION_STEPS = [
             { label: '준비 중 (이미지 변환)', icon: <Loader2 size={16} /> },
             { label: '사진 분석 중', icon: <Search size={16} /> },
-            { label: '경쟁 분석 중', icon: <BarChart3 size={16} /> },
             { label: 'ALT 텍스트 생성 중', icon: <Tag size={16} /> },
             { label: '본문 작성 중', icon: <Sparkles size={16} /> },
         ];
@@ -1686,68 +1692,32 @@ const EditorPage = () => {
 
         return (
             <div>
-                <div style={{
-                    flex: 1,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    background: 'var(--color-surface-hover)',
-                    minHeight: 'calc(100vh - 52px)'
-                }}>
-                    <div style={{
-                        textAlign: 'center',
-                        padding: '48px 60px',
-                        background: 'white',
-                        borderRadius: '12px',
-                        boxShadow: '0 1px 8px rgba(0, 0, 0, 0.06)',
-                        minWidth: '400px'
-                    }}>
-                        <div style={{ marginBottom: '16px', color: 'var(--color-brand)' }}>
+                <div className="generation-loading">
+                    <div className="generation-card">
+                        <div className="generation-icon">
                             <Sparkles size={48} />
                         </div>
-                        <h2 style={{ marginBottom: '8px' }}>AI가 글을 작성하고 있어요</h2>
-                        <p style={{ color: 'var(--color-text-sub)', marginBottom: '28px', fontSize: 'var(--font-size-sm)' }}>
+                        <h2>AI가 글을 작성하고 있어요</h2>
+                        <p className="generation-subtitle">
                             잠시만 기다려주세요. 곧 완성됩니다!
                         </p>
 
-                        {/* 프로그레스 바 */}
-                        <div style={{
-                            width: '100%', height: '6px', background: 'var(--color-border)', borderRadius: '3px',
-                            overflow: 'hidden', marginBottom: '28px'
-                        }}>
-                            <div style={{
-                                width: `${progressPercent}%`, height: '100%',
-                                background: 'linear-gradient(90deg, var(--color-accent), var(--color-primary))',
-                                borderRadius: '3px',
-                                transition: 'width 0.5s ease'
-                            }} />
+                        <div className="generation-progress-track">
+                            <div className="generation-progress-fill" style={{ width: `${progressPercent}%` }} />
                         </div>
 
-                        {/* 단계별 체크리스트 */}
-                        <div style={{ textAlign: 'left' }}>
+                        <div className="generation-steps">
                             {GENERATION_STEPS.map((step, idx) => {
                                 const isDone = idx < generationStep;
                                 const isCurrent = idx === generationStep;
                                 return (
-                                    <div key={idx} style={{
-                                        display: 'flex', alignItems: 'center', gap: '12px',
-                                        padding: '8px 0',
-                                        color: isDone ? 'var(--color-success)' : isCurrent ? 'var(--color-text-main)' : 'var(--color-border)',
-                                        fontWeight: isCurrent ? '600' : '400',
-                                        fontSize: 'var(--font-size-sm)'
-                                    }}>
-                                        <span style={{ width: '24px', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                            {isDone ? <CheckCircle size={16} style={{ color: 'var(--color-success)' }} /> : isCurrent ? step.icon : <span style={{ width: '16px', height: '16px', borderRadius: '3px', border: '2px solid var(--color-border)', display: 'inline-block' }} />}
+                                    <div key={idx} className={`generation-step ${isDone ? 'done' : isCurrent ? 'current' : ''}`}>
+                                        <span className="generation-step-icon">
+                                            {isDone ? <CheckCircle size={16} /> : isCurrent ? step.icon : <span className="generation-step-placeholder" />}
                                         </span>
                                         <span>{step.label}</span>
                                         {isCurrent && (
-                                            <span style={{
-                                                marginLeft: 'auto',
-                                                fontSize: '0.75rem',
-                                                color: 'var(--color-accent)',
-                                                animation: 'pulse 1.5s infinite'
-                                            }}>진행 중...</span>
+                                            <span className="generation-step-status">진행 중...</span>
                                         )}
                                     </div>
                                 );
@@ -1755,12 +1725,6 @@ const EditorPage = () => {
                         </div>
                     </div>
                 </div>
-                <style>{`
-                    @keyframes pulse {
-                        0%, 100% { opacity: 1; }
-                        50% { opacity: 0.4; }
-                    }
-                `}</style>
             </div>
         );
     }
@@ -1792,9 +1756,9 @@ const EditorPage = () => {
         }
     };
 
-    // 업로드된 이미지가 있는지 확인 (플로팅 버튼 표시 조건)
-    const hasUploadedImages = Object.values(photoData.metadata).some(v => v > 0);
-    const totalUploadedImages = Object.values(photoData.metadata).reduce((sum, v) => sum + v, 0);
+    // 업로드된 이미지가 있는지 확인 (플로팅 버튼 표시 조건: metadata 또는 ALT 텍스트 존재)
+    const hasUploadedImages = Object.values(photoData.metadata).some(v => v > 0) || Object.keys(imageAlts).length > 0;
+    const totalUploadedImages = Object.values(photoData.metadata).reduce((sum, v) => sum + v, 0) || Object.keys(imageAlts).length;
 
     // 직접 작성 모드 (기존 에디터)
     return (

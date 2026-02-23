@@ -17,6 +17,7 @@ const AIAnalysisDashboard = () => {
     const [extractedTags, setExtractedTags] = useState([]);
     const [copiedTag, setCopiedTag] = useState(null); // 개별 복사 피드백
     const [copiedAll, setCopiedAll] = useState(false); // 전체 복사 피드백
+    const [activeMetric, setActiveMetric] = useState(null); // 메트릭 설명 토글
 
     const handleExtractTags = async () => {
         if (content.length < 50) return showToast("본문 내용을 좀 더 작성해주세요.", "warning");
@@ -73,31 +74,35 @@ const AIAnalysisDashboard = () => {
 
             {/* Metrics Cards */}
             <div className="metrics-grid">
-                <div className="metric-card metric-has-tooltip">
+                <div
+                    className={`metric-card metric-clickable ${activeMetric === 'density' ? 'active' : ''}`}
+                    onClick={() => setActiveMetric(prev => prev === 'density' ? null : 'density')}
+                >
                     <div className="metric-value">{keywordDensity != null ? `${keywordDensity}%` : '-'}</div>
                     <div className="metric-label">키워드 밀도</div>
-                    <div className="metric-tooltip">
-                        (키워드 출현 횟수 x 키워드 글자수) ÷ 전체 글자수 x 100<br />
-                        적정 범위: 1~3%
-                    </div>
                 </div>
-                <div className="metric-card metric-has-tooltip">
+                <div
+                    className={`metric-card metric-clickable ${activeMetric === 'intro' ? 'active' : ''}`}
+                    onClick={() => setActiveMetric(prev => prev === 'intro' ? null : 'intro')}
+                >
                     <div className="metric-value">{introLength != null ? `${introLength}자` : '-'}</div>
                     <div className="metric-label">도입부 길이</div>
-                    <div className="metric-tooltip">
-                        첫 번째 문단의 글자수<br />
-                        권장 범위: 140~160자
-                    </div>
                 </div>
-                <div className="metric-card metric-has-tooltip">
+                <div
+                    className={`metric-card metric-clickable ${activeMetric === 'heading' ? 'active' : ''}`}
+                    onClick={() => setActiveMetric(prev => prev === 'heading' ? null : 'heading')}
+                >
                     <div className="metric-value">{headingCount != null ? headingCount : '-'}</div>
                     <div className="metric-label">소제목 수</div>
-                    <div className="metric-tooltip">
-                        H2, H3 태그 합산 개수<br />
-                        1,500자당 3~5개 권장
-                    </div>
                 </div>
             </div>
+            {activeMetric && (
+                <div className="metric-info-bar">
+                    {activeMetric === 'density' && '(출현 횟수 × 키워드 글자수) ÷ 전체 글자수 × 100 — 적정: 1~3%'}
+                    {activeMetric === 'intro' && '첫 번째 문단의 글자수 — 권장: 140~160자'}
+                    {activeMetric === 'heading' && 'H2, H3 태그 합산 개수 — 1,500자당 3~5개 권장'}
+                </div>
+            )}
 
             {/* AI Actions - 태그 추출만 */}
             <div style={{ marginBottom: '24px' }}>

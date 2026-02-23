@@ -618,8 +618,8 @@
     transition: width 0.4s ease;
 }
 
-.mini-gauge-fill.seo { background: linear-gradient(90deg, #EF4444, #F59E0B, #10B981); }
-.mini-gauge-fill.chars { background: linear-gradient(90deg, var(--color-accent), #81D4FA); }
+.mini-gauge-fill.seo { background: var(--color-brand, #FF6B35); }
+.mini-gauge-fill.chars { background: var(--color-text-sub, #787774); }
 
 /* Timeline */
 .timeline {

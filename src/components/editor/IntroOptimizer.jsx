@@ -46,8 +46,17 @@ const IntroOptimizer = () => {
             const parser = new DOMParser();
             const doc = parser.parseFromString(content, 'text/html');
             const bodyText = (doc.body.textContent || '').substring(0, 800);
-            const result = await AIService.generateIntroAlternatives(currentIntro, mainKeyword, subKws, title, suggestedTone, bodyText);
+            let result = await AIService.generateIntroAlternatives(currentIntro, mainKeyword, subKws, title, suggestedTone, bodyText);
             if (result?.alternatives && Array.isArray(result.alternatives)) {
+                // 140자 미만인 항목이 있으면 1회 재생성 시도
+                const tooShort = result.alternatives.some(a => a.text && a.text.length < 130);
+                if (tooShort) {
+                    console.log('[도입부] 글자수 부족 — 재생성 시도');
+                    const retry = await AIService.generateIntroAlternatives(currentIntro, mainKeyword, subKws, title, suggestedTone, bodyText);
+                    if (retry?.alternatives && Array.isArray(retry.alternatives)) {
+                        result = retry;
+                    }
+                }
                 setAlternatives(result.alternatives);
             }
         } catch (e) {
