@@ -3,7 +3,6 @@ import { useParams } from 'react-router-dom';
 import TitleInput from './TitleInput';
 import TiptapEditor from './TiptapEditor';
 import IntroOptimizer from './IntroOptimizer';
-import ReadabilityPanel from '../analysis/ReadabilityPanel';
 
 const EditorContainer = () => {
     const { id } = useParams(); // Key to force remount
@@ -18,7 +17,6 @@ const EditorContainer = () => {
                 </h3>
                 <TiptapEditor key={id} />
             </div>
-            <ReadabilityPanel />
         </div>
     );
 };

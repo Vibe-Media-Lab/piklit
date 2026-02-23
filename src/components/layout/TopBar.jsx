@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import { useEditor } from '../../context/EditorContext';
 import { copyToClipboard, exportAsMarkdown, exportAsHtml, exportAsText } from '../../utils/clipboard';
-import { Save, Copy, Download, Check } from 'lucide-react';
+import { Save, Copy, Download, Check, ChevronDown } from 'lucide-react';
 
 const PAGE_TITLES = {
     '/posts': '글 목록',
@@ -76,7 +76,7 @@ const TopBar = () => {
                     </button>
                     <div className="export-dropdown" ref={exportRef}>
                         <button className="topbar-btn" onClick={() => setExportOpen(prev => !prev)}>
-                            <Download size={15} /> 내보내기 ▾
+                            <Download size={15} /> 내보내기 <ChevronDown size={14} />
                         </button>
                         {exportOpen && (
                             <div className="export-dropdown-menu">

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useEditor } from '../context/EditorContext';
 import { CATEGORIES } from '../data/categories';
 import { loadHistory, getStreak, getStorageUsage } from '../utils/history';
+import { BarChart3 } from 'lucide-react';
 import '../styles/history.css';
 
 const PERIOD_OPTIONS = [
@@ -283,15 +284,10 @@ const HistoryPage = () => {
 
             {filteredPosts.length === 0 ? (
                 <div className="history-empty">
-                    <div className="big-icon">📊</div>
+                    <div className="big-icon"><BarChart3 size={48} strokeWidth={1} /></div>
                     <p style={{ fontSize: '1.2rem', fontWeight: 600 }}>아직 작성한 글이 없습니다</p>
                     <p>글을 작성하면 상세한 통계와 분석을 볼 수 있어요.</p>
-                    <Link to="/start" style={{
-                        display: 'inline-block', marginTop: '20px',
-                        padding: '12px 24px', background: 'var(--color-primary)',
-                        color: 'white', borderRadius: '8px', textDecoration: 'none',
-                        fontWeight: 600
-                    }}>
+                    <Link to="/posts" className="history-empty-cta">
                         첫 글 작성하기
                     </Link>
                 </div>
@@ -539,7 +535,7 @@ const HistoryPage = () => {
                                                         style={{
                                                             backgroundColor: count > 0
                                                                 ? `rgba(255, 107, 53, ${intensity})`
-                                                                : '#F3F4F6',
+                                                                : 'var(--color-surface-hover)',
                                                         }}
                                                         data-tooltip={count > 0 ? `${DAY_LABELS[day]} ${h}시: ${count}편` : ''}
                                                     />

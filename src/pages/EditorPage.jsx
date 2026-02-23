@@ -43,7 +43,7 @@ const EditorPage = () => {
     // 카테고리 + 주제 (StartWizardPage에서 통합)
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [topicInput, setTopicInput] = useState('');
-    const [showSettings, setShowSettings] = useState(false); // 세부 설정 토글
+    const [showSettings, setShowSettings] = useState(true); // 세부 설정 토글 (기본 펼침)
 
     // AI 모드 3단계 스텝
     const [aiStep, setAiStep] = useState(1); // 1: 주제+키워드+설정, 2: 이미지, 3: 아웃라인+생성
@@ -79,8 +79,8 @@ const EditorPage = () => {
     const imageAltsRef = useRef({});
 
     // Step 3: 본문 설정 상태
-    const [selectedLength, setSelectedLengthLocal] = useState('1200~1800자');
-    const [selectedTone, setToneState] = useState('friendly');
+    const [selectedLength, setSelectedLengthLocal] = useState(null);
+    const [selectedTone, setToneState] = useState(null);
 
     // Step 4: 아웃라인 상태
     const [outlineItems, setOutlineItems] = useState([]); // [{level: 'h2'|'h3', title: '...'}]
@@ -329,6 +329,11 @@ const EditorPage = () => {
             const result = await AIService.analyzeCompetitors(mainKeyword);
             if (result && result.blogs && Array.isArray(result.blogs)) {
                 setCompetitorData(result);
+                // 경쟁 분석 평균 글자수 기반 글자수 자동 선택
+                if (result.average?.charCount) {
+                    const recommended = recommendLength(result.average.charCount);
+                    if (recommended) setSelectedLength(recommended);
+                }
             } else {
                 console.warn('[경쟁 분석] 예상치 못한 응답 형식:', result);
                 showToast('분석 결과 형식이 올바르지 않습니다. 다시 시도해주세요.', 'error');
@@ -512,6 +517,7 @@ const EditorPage = () => {
 
         // [[IMAGE:slot]], [IMAGE:slot], [IMAGE:1] 등 다양한 형식 대응
         let slotInsertIndex = 0; // 인식 못 하는 슬롯명은 순서대로 매핑
+        const insertedSlots = new Set(); // 중복 삽입 방지
         injectedHtml = injectedHtml.replace(/\[{1,2}IMAGE\s*:\s*([^\]\s]+)\]{1,2}/gi, (match, rawType) => {
             // 숫자면 슬롯 순서로 매핑, 아니면 별칭 매핑
             let slotName = rawType.trim().toLowerCase();
@@ -526,6 +532,12 @@ const EditorPage = () => {
                 slotName = slotOrder[slotInsertIndex] || 'extra';
             }
             slotInsertIndex++;
+
+            // 이미 삽입된 슬롯이면 태그만 제거 (중복 방지)
+            if (insertedSlots.has(slotName)) {
+                return '';
+            }
+            insertedSlots.add(slotName);
 
             const files = photoData.files[slotName];
             if (files && files.length > 0) {
@@ -633,11 +645,11 @@ const EditorPage = () => {
             const result = await AIService.generateFullDraft(
                 categoryId,
                 mainKeyword,
-                selectedTone,
+                selectedTone || 'friendly',
                 photoData.metadata,
                 photoAssets,
                 keywordStrings,
-                selectedLength,
+                selectedLength || '1200~1800자',
                 photoAnalysis,
                 competitorData,
                 outlineItems.length > 0 ? outlineItems : null
@@ -970,7 +982,7 @@ const EditorPage = () => {
                                         className="wizard-btn-primary"
                                     >
                                         {isAnalyzingKeywords
-                                            ? <><Loader2 size={16} className="spin" /> 분석 중...</>
+                                            ? <><Loader2 size={16} className="spin" /> 키워드 분석 중...</>
                                             : suggestedKeywords.length > 0
                                                 ? <><RefreshCw size={16} /> 추가 키워드 더 받기</>
                                                 : <><Bot size={16} /> AI 키워드 분석하기</>
@@ -999,6 +1011,34 @@ const EditorPage = () => {
                                         </span>
                                     )}
                                 </div>
+
+                                {/* 키워드 분석 프로그레스 */}
+                                {isAnalyzingKeywords && (
+                                    <div className="ai-progress-card" style={{ marginBottom: '20px' }}>
+                                        <div className="ai-progress-header">
+                                            <Loader2 size={16} className="spin" />
+                                            네이버 검색 데이터를 기반으로 키워드를 분석하고 있습니다
+                                            <div className="ai-progress-dots"><span /><span /><span /></div>
+                                        </div>
+                                        <div className="ai-progress-bar-track">
+                                            <div className="ai-progress-bar-fill" />
+                                        </div>
+                                        <div className="ai-progress-steps">
+                                            <div className="ai-progress-step done">
+                                                <div className="ai-progress-step-icon"><CheckCircle size={14} /></div>
+                                                검색어 전달 완료
+                                            </div>
+                                            <div className="ai-progress-step active">
+                                                <div className="ai-progress-step-icon"><Loader2 size={14} /></div>
+                                                네이버 실시간 검색 데이터 수집 중
+                                            </div>
+                                            <div className="ai-progress-step">
+                                                <div className="ai-progress-step-icon"><Search size={14} /></div>
+                                                SEO 최적화 키워드 추출
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
 
                                 {/* 제안된 키워드 목록 */}
                                 {suggestedKeywords.length > 0 && (
@@ -1065,17 +1105,29 @@ const EditorPage = () => {
                                     </button>
 
                                     {isAnalyzingSeason && (
-                                        <div style={{
-                                            marginTop: '12px',
-                                            padding: '16px',
-                                            background: 'linear-gradient(135deg, #FFF7ED, #FFEDD5)',
-                                            borderRadius: '12px',
-                                            border: '1px solid #FDBA74',
-                                            textAlign: 'center'
-                                        }}>
-                                            <p style={{ margin: 0, color: '#C2410C', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
-                                                <Loader2 size={16} className="spin" /> 시즌 트렌드를 분석하고 있습니다...
-                                            </p>
+                                        <div className="ai-progress-card">
+                                            <div className="ai-progress-header">
+                                                <Loader2 size={16} className="spin" />
+                                                시즌 트렌드 키워드를 분석하고 있습니다
+                                                <div className="ai-progress-dots"><span /><span /><span /></div>
+                                            </div>
+                                            <div className="ai-progress-bar-track">
+                                                <div className="ai-progress-bar-fill" />
+                                            </div>
+                                            <div className="ai-progress-steps">
+                                                <div className="ai-progress-step done">
+                                                    <div className="ai-progress-step-icon"><CheckCircle size={14} /></div>
+                                                    시즌 데이터 요청 완료
+                                                </div>
+                                                <div className="ai-progress-step active">
+                                                    <div className="ai-progress-step-icon"><Loader2 size={14} /></div>
+                                                    현재 시즌 트렌드 검색 중
+                                                </div>
+                                                <div className="ai-progress-step">
+                                                    <div className="ai-progress-step-icon"><Flame size={14} /></div>
+                                                    트렌드 키워드 추출
+                                                </div>
+                                            </div>
                                         </div>
                                     )}
 
@@ -1237,7 +1289,7 @@ const EditorPage = () => {
                                             {/* 톤앤무드 선택 */}
                                             <div>
                                                 <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '12px' }}>
-                                                    🎨 톤앤무드 선택
+                                                    <Sparkles size={16} /> 톤앤무드 선택
                                                 </label>
                                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                                                     {TONES.map(t => (
@@ -1316,6 +1368,33 @@ const EditorPage = () => {
                                         }
                                     </button>
                                 </div>
+
+                                {isAnalyzingPhotos && (
+                                    <div className="ai-progress-card" style={{ marginTop: '16px' }}>
+                                        <div className="ai-progress-header">
+                                            <Loader2 size={16} className="spin" />
+                                            업로드한 사진을 AI가 분석하고 있습니다
+                                            <div className="ai-progress-dots"><span /><span /><span /></div>
+                                        </div>
+                                        <div className="ai-progress-bar-track">
+                                            <div className="ai-progress-bar-fill" />
+                                        </div>
+                                        <div className="ai-progress-steps">
+                                            <div className="ai-progress-step done">
+                                                <div className="ai-progress-step-icon"><CheckCircle size={14} /></div>
+                                                이미지 전송 완료
+                                            </div>
+                                            <div className="ai-progress-step active">
+                                                <div className="ai-progress-step-icon"><Loader2 size={14} /></div>
+                                                사진 내용 분석 중
+                                            </div>
+                                            <div className="ai-progress-step">
+                                                <div className="ai-progress-step-icon"><Camera size={14} /></div>
+                                                블로그 활용 가이드 생성
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
 
                                 {photoAnalysis && (
                                     <div style={{
@@ -1420,6 +1499,33 @@ const EditorPage = () => {
                                         }
                                     </button>
                                 </div>
+
+                                {isGeneratingOutline && (
+                                    <div className="ai-progress-card" style={{ marginBottom: '24px' }}>
+                                        <div className="ai-progress-header">
+                                            <Loader2 size={16} className="spin" />
+                                            글의 구조를 설계하고 있습니다
+                                            <div className="ai-progress-dots"><span /><span /><span /></div>
+                                        </div>
+                                        <div className="ai-progress-bar-track">
+                                            <div className="ai-progress-bar-fill" />
+                                        </div>
+                                        <div className="ai-progress-steps">
+                                            <div className="ai-progress-step done">
+                                                <div className="ai-progress-step-icon"><CheckCircle size={14} /></div>
+                                                키워드·사진 데이터 수집 완료
+                                            </div>
+                                            <div className="ai-progress-step active">
+                                                <div className="ai-progress-step-icon"><Loader2 size={14} /></div>
+                                                경쟁 블로그 구조 반영 중
+                                            </div>
+                                            <div className="ai-progress-step">
+                                                <div className="ai-progress-step-icon"><ClipboardList size={14} /></div>
+                                                소제목 아웃라인 생성
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
 
                                 {/* 아웃라인 편집 UI */}
                                 {outlineItems.length > 0 && (

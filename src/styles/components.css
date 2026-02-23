@@ -444,6 +444,126 @@
     animation: spin 1s linear infinite;
 }
 
+/* ── Animated Progress Card ── */
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+@keyframes bounce-dots {
+    0%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-6px); }
+}
+
+@keyframes progress-pulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
+.ai-progress-card {
+    margin-top: 16px;
+    padding: 20px 24px;
+    background: var(--color-brand-light, #FFF3ED);
+    border: 1px solid var(--color-brand, #FF6B35);
+    border-radius: var(--radius-lg, 8px);
+    animation: progress-pulse 2s ease-in-out infinite;
+}
+
+.ai-progress-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    color: var(--color-brand-dark, #E55A2B);
+    font-weight: 600;
+    font-size: var(--font-size-sm, 14px);
+}
+
+.ai-progress-bar-track {
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 107, 53, 0.15);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+.ai-progress-bar-fill {
+    height: 100%;
+    width: 30%;
+    background: linear-gradient(90deg, var(--color-brand, #FF6B35), var(--color-brand-dark, #E55A2B));
+    border-radius: 2px;
+    animation: shimmer 1.5s ease-in-out infinite;
+    background-size: 200% 100%;
+}
+
+.ai-progress-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.ai-progress-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85rem;
+    color: var(--color-text-sub, #787774);
+    transition: all 0.3s;
+}
+
+.ai-progress-step.done {
+    color: var(--color-brand-dark, #E55A2B);
+}
+
+.ai-progress-step.active {
+    color: var(--color-brand, #FF6B35);
+    font-weight: 600;
+}
+
+.ai-progress-step-icon {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.ai-progress-step.active .ai-progress-step-icon {
+    animation: spin 1s linear infinite;
+}
+
+.ai-progress-dots {
+    display: inline-flex;
+    gap: 4px;
+    margin-left: auto;
+}
+
+.ai-progress-dots span {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--color-brand, #FF6B35);
+}
+
+.ai-progress-dots span:nth-child(1) { animation: bounce-dots 1.2s ease-in-out infinite 0s; }
+.ai-progress-dots span:nth-child(2) { animation: bounce-dots 1.2s ease-in-out infinite 0.15s; }
+.ai-progress-dots span:nth-child(3) { animation: bounce-dots 1.2s ease-in-out infinite 0.3s; }
+
+/* ── Skeleton Shimmer (Competitor Analysis) ── */
+.skeleton-bar {
+    height: 14px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #f0eeeb 25%, #e8e6e3 50%, #f0eeeb 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.skeleton-bar.short { width: 40%; }
+.skeleton-bar.medium { width: 65%; }
+.skeleton-bar.long { width: 85%; }
+
 /* SEO Metrics Cards */
 .metrics-grid {
     display: grid;
@@ -470,6 +590,46 @@
 .metric-label {
     font-size: 0.7rem;
     color: var(--color-text-sub, #888);
+}
+
+/* Metric Tooltip */
+.metric-has-tooltip {
+    position: relative;
+    cursor: help;
+}
+
+.metric-tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--color-text, #37352F);
+    color: #fff;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    padding: 10px 14px;
+    border-radius: var(--radius-md, 6px);
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    z-index: 20;
+    pointer-events: none;
+}
+
+.metric-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: var(--color-text, #37352F);
+}
+
+.metric-has-tooltip:hover .metric-tooltip {
+    opacity: 1;
+    visibility: visible;
 }
 
 /* Export Dropdown */
@@ -639,4 +799,210 @@
     font-weight: 600;
     color: var(--color-accent, #FF6B35);
     margin-top: 2px;
+}
+
+/* Stats Dashboard Typography */
+.stats-dashboard h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: var(--color-text-main);
+}
+
+.stats-dashboard h4 {
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+    color: var(--color-text-sub);
+}
+
+.stats-section {
+    margin-top: 20px;
+}
+
+/* ===== Competitor Analysis ===== */
+.competitor-cta {
+    padding: 24px;
+    background: var(--color-brand-light);
+    border-radius: var(--radius-lg);
+    text-align: center;
+    border: 1px dashed var(--color-brand);
+}
+
+.competitor-cta-icon {
+    color: var(--color-brand);
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: center;
+}
+
+.competitor-cta-title {
+    color: var(--color-brand-dark);
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.competitor-cta-desc {
+    color: var(--color-brand);
+    font-size: var(--font-size-sm);
+    margin-bottom: 16px;
+}
+
+.competitor-loading {
+    padding: 32px;
+    background: var(--color-surface-hover);
+    border-radius: var(--radius-lg);
+    text-align: center;
+}
+
+.competitor-loading-icon {
+    color: var(--color-brand);
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: center;
+}
+
+.competitor-loading-text {
+    color: var(--color-text-sub);
+}
+
+.competitor-panel {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    overflow: hidden;
+}
+
+.competitor-header {
+    padding: 20px 24px;
+    background: linear-gradient(135deg, var(--color-brand), var(--color-brand-dark));
+    color: white;
+}
+
+.competitor-header h4 {
+    margin: 0 0 16px 0;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.competitor-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.competitor-stat {
+    text-align: center;
+}
+
+.competitor-stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.competitor-stat-label {
+    font-size: 0.8rem;
+    opacity: 0.85;
+}
+
+.competitor-header-note {
+    margin: 14px 0 0 0;
+    font-size: 0.8rem;
+    opacity: 0.9;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.competitor-list {
+    padding: 16px 24px;
+}
+
+.competitor-list-title {
+    margin: 0 0 12px 0;
+    font-size: 0.9rem;
+    color: var(--color-text-sub);
+    font-weight: 600;
+}
+
+.competitor-card {
+    padding: 16px;
+    background: var(--color-surface-hover);
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+.competitor-card:last-child {
+    margin-bottom: 0;
+}
+
+.competitor-card-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-text-main);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.competitor-card-rank {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--color-brand);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.competitor-card-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.competitor-bar {
+    margin-bottom: 12px;
+}
+
+.competitor-bar:last-child {
+    margin-bottom: 0;
+}
+
+.competitor-bar-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+}
+
+.competitor-bar-label {
+    color: var(--color-text-sub);
+}
+
+.competitor-bar-value {
+    font-weight: 700;
+    color: var(--color-text-main);
+}
+
+.competitor-bar-track {
+    height: 8px;
+    background: var(--color-border);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.competitor-bar-fill {
+    height: 100%;
+    background: rgba(255, 107, 53, 0.45);
+    border-radius: 4px;
+    transition: width 0.6s ease;
 }

@@ -216,13 +216,25 @@ Output strictly a valid JSON:
             thinkingBudget: 0
         }, '키워드 분석');
 
-        // google_search 사용 시 모델이 JSON 대신 텍스트로 응답하는 경우 → JSON 모드로 재시도
+        // google_search 응답이 JSON이 아닌 텍스트인 경우
+        // → 검색 결과 텍스트를 컨텍스트로 전달하여 JSON 변환 (실시간 검색 데이터 보존)
         if (!result?.subKeywords || !Array.isArray(result.subKeywords)) {
-            console.log('[키워드 분석] JSON 파싱 실패, responseMimeType=json으로 재시도...');
-            result = await this.generateContent([{ text: prompt }], {
+            const rawText = result?.text || result?.html || '';
+            console.log('[키워드 분석] 검색 데이터 기반 JSON 변환 재시도...');
+            const formatPrompt = `아래는 "${topic}"에 대한 네이버 SEO 키워드 분석 결과야.
+이 내용을 기반으로 메인 키워드 1개와 서브 키워드 10개를 JSON으로 정리해.
+원문의 키워드를 그대로 활용하고, 임의로 새 키워드를 만들지 마.
+
+---
+${rawText.slice(0, 3000)}
+---
+
+Output strictly a valid JSON:
+{"mainKeyword": "메인 키워드", "subKeywords": ["서브1","서브2","서브3","서브4","서브5","서브6","서브7","서브8","서브9","서브10"]}`;
+            result = await this.generateContent([{ text: formatPrompt }], {
                 generationConfig: { responseMimeType: 'application/json' },
                 thinkingBudget: 0
-            }, '키워드 분석 (재시도)');
+            }, '키워드 분석 (JSON 변환)');
         }
 
         // 후처리: 문자열 배열 → {keyword} 객체 배열로 변환 (difficulty는 별도 확인)
@@ -280,13 +292,25 @@ Output strictly a valid JSON:
             thinkingBudget: 0
         }, '시즌 키워드 추천');
 
-        // JSON 파싱 실패 시 재시도
+        // google_search 응답이 JSON이 아닌 텍스트인 경우
+        // → 검색 결과 텍스트를 컨텍스트로 전달하여 JSON 변환 (실시간 검색 데이터 보존)
         if (!result?.seasonKeywords || !Array.isArray(result.seasonKeywords)) {
-            console.log('[시즌 키워드] JSON 파싱 실패, responseMimeType=json으로 재시도...');
-            result = await this.generateContent([{ text: prompt }], {
+            const rawText = result?.text || result?.html || '';
+            console.log('[시즌 키워드] 검색 데이터 기반 JSON 변환 재시도...');
+            const formatPrompt = `아래는 "${topic}" 관련 시즌/트렌드 키워드 분석 결과야.
+이 내용을 기반으로 시즌 키워드 5개를 JSON으로 정리해.
+원문의 키워드와 분석 내용을 그대로 활용하고, 임의로 새 키워드를 만들지 마.
+
+---
+${rawText.slice(0, 3000)}
+---
+
+Output strictly a valid JSON:
+{"seasonKeywords":[{"keyword":"시즌 키워드","reason":"추천 이유","timing":"검색 피크 시기"},{"keyword":"시즌 키워드","reason":"추천 이유","timing":"검색 피크 시기"},{"keyword":"시즌 키워드","reason":"추천 이유","timing":"검색 피크 시기"},{"keyword":"시즌 키워드","reason":"추천 이유","timing":"검색 피크 시기"},{"keyword":"시즌 키워드","reason":"추천 이유","timing":"검색 피크 시기"}]}`;
+            result = await this.generateContent([{ text: formatPrompt }], {
                 generationConfig: { responseMimeType: 'application/json' },
                 thinkingBudget: 0
-            }, '시즌 키워드 추천 (재시도)');
+            }, '시즌 키워드 추천 (JSON 변환)');
         }
 
         // 후처리: 기존 키워드와 중복 필터
@@ -588,13 +612,26 @@ Output strictly a valid JSON: {"html": "..."}`;
     async searchPlaceInfo(keyword) {
         const prompt = `구글 검색으로 "${keyword}"의 실제 정보를 찾아줘.
 Output strictly a valid JSON:
-{"address":"주소","hours":"영업시간","menu":"인기메뉴 (가격 포함)","parking":"주차 정보","reservation":"예약 정보"}
-못 찾은 항목은 "정보 확인 필요"로 채워.`;
+{"address":"주소","hours":"영업시간","menu":"인기메뉴 상위 3~5개만 (메뉴명 가격원 형식, 예: 아메리카노 4,500원)","parking":"주차 정보","reservation":"예약 정보"}
+규칙:
+- menu는 가장 많이 언급되는 대표 메뉴 3~5개만. 절대 6개 이상 넣지 마.
+- 가격은 반드시 숫자,숫자원 형식 (예: 3,800원). 마침표(.) 사용 금지.
+- 못 찾은 항목은 "정보 확인 필요"로 채워.`;
 
-        return this.generateContent([{ text: prompt }], {
+        const result = await this.generateContent([{ text: prompt }], {
             tools: [{ google_search: {} }],
             thinkingBudget: 0
         }, '업장 정보 검색');
+
+        // 가격 포맷 후처리: "3,.800" → "3,800", "3.800" → "3,800" 등
+        if (result && result.menu) {
+            result.menu = result.menu
+                .replace(/(\d)[,.][\s]*\.(\d)/g, '$1,$2')   // "3,. 800" or "3,.800"
+                .replace(/(\d)\.(\d{3})/g, '$1,$2')          // "3.800" → "3,800"
+                .replace(/(\d),\s+(\d)/g, '$1,$2');           // "3, 800" → "3,800"
+        }
+
+        return result;
     },
 
     async generateRestaurantDraft(keyword, tone = 'friendly', imageMetadata = {}, photoAssets = [], subKeywords = [], targetLength = '1200~1800자', photoAnalysis = null, competitorData = null, outline = null) {
@@ -931,7 +968,7 @@ ${currentIntro}
 위 본문과 동일한 문체·어미로 대안 도입부 3개를 작성해.
 
 [규칙]
-1. 각 도입부는 2~3문장, 80~150자 이내
+1. 각 도입부는 2~3문장, 반드시 140~160자 범위 (140자 미만 금지, 160자 초과 금지)
 2. 첫 문장에 메인 키워드("${mainKeyword}") 반드시 포함
 3. 네이버 검색 미리보기에 노출되는 첫 2문장에 핵심 정보 담기
 4. 각 도입부는 서로 다른 전략 사용:

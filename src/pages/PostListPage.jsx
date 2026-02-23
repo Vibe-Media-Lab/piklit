@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useEditor } from '../context/EditorContext';
+import { FileText, Trash2 } from 'lucide-react';
 import '../styles/components.css';
 import '../styles/history.css';
 
@@ -56,7 +57,7 @@ const StatsDashboard = ({ stats }) => {
     if (!stats) return null;
     return (
         <div className="stats-dashboard">
-            <h3 style={{ marginBottom: '20px', color: 'var(--color-text-main)' }}>작성 통계</h3>
+            <h3>작성 통계</h3>
             <div className="stats-grid">
                 <div className="stat-card">
                     <div className="stat-value">{stats.totalPosts}</div>
@@ -69,8 +70,8 @@ const StatsDashboard = ({ stats }) => {
             </div>
 
             {stats.topKeywords.length > 0 && (
-                <div style={{ marginTop: '20px' }}>
-                    <h4 style={{ fontSize: '0.9rem', marginBottom: '12px', color: 'var(--color-text-sub)' }}>키워드 Top 5</h4>
+                <div className="stats-section">
+                    <h4>키워드 Top 5</h4>
                     <div className="keyword-bar-list">
                         {stats.topKeywords.map(([kw, count]) => (
                             <div key={kw} className="keyword-bar-row">
@@ -88,8 +89,8 @@ const StatsDashboard = ({ stats }) => {
                 </div>
             )}
 
-            <div style={{ marginTop: '20px' }}>
-                <h4 style={{ fontSize: '0.9rem', marginBottom: '12px', color: 'var(--color-text-sub)' }}>최근 7일 활동</h4>
+            <div className="stats-section">
+                <h4>최근 7일 활동</h4>
                 <div className="activity-chart">
                     {stats.days.map(d => (
                         <div key={d.key} className="activity-bar-col">
@@ -142,17 +143,20 @@ const PostListPage = () => {
     );
 
     return (
-        <div style={{ maxWidth: '800px', padding: '40px 20px' }}>
+        <div className="post-list-container">
             {stats && <StatsDashboard stats={stats} />}
 
             <div className="post-list">
                 {sortedPosts.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '60px', background: 'var(--color-surface)', borderRadius: 'var(--radius-lg)', color: 'var(--color-text-sub)' }}>
-                        <p style={{ marginBottom: '16px', fontSize: '1.2rem' }}>📝 작성된 글이 없습니다.</p>
+                    <div className="post-list-empty">
+                        <div className="post-list-empty-icon">
+                            <FileText size={48} strokeWidth={1} />
+                        </div>
+                        <p className="post-list-empty-title">작성된 글이 없습니다.</p>
                         <p>새 글 작성 버튼을 눌러 블로그 포스팅을 시작해보세요!</p>
                     </div>
                 ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <div className="post-list-stack">
                         {sortedPosts.map(post => {
                             const plainText = stripHtml(post.content);
                             const charCount = plainText.length;
@@ -162,91 +166,49 @@ const PostListPage = () => {
                             return (
                                 <div
                                     key={post.id}
+                                    className="post-card"
                                     onClick={() => handleEdit(post.id)}
-                                    style={{
-                                        padding: '24px',
-                                        background: 'var(--color-surface)',
-                                        borderRadius: 'var(--radius-lg)',
-                                        boxShadow: 'var(--shadow-sm)',
-                                        cursor: 'pointer',
-                                        transition: 'transform 0.2s, box-shadow 0.2s',
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'flex-start'
-                                    }}
-                                    onMouseOver={(e) => {
-                                        e.currentTarget.style.transform = 'translateY(-2px)';
-                                        e.currentTarget.style.boxShadow = 'var(--shadow-md)';
-                                    }}
-                                    onMouseOut={(e) => {
-                                        e.currentTarget.style.transform = 'translateY(0)';
-                                        e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
-                                    }}
                                 >
-                                    <div style={{ flex: 1, minWidth: 0 }}>
-                                        <h3 style={{ fontSize: '1.2rem', marginBottom: '8px', color: post.title ? 'var(--color-text-main)' : 'var(--color-text-sub)' }}>
+                                    <div className="post-card-body">
+                                        <h3 className={`post-card-title ${!post.title ? 'untitled' : ''}`}>
                                             {post.title || '(제목 없음)'}
                                         </h3>
 
                                         {preview.trim() && (
-                                            <p style={{
-                                                fontSize: '0.875rem',
-                                                color: 'var(--color-text-sub)',
-                                                marginBottom: '10px',
-                                                lineHeight: '1.5',
-                                                overflow: 'hidden',
-                                                textOverflow: 'ellipsis',
-                                                whiteSpace: 'nowrap'
-                                            }}>
-                                                {preview}
-                                            </p>
+                                            <p className="post-card-preview">{preview}</p>
                                         )}
 
-                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '10px' }}>
+                                        <div className="post-card-keywords">
                                             {post.keywords?.main && (
-                                                <span style={{
-                                                    padding: '2px 10px',
-                                                    borderRadius: '12px',
-                                                    fontSize: '0.8rem',
-                                                    fontWeight: '600',
-                                                    background: 'var(--color-accent)',
-                                                    color: 'white'
-                                                }}>
+                                                <span className="post-card-keyword-main">
                                                     #{post.keywords.main}
                                                 </span>
                                             )}
                                             {subKeywords.map((kw, i) => (
-                                                <span key={i} style={{
-                                                    padding: '2px 10px',
-                                                    borderRadius: '12px',
-                                                    fontSize: '0.8rem',
-                                                    background: 'var(--color-background)',
-                                                    color: 'var(--color-text-sub)',
-                                                    border: '1px solid var(--color-border)'
-                                                }}>
+                                                <span key={i} className="post-card-keyword-sub">
                                                     #{kw}
                                                 </span>
                                             ))}
                                         </div>
 
-                                        <div style={{ fontSize: '0.8rem', color: 'var(--color-text-sub)', display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
+                                        <div className="post-card-meta">
                                             {post.seoScore > 0 && (
                                                 <span className={`seo-badge ${post.seoScore >= 70 ? 'score-high' : post.seoScore >= 40 ? 'score-mid' : 'score-low'}`}>
                                                     SEO {post.seoScore}점
                                                 </span>
                                             )}
                                             {post.mode === 'ai' && (
-                                                <span style={{ padding: '2px 8px', borderRadius: '10px', fontSize: '0.7rem', background: '#FFF3ED', color: '#FF6B35', fontWeight: 600 }}>AI</span>
+                                                <span className="post-card-ai-badge">AI</span>
                                             )}
                                             <span>{charCount.toLocaleString()}자</span>
                                             <span>{formatDate(post.updatedAt)}</span>
                                         </div>
                                     </div>
                                     <button
+                                        className="post-card-delete"
                                         onClick={(e) => handleDelete(e, post.id)}
-                                        style={{ color: 'var(--color-error)', padding: '8px', opacity: 0.7, flexShrink: 0, marginLeft: '12px' }}
                                     >
-                                        삭제
+                                        <Trash2 size={14} />
                                     </button>
                                 </div>
                             );

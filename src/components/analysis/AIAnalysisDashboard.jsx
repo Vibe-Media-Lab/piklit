@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useEditor } from '../../context/EditorContext';
 import { useToast } from '../common/Toast';
 import { AIService } from '../../services/openai';
+import ReadabilityPanel from './ReadabilityPanel';
 import PostHistory from './PostHistory';
 
 const AIAnalysisDashboard = () => {
@@ -72,17 +73,29 @@ const AIAnalysisDashboard = () => {
 
             {/* Metrics Cards */}
             <div className="metrics-grid">
-                <div className="metric-card">
+                <div className="metric-card metric-has-tooltip">
                     <div className="metric-value">{keywordDensity != null ? `${keywordDensity}%` : '-'}</div>
                     <div className="metric-label">키워드 밀도</div>
+                    <div className="metric-tooltip">
+                        (키워드 출현 횟수 x 키워드 글자수) ÷ 전체 글자수 x 100<br />
+                        적정 범위: 1~3%
+                    </div>
                 </div>
-                <div className="metric-card">
+                <div className="metric-card metric-has-tooltip">
                     <div className="metric-value">{introLength != null ? `${introLength}자` : '-'}</div>
                     <div className="metric-label">도입부 길이</div>
+                    <div className="metric-tooltip">
+                        첫 번째 문단의 글자수<br />
+                        권장 범위: 140~160자
+                    </div>
                 </div>
-                <div className="metric-card">
+                <div className="metric-card metric-has-tooltip">
                     <div className="metric-value">{headingCount != null ? headingCount : '-'}</div>
                     <div className="metric-label">소제목 수</div>
+                    <div className="metric-tooltip">
+                        H2, H3 태그 합산 개수<br />
+                        1,500자당 3~5개 권장
+                    </div>
                 </div>
             </div>
 
@@ -174,6 +187,9 @@ const AIAnalysisDashboard = () => {
                     </ul>
                 )}
             </div>
+
+            {/* Readability Panel */}
+            <ReadabilityPanel />
 
             {/* Post History Timeline */}
             <PostHistory />

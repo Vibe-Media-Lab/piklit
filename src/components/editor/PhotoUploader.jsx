@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { Camera, Upload, Info } from 'lucide-react';
 import { AIService } from '../../services/openai';
 import ImageCropper from './ImageCropper';
 import { addAiWatermark } from '../../utils/watermark';
@@ -392,9 +393,11 @@ const PhotoUploader = ({ keyword, onUpdate, categoryId }) => {
 
     return (
         <div className="photo-uploader-container">
-            <h3 style={{ fontSize: '1rem', marginBottom: '16px', color: '#444', textAlign: 'center' }}>
-                📸 사진을 드래그해서 넣어주세요 (자동 리사이징)
-            </h3>
+            <div className="photo-upload-banner">
+                <Camera size={18} />
+                <span>사진을 드래그하거나 클릭해서 넣어주세요</span>
+                <span className="photo-upload-banner-sub">· 자동 리사이징 · AI 이미지 생성 가능</span>
+            </div>
 
             <div className="photo-grid">
                 {slots.map(slot => {
@@ -445,9 +448,10 @@ const PhotoUploader = ({ keyword, onUpdate, categoryId }) => {
                 })}
             </div>
 
-            <div style={{ textAlign: 'center', fontSize: '0.85rem', color: '#888' }}>
-                * 사진이 있는 항목은 AI가 본문에 <b>[이미지 삽입]</b> 위치를 잡아줍니다.
-            </div>
+            <p className="photo-upload-note">
+                <Info size={14} />
+                사진이 있는 항목은 AI가 본문에 <b>[이미지 삽입]</b> 위치를 잡아줍니다.
+            </p>
 
             {/* AI Image Generation Modal */}
             {aiModal.open && (
@@ -455,7 +459,7 @@ const PhotoUploader = ({ keyword, onUpdate, categoryId }) => {
                     <div className="ai-modal" onClick={(e) => e.stopPropagation()}>
                         <div className="ai-modal-header">
                             <h3>AI 이미지 생성</h3>
-                            <span style={{ fontSize: '0.85rem', color: '#888' }}>{aiModal.slotLabel}</span>
+                            <span style={{ fontSize: '0.85rem', color: 'var(--color-text-sub, #787774)' }}>{aiModal.slotLabel}</span>
                             <button className="ai-modal-close" onClick={closeAiModal}>✕</button>
                         </div>
 
