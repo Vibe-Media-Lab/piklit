@@ -206,7 +206,7 @@ const ImageCropper = ({ base64, mimeType, onCropApply, onApplyAll, onClose }) =>
                     onClick={performCrop}
                     disabled={!hasValidSelection}
                     style={{
-                        flex: 1, padding: '10px', background: hasValidSelection ? '#6c5ce7' : '#ccc',
+                        flex: 1, padding: '10px', background: hasValidSelection ? '#FF6B35' : '#ccc',
                         color: 'white', border: 'none', borderRadius: '8px',
                         fontSize: '0.85rem', fontWeight: 600,
                         cursor: hasValidSelection ? 'pointer' : 'not-allowed',
@@ -275,7 +275,7 @@ const ImageCropper = ({ base64, mimeType, onCropApply, onApplyAll, onClose }) =>
                                     style={{
                                         position: 'absolute', bottom: '4px', left: '50%',
                                         transform: 'translateX(-50%)',
-                                        background: 'rgba(108,92,231,0.9)', color: 'white',
+                                        background: 'rgba(255,107,53,0.9)', color: 'white',
                                         border: 'none', borderRadius: '4px',
                                         padding: '3px 10px', fontSize: '0.7rem', fontWeight: 600,
                                         cursor: 'pointer', whiteSpace: 'nowrap',
@@ -293,7 +293,7 @@ const ImageCropper = ({ base64, mimeType, onCropApply, onApplyAll, onClose }) =>
                             onClick={handleApplyAll}
                             style={{
                                 width: '100%', marginTop: '10px', padding: '10px',
-                                background: 'linear-gradient(135deg, #6c5ce7, #a29bfe)',
+                                background: 'linear-gradient(135deg, #FF6B35, #F7931E)',
                                 color: 'white', border: 'none', borderRadius: '8px',
                                 fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer',
                             }}

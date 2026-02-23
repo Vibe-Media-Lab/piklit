@@ -477,7 +477,7 @@ const PhotoUploader = ({ keyword, onUpdate, categoryId }) => {
                                     onClick={handleEnhancePrompt}
                                     disabled={aiModal.isEnhancing || !aiModal.userInput.trim()}
                                     style={{
-                                        padding: '8px 14px', background: '#6c5ce7', color: 'white',
+                                        padding: '8px 14px', background: '#FF6B35', color: 'white',
                                         border: 'none', borderRadius: '8px', fontSize: '0.78rem',
                                         fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
                                         opacity: aiModal.isEnhancing ? 0.6 : 1
@@ -506,7 +506,7 @@ const PhotoUploader = ({ keyword, onUpdate, categoryId }) => {
                             {/* 최적화된 프롬프트 */}
                             <label className="ai-modal-label">
                                 생성 프롬프트
-                                {aiModal.isEnhancing && <span style={{ color: '#6c5ce7', marginLeft: '8px', fontWeight: 400 }}>최적화 중...</span>}
+                                {aiModal.isEnhancing && <span style={{ color: '#FF6B35', marginLeft: '8px', fontWeight: 400 }}>최적화 중...</span>}
                             </label>
                             <textarea
                                 className="ai-modal-textarea"

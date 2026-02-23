@@ -172,7 +172,7 @@
 
 .bar-chart-bar {
     width: 100%;
-    background: linear-gradient(180deg, var(--color-accent), rgba(46, 170, 220, 0.4));
+    background: linear-gradient(180deg, var(--color-accent), rgba(255, 107, 53, 0.4));
     border-radius: 3px 3px 0 0;
     transition: height 0.4s ease;
     min-height: 0;
@@ -405,7 +405,7 @@
     min-width: 4px;
 }
 
-.hbar-fill.ai { background: linear-gradient(90deg, #6c5ce7, #a29bfe); }
+.hbar-fill.ai { background: linear-gradient(90deg, var(--color-brand), #F7931E); }
 .hbar-fill.direct { background: linear-gradient(90deg, #10B981, #6EE7B7); }
 .hbar-fill.keyword-reuse { background: linear-gradient(90deg, var(--color-accent), #81D4FA); }
 .hbar-fill.keyword-new { background: linear-gradient(90deg, #F59E0B, #FCD34D); }
@@ -441,7 +441,7 @@
 }
 
 .stacked-bar-segment.ai {
-    background: linear-gradient(90deg, #6c5ce7, #a29bfe);
+    background: linear-gradient(90deg, var(--color-brand), #F7931E);
 }
 
 .stacked-bar-segment.direct {
@@ -466,7 +466,7 @@
     border-radius: 3px;
 }
 
-.stacked-bar-legend-dot.ai { background: #6c5ce7; }
+.stacked-bar-legend-dot.ai { background: var(--color-brand); }
 .stacked-bar-legend-dot.direct { background: #10B981; }
 
 /* ===== Heatmap (Writing Pattern) ===== */
@@ -679,8 +679,8 @@
 
 .timeline-ai-tag {
     padding: 2px 8px;
-    background: #F3F0FF;
-    color: #6c5ce7;
+    background: var(--color-brand-light);
+    color: var(--color-brand);
     border-radius: 10px;
     font-size: 0.7rem;
     font-weight: 500;
@@ -702,8 +702,8 @@
 }
 
 .ai-usage-badge.active {
-    background: #F3F0FF;
-    color: #6c5ce7;
+    background: var(--color-brand-light);
+    color: var(--color-brand);
 }
 
 .ai-usage-badge.inactive {

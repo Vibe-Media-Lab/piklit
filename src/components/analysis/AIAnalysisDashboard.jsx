@@ -92,7 +92,7 @@ const AIAnalysisDashboard = () => {
                     onClick={handleExtractTags}
                     disabled={loading}
                     style={{
-                        width: '100%', padding: '10px', background: '#6c5ce7', color: 'white',
+                        width: '100%', padding: '10px', background: '#FF6B35', color: 'white',
                         border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem'
                     }}
                 >
@@ -108,7 +108,7 @@ const AIAnalysisDashboard = () => {
                         <button
                             onClick={handleCopyTags}
                             style={{
-                                background: copiedAll ? '#6c5ce7' : 'none',
+                                background: copiedAll ? '#FF6B35' : 'none',
                                 border: '1px solid #ddd',
                                 borderRadius: '4px',
                                 padding: '2px 8px',
@@ -131,8 +131,8 @@ const AIAnalysisDashboard = () => {
                                 onClick={() => handleCopySingleTag(tag)}
                                 style={{
                                     padding: '4px 10px',
-                                    background: copiedTag === tag ? '#6c5ce7' : '#F3F0FF',
-                                    color: copiedTag === tag ? 'white' : '#6c5ce7',
+                                    background: copiedTag === tag ? '#FF6B35' : '#FFF3ED',
+                                    color: copiedTag === tag ? 'white' : '#FF6B35',
                                     borderRadius: '12px',
                                     fontSize: '0.8rem',
                                     fontWeight: '500',

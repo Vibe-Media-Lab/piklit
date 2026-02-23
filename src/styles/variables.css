@@ -19,9 +19,13 @@
   /* Notion Border */
   --color-border-hover: #D3D1CB;
 
-  --color-accent: #2EAADC;
-  /* Notion Blue (for selection/focus) */
-  --color-accent-bg: #E3F2FD;
+  --color-brand: #FF6B35;
+  --color-brand-dark: #E55A2B;
+  --color-brand-light: #FFF3ED;
+
+  --color-accent: #FF6B35;
+  /* Brand Orange (for selection/focus) */
+  --color-accent-bg: #FFF3ED;
 
   --color-success: #27AE60;
   --color-warning: #EB5757;

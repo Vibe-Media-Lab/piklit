@@ -70,7 +70,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
                             {usageLoading ? (
                                 <span style={{ fontSize: '0.85rem', color: 'var(--color-text-sub)' }}>조회 중...</span>
                             ) : usage ? (
-                                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: usagePercent >= 80 ? '#EB5757' : '#FF6B35' }}>
+                                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: usagePercent >= 80 ? '#EB5757' : 'var(--color-brand)' }}>
                                     {usage.used} / {usage.limit}회 사용
                                 </span>
                             ) : null}
@@ -85,7 +85,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
                                 <div style={{
                                     height: '100%',
                                     width: `${Math.min(usagePercent, 100)}%`,
-                                    background: usagePercent >= 80 ? '#EB5757' : '#FF6B35',
+                                    background: usagePercent >= 80 ? '#EB5757' : 'var(--color-brand)',
                                     borderRadius: '3px',
                                     transition: 'width 0.3s'
                                 }} />
@@ -153,7 +153,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
                         onClick={handleSave}
                         style={{
                             padding: '8px 16px',
-                            background: '#FF6B35',
+                            background: 'var(--color-brand)',
                             color: 'white',
                             border: 'none',
                             borderRadius: 'var(--radius-md)',

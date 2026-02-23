@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import Header from '../components/layout/Header';
+// Header 제거 — AppLayout의 Sidebar/TopBar로 대체
 import MainContainer from '../components/layout/MainContainer';
 import { useEditor } from '../context/EditorContext';
 import { useToast } from '../components/common/Toast';
@@ -12,6 +12,12 @@ import ImageSeoGuide from '../components/editor/ImageSeoGuide';
 import ImageGeneratorPanel from '../components/editor/ImageGeneratorPanel';
 import CompetitorAnalysis from '../components/analysis/CompetitorAnalysis';
 import { CATEGORIES, getToneForCategory } from '../data/categories';
+import {
+    Search, FolderOpen, Edit3, CheckCircle, Tag, Flame, Bot,
+    ClipboardList, Camera, Wand2, ArrowLeft, ArrowRight,
+    ChevronDown, ChevronUp, Loader2, BarChart3, Settings,
+    Sparkles, RefreshCw, Plus, Trash2, Check
+} from 'lucide-react';
 import '../styles/components.css';
 import '../styles/ImageSeoGuide.css';
 
@@ -534,7 +540,7 @@ const EditorPage = () => {
             }
             // 파일 없는 슬롯 → TIP 박스로 변환 (한국어 라벨 사용)
             const label = slotLabels[slotName] || slotName;
-            return `</p><blockquote style="border-left: 4px solid #6c5ce7; background: #f8f7ff; padding: 12px 16px; margin: 16px 0; border-radius: 0 8px 8px 0; color: #6c5ce7; font-size: 0.9rem;">📸 <b>${label}</b> 사진을 추가하면 더 좋아요!</blockquote><p>`;
+            return `</p><blockquote style="border-left: 4px solid #FF6B35; background: #FFF3ED; padding: 12px 16px; margin: 16px 0; border-radius: 0 8px 8px 0; color: #FF6B35; font-size: 0.9rem;">📸 <b>${label}</b> 사진을 추가하면 더 좋아요!</blockquote><p>`;
         });
 
         // 2. [[VIDEO]] → 동영상 TIP 박스 변환 ([VIDEO] 단일 대괄호도 대응)
@@ -779,29 +785,19 @@ const EditorPage = () => {
 
     // Progress Indicator 컴포넌트
     const StepIndicator = () => (
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginBottom: '40px', flexWrap: 'wrap' }}>
+        <div className="wizard-step-indicator">
             {[1, 2, 3].map(s => (
-                <div key={s} style={{
-                    display: 'flex', alignItems: 'center', gap: '8px'
-                }}>
-                    <div style={{
-                        width: '32px', height: '32px', borderRadius: '50%',
-                        background: s === aiStep ? 'var(--color-primary)' : s < aiStep ? 'var(--color-accent)' : '#E0E0E0',
-                        color: s <= aiStep ? 'white' : '#999',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontWeight: 'bold', fontSize: '0.9rem'
-                    }}>
-                        {s < aiStep ? '✓' : s}
+                <React.Fragment key={s}>
+                    <div className="wizard-step-item">
+                        <div className={`wizard-step-circle ${s === aiStep ? 'active' : s < aiStep ? 'completed' : 'pending'}`}>
+                            {s < aiStep ? <Check size={14} /> : s}
+                        </div>
+                        <span className={`wizard-step-label ${s === aiStep ? 'active' : s < aiStep ? 'completed' : 'pending'}`}>
+                            {STEP_LABELS[s - 1]}
+                        </span>
                     </div>
-                    <span style={{
-                        fontSize: '0.9rem',
-                        color: s === aiStep ? 'var(--color-primary)' : '#999',
-                        fontWeight: s === aiStep ? 'bold' : 'normal'
-                    }}>
-                        {STEP_LABELS[s - 1]}
-                    </span>
-                    {s < 3 && <span style={{ color: '#ddd', margin: '0 8px' }}>→</span>}
-                </div>
+                    {s < 3 && <div className={`wizard-step-connector ${s < aiStep ? 'completed' : ''}`} />}
+                </React.Fragment>
             ))}
         </div>
     );
@@ -809,44 +805,40 @@ const EditorPage = () => {
     // AI 모드일 때 전체 페이지로 스텝 UI 렌더링
     if (editorMode === 'ai' && !isGenerating) {
         return (
-            <div className="app-layout">
-                <Header />
+            <div>
                 <div style={{
                     flex: 1,
-                    background: '#FAFAFA',
+                    background: 'var(--color-surface-hover)',
                     padding: '40px 20px',
-                    minHeight: 'calc(100vh - 60px)',
+                    minHeight: 'calc(100vh - 52px)',
                     overflowY: 'auto'
                 }}>
                     <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-                        <h1 style={{ textAlign: 'center', marginBottom: '8px' }}>AI 본문 자동 작성</h1>
-                        <p style={{ textAlign: 'center', color: '#666', marginBottom: '40px' }}>
-                            {mainKeyword
-                                ? <>주제: <strong>{mainKeyword}</strong></>
-                                : '주제를 입력하고 키워드를 분석해보세요'
-                            }
-                        </p>
-
-                        <StepIndicator />
-
                         {/* STEP 1: 주제 설정 + 키워드 분석 + 세부 설정 */}
                         {aiStep === 1 && (
-                            <div style={{
-                                background: 'white',
-                                borderRadius: '16px',
-                                padding: '40px',
-                                boxShadow: '0 2px 12px rgba(0,0,0,0.08)'
-                            }}>
-                                <h2 style={{ marginBottom: '24px' }}>🔍 Step 1: 주제 설정 + 키워드 분석</h2>
-                                <p style={{ color: '#666', marginBottom: '32px' }}>
+                            <div className="wizard-card-wrap">
+                                <h1 style={{ marginBottom: '8px' }}>AI 본문 자동 작성</h1>
+                                <p style={{ color: 'var(--color-text-sub)', marginBottom: '32px' }}>
+                                    {mainKeyword
+                                        ? <>주제: <strong>{mainKeyword}</strong></>
+                                        : '주제를 입력하고 키워드를 분석해보세요'
+                                    }
+                                </p>
+
+                                <StepIndicator />
+
+                                <h2 style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <Search size={20} /> Step 1: 주제 설정 + 키워드 분석
+                                </h2>
+                                <p style={{ color: 'var(--color-text-sub)', marginBottom: '32px' }}>
                                     카테고리와 주제를 선택하고, AI가 SEO 최적화 키워드를 제안합니다.
                                 </p>
 
                                 {/* 카테고리 그리드 */}
                                 {isNewPost && (
                                     <div style={{ marginBottom: '28px' }}>
-                                        <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '12px' }}>
-                                            📂 카테고리 선택 <span style={{ color: 'red' }}>*</span>
+                                        <label className="wizard-label">
+                                            <FolderOpen size={16} /> 카테고리 선택 <span style={{ color: 'red' }}>*</span>
                                         </label>
                                         <div style={{
                                             display: 'grid',
@@ -863,23 +855,23 @@ const EditorPage = () => {
                                                     }}
                                                     style={{
                                                         padding: '14px 12px',
-                                                        borderRadius: '10px',
+                                                        borderRadius: 'var(--radius-lg)',
                                                         border: selectedCategory?.id === cat.id
-                                                            ? '2px solid var(--color-primary)'
-                                                            : '1px solid #E0E0E0',
+                                                            ? '2px solid var(--color-brand)'
+                                                            : '1px solid var(--color-border)',
                                                         background: selectedCategory?.id === cat.id
-                                                            ? 'var(--color-primary-light)'
+                                                            ? 'var(--color-brand-light)'
                                                             : 'white',
                                                         cursor: 'pointer',
                                                         textAlign: 'center',
                                                         transition: 'all 0.2s',
-                                                        fontSize: '0.9rem'
+                                                        fontSize: 'var(--font-size-sm)'
                                                     }}
                                                 >
                                                     <span style={{ fontSize: '1.3rem', display: 'block', marginBottom: '4px' }}>{cat.icon}</span>
                                                     <span style={{
                                                         fontWeight: selectedCategory?.id === cat.id ? 'bold' : 'normal',
-                                                        color: selectedCategory?.id === cat.id ? 'var(--color-primary)' : 'var(--color-text-main)'
+                                                        color: selectedCategory?.id === cat.id ? 'var(--color-brand)' : 'var(--color-text-main)'
                                                     }}>
                                                         {cat.label}
                                                     </span>
@@ -892,8 +884,8 @@ const EditorPage = () => {
                                 {/* 주제 입력 */}
                                 {isNewPost && (
                                     <div style={{ marginBottom: '28px' }}>
-                                        <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px' }}>
-                                            📝 주제 입력 <span style={{ color: 'red' }}>*</span>
+                                        <label className="wizard-label">
+                                            <Edit3 size={16} /> 주제 입력 <span style={{ color: 'red' }}>*</span>
                                         </label>
                                         <input
                                             type="text"
@@ -904,11 +896,7 @@ const EditorPage = () => {
                                                 updateMainKeyword(e.target.value);
                                             }}
                                             placeholder={CATEGORY_PLACEHOLDERS[selectedCategory?.id] || '예: 작성할 주제를 입력하세요'}
-                                            style={{
-                                                width: '100%', padding: '14px', fontSize: '1rem',
-                                                border: '2px solid #E0E0E0', borderRadius: '8px',
-                                                boxSizing: 'border-box'
-                                            }}
+                                            className="wizard-field"
                                             autoFocus
                                         />
                                     </div>
@@ -917,36 +905,32 @@ const EditorPage = () => {
                                 {/* 메인 키워드 (기존 글 재편집 시 표시) */}
                                 {!isNewPost && (
                                     <div style={{ marginBottom: '32px' }}>
-                                        <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px' }}>
-                                            📌 메인 키워드 <span style={{ color: 'red' }}>*</span>
+                                        <label className="wizard-label">
+                                            <Edit3 size={16} /> 메인 키워드 <span style={{ color: 'red' }}>*</span>
                                         </label>
                                         <input
                                             type="text"
                                             value={mainKeyword}
                                             onChange={e => setMainKeyword(e.target.value)}
                                             placeholder="예: 제주 김선문 식당"
-                                            style={{
-                                                width: '100%', padding: '14px', fontSize: '1rem',
-                                                border: '2px solid #E0E0E0', borderRadius: '8px',
-                                                boxSizing: 'border-box'
-                                            }}
+                                            className="wizard-field"
                                         />
                                     </div>
                                 )}
 
                                 {/* 선택된 키워드 */}
                                 <div style={{ marginBottom: '24px' }}>
-                                    <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '12px' }}>
-                                        ✅ 선택한 서브 키워드 ({selectedKeywords.length}/5)
+                                    <label className="wizard-label">
+                                        <CheckCircle size={16} /> 선택한 서브 키워드 ({selectedKeywords.length}/5)
                                         {selectedKeywords.length < 3 && (
-                                            <span style={{ color: '#EF4444', fontWeight: 'normal', marginLeft: '8px' }}>
+                                            <span style={{ color: '#EF4444', fontWeight: 'normal', marginLeft: '8px', fontSize: '0.85rem' }}>
                                                 최소 3개 선택 필요
                                             </span>
                                         )}
                                     </label>
                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', minHeight: '40px' }}>
                                         {selectedKeywords.length === 0 ? (
-                                            <span style={{ color: '#999', fontSize: '0.9rem' }}>
+                                            <span style={{ color: 'var(--color-text-sub)', fontSize: 'var(--font-size-sm)' }}>
                                                 아래 제안된 키워드를 클릭하여 선택하세요
                                             </span>
                                         ) : (
@@ -955,23 +939,23 @@ const EditorPage = () => {
                                                     key={i}
                                                     onClick={() => handleRemoveSelectedKeyword(kwObj)}
                                                     style={{
-                                                        padding: '10px 16px',
-                                                        background: kwObj.isSeason
-                                                            ? 'linear-gradient(135deg, #FF6B35, #F7931E)'
-                                                            : 'linear-gradient(135deg, #10B981, #059669)',
-                                                        color: 'white',
+                                                        padding: '8px 16px',
+                                                        background: kwObj.isSeason ? '#FFEDD5' : 'var(--color-brand-light)',
+                                                        color: kwObj.isSeason ? '#C2410C' : '#E8590C',
+                                                        border: kwObj.isSeason ? '1px solid #FDBA74' : '1px solid #FFCAB0',
                                                         borderRadius: '20px',
-                                                        fontSize: '0.95rem',
-                                                        fontWeight: '500',
+                                                        fontSize: 'var(--font-size-sm)',
+                                                        fontWeight: '600',
                                                         cursor: 'pointer',
                                                         display: 'flex',
                                                         alignItems: 'center',
-                                                        gap: '8px'
+                                                        gap: '6px',
+                                                        transition: 'all 0.15s'
                                                     }}
                                                 >
-                                                    {kwObj.isSeason && '🔥 '}{getKw(kwObj)}
+                                                    {kwObj.isSeason && <Flame size={13} />}{getKw(kwObj)}
                                                     {difficultyChecked && <DifficultyBadge difficulty={getDifficulty(kwObj)} />}
-                                                    <span style={{ fontSize: '1.1rem' }}>×</span>
+                                                    <span style={{ fontSize: '0.8rem', opacity: 0.5 }}>×</span>
                                                 </span>
                                             ))
                                         )}
@@ -984,16 +968,12 @@ const EditorPage = () => {
                                         onClick={handleAnalyzeKeywords}
                                         disabled={isAnalyzingKeywords}
                                         className="wizard-btn-primary"
-                                        style={{
-                                            padding: '14px 28px',
-                                            background: suggestedKeywords.length > 0 ? '#6366F1' : undefined
-                                        }}
                                     >
                                         {isAnalyzingKeywords
-                                            ? '⏳ 분석 중...'
+                                            ? <><Loader2 size={16} className="spin" /> 분석 중...</>
                                             : suggestedKeywords.length > 0
-                                                ? '🔄 추가 키워드 더 받기'
-                                                : '🤖 AI 키워드 분석하기'
+                                                ? <><RefreshCw size={16} /> 추가 키워드 더 받기</>
+                                                : <><Bot size={16} /> AI 키워드 분석하기</>
                                         }
                                     </button>
 
@@ -1002,25 +982,20 @@ const EditorPage = () => {
                                         <button
                                             onClick={handleCheckDifficulty}
                                             disabled={isCheckingDifficulty}
-                                            style={{
-                                                padding: '14px 28px',
-                                                background: 'white',
-                                                border: '2px solid #E0E0E0',
-                                                borderRadius: '8px',
-                                                cursor: 'pointer',
-                                                fontSize: '0.95rem',
-                                                color: '#555'
-                                            }}
+                                            className="wizard-btn-secondary"
                                         >
-                                            {isCheckingDifficulty ? '⏳ 확인 중...' : '📊 키워드 강도 확인하기'}
+                                            {isCheckingDifficulty
+                                                ? <><Loader2 size={16} className="spin" /> 확인 중...</>
+                                                : <><BarChart3 size={16} /> 키워드 강도 확인하기</>
+                                            }
                                         </button>
                                     )}
                                     {difficultyChecked && (
                                         <span style={{
-                                            display: 'flex', alignItems: 'center',
-                                            fontSize: '0.9rem', color: '#16A34A'
+                                            display: 'flex', alignItems: 'center', gap: '6px',
+                                            fontSize: '0.9rem', color: '#FF6B35'
                                         }}>
-                                            ✅ 강도 확인 완료
+                                            <CheckCircle size={16} /> 강도 확인 완료
                                         </span>
                                     )}
                                 </div>
@@ -1028,8 +1003,8 @@ const EditorPage = () => {
                                 {/* 제안된 키워드 목록 */}
                                 {suggestedKeywords.length > 0 && (
                                     <div style={{ marginBottom: '24px' }}>
-                                        <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '12px' }}>
-                                            🏷️ AI 제안 키워드 (클릭하여 선택)
+                                        <label className="wizard-label">
+                                            <Tag size={16} /> AI 제안 키워드 (클릭하여 선택)
                                         </label>
                                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
                                             {suggestedKeywords.map((kwObj, i) => (
@@ -1037,13 +1012,13 @@ const EditorPage = () => {
                                                     key={i}
                                                     onClick={() => handleKeywordToggle(kwObj)}
                                                     style={{
-                                                        padding: '10px 16px',
-                                                        background: '#F3F4F6',
-                                                        color: '#374151',
+                                                        padding: '8px 16px',
+                                                        background: 'var(--color-surface-hover)',
+                                                        color: 'var(--color-text-main)',
                                                         borderRadius: '20px',
-                                                        fontSize: '0.95rem',
+                                                        fontSize: 'var(--font-size-sm)',
                                                         cursor: selectedKeywords.length >= 5 ? 'not-allowed' : 'pointer',
-                                                        border: '2px solid transparent',
+                                                        border: '1px solid transparent',
                                                         transition: 'all 0.2s',
                                                         opacity: selectedKeywords.length >= 5 ? 0.5 : 1,
                                                         display: 'inline-flex',
@@ -1052,12 +1027,12 @@ const EditorPage = () => {
                                                     }}
                                                     onMouseEnter={e => {
                                                         if (selectedKeywords.length < 5) {
-                                                            e.target.style.background = '#E0F2FE';
-                                                            e.target.style.borderColor = '#3B82F6';
+                                                            e.target.style.background = 'var(--color-brand-light)';
+                                                            e.target.style.borderColor = 'var(--color-brand)';
                                                         }
                                                     }}
                                                     onMouseLeave={e => {
-                                                        e.target.style.background = '#F3F4F6';
+                                                        e.target.style.background = 'var(--color-surface-hover)';
                                                         e.target.style.borderColor = 'transparent';
                                                     }}
                                                 >
@@ -1074,24 +1049,18 @@ const EditorPage = () => {
                                     <button
                                         onClick={handleAnalyzeSeasonKeywords}
                                         disabled={isAnalyzingSeason || !mainKeyword.trim()}
+                                        className="wizard-btn-primary"
                                         style={{
-                                            padding: '12px 24px',
-                                            background: !mainKeyword.trim() ? '#ccc' : 'linear-gradient(135deg, #FF6B35, #F7931E)',
-                                            color: 'white',
-                                            border: 'none',
-                                            borderRadius: '8px',
-                                            cursor: !mainKeyword.trim() ? 'not-allowed' : 'pointer',
-                                            fontSize: '0.95rem',
-                                            fontWeight: '600',
+                                            width: '100%',
                                             opacity: isAnalyzingSeason ? 0.7 : 1,
-                                            width: '100%'
+                                            justifyContent: 'center'
                                         }}
                                     >
                                         {isAnalyzingSeason
-                                            ? '⏳ 시즌 트렌드를 분석하고 있습니다...'
+                                            ? <><Loader2 size={16} className="spin" /> 시즌 트렌드를 분석하고 있습니다...</>
                                             : seasonKeywords.length > 0
-                                                ? '🔄 시즌 트렌드 키워드 다시 추천받기'
-                                                : '🔥 시즌 트렌드 키워드 추천받기'
+                                                ? <><RefreshCw size={16} /> 시즌 트렌드 키워드 다시 추천받기</>
+                                                : <><Flame size={16} /> 시즌 트렌드 키워드 추천받기</>
                                         }
                                     </button>
 
@@ -1104,8 +1073,8 @@ const EditorPage = () => {
                                             border: '1px solid #FDBA74',
                                             textAlign: 'center'
                                         }}>
-                                            <p style={{ margin: 0, color: '#C2410C', fontSize: '0.9rem' }}>
-                                                🔥 시즌 트렌드를 분석하고 있습니다...
+                                            <p style={{ margin: 0, color: '#C2410C', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
+                                                <Loader2 size={16} className="spin" /> 시즌 트렌드를 분석하고 있습니다...
                                             </p>
                                         </div>
                                     )}
@@ -1114,12 +1083,12 @@ const EditorPage = () => {
                                         <div style={{
                                             marginTop: '12px',
                                             padding: '20px',
-                                            border: '2px solid #FB923C',
-                                            borderRadius: '12px',
+                                            border: '1px solid #FB923C',
+                                            borderRadius: 'var(--radius-lg)',
                                             background: '#FFFBF5'
                                         }}>
-                                            <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '12px', color: '#C2410C' }}>
-                                                🔥 시즌 트렌드 키워드
+                                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', marginBottom: '12px', color: '#C2410C' }}>
+                                                <Flame size={16} /> 시즌 트렌드 키워드
                                             </label>
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                                 {seasonKeywords.map((sk, i) => (
@@ -1131,10 +1100,10 @@ const EditorPage = () => {
                                                         border: '1px solid #FED7AA'
                                                     }}>
                                                         <div style={{ flex: 1 }}>
-                                                            <div style={{ fontWeight: '600', fontSize: '0.95rem', color: '#C2410C' }}>
-                                                                🔥 {sk.keyword}
+                                                            <div style={{ fontWeight: '600', fontSize: 'var(--font-size-sm)', color: '#C2410C', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                                <Flame size={14} /> {sk.keyword}
                                                             </div>
-                                                            <div style={{ fontSize: '0.8rem', color: '#888', marginTop: '4px' }}>
+                                                            <div style={{ fontSize: '0.8rem', color: 'var(--color-text-sub)', marginTop: '4px' }}>
                                                                 {sk.reason} · {sk.timing}
                                                             </div>
                                                         </div>
@@ -1143,10 +1112,10 @@ const EditorPage = () => {
                                                             disabled={selectedKeywords.length >= 5}
                                                             style={{
                                                                 padding: '6px 14px',
-                                                                background: selectedKeywords.length >= 5 ? '#ccc' : 'linear-gradient(135deg, #FF6B35, #F7931E)',
+                                                                background: selectedKeywords.length >= 5 ? 'var(--color-border)' : 'var(--color-brand)',
                                                                 color: 'white',
                                                                 border: 'none',
-                                                                borderRadius: '6px',
+                                                                borderRadius: 'var(--radius-md)',
                                                                 cursor: selectedKeywords.length >= 5 ? 'not-allowed' : 'pointer',
                                                                 fontSize: '0.85rem',
                                                                 fontWeight: '500',
@@ -1165,19 +1134,21 @@ const EditorPage = () => {
                                 {/* 진행 상태 */}
                                 <div style={{
                                     padding: '16px',
-                                    background: selectedKeywords.length >= 3 ? '#F0FDF4' : '#FEF3C7',
+                                    background: selectedKeywords.length >= 3 ? '#FFF3ED' : '#FEF3C7',
                                     borderRadius: '12px',
                                     marginTop: '24px',
-                                    border: selectedKeywords.length >= 3 ? '1px solid #86EFAC' : '1px solid #FCD34D'
+                                    border: selectedKeywords.length >= 3 ? '1px solid #FFCAB0' : '1px solid #FCD34D'
                                 }}>
                                     <p style={{
                                         margin: 0,
                                         fontSize: '0.9rem',
-                                        color: selectedKeywords.length >= 3 ? '#16A34A' : '#92400E'
+                                        color: selectedKeywords.length >= 3 ? '#D4520E' : '#92400E'
                                     }}>
                                         {selectedKeywords.length >= 3
-                                            ? `✅ ${selectedKeywords.length}개의 서브 키워드가 선택되었습니다. 다음 단계로 진행할 수 있습니다.`
-                                            : `⚠️ ${3 - selectedKeywords.length}개의 서브 키워드를 더 선택해주세요.`
+                                            ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                                <CheckCircle size={16} /> {selectedKeywords.length}개의 서브 키워드가 선택되었습니다. 다음 단계로 진행할 수 있습니다.
+                                              </span>
+                                            : `${3 - selectedKeywords.length}개의 서브 키워드를 더 선택해주세요.`
                                         }
                                     </p>
                                 </div>
@@ -1198,9 +1169,9 @@ const EditorPage = () => {
                                         style={{
                                             width: '100%',
                                             padding: '14px 20px',
-                                            background: '#F8F9FA',
-                                            border: '1px solid #E0E0E0',
-                                            borderRadius: '10px',
+                                            background: 'var(--color-surface-hover)',
+                                            border: '1px solid var(--color-border)',
+                                            borderRadius: 'var(--radius-lg)',
                                             cursor: 'pointer',
                                             display: 'flex',
                                             justifyContent: 'space-between',
@@ -1210,32 +1181,36 @@ const EditorPage = () => {
                                             color: 'var(--color-text-main)'
                                         }}
                                     >
-                                        <span>⚙️ 세부 설정 (톤앤무드 · 글자수)</span>
-                                        <span style={{ transform: showSettings ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>▼</span>
+                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                                            <Settings size={16} /> 세부 설정 (톤앤무드 · 글자수)
+                                        </span>
+                                        <span style={{ transform: showSettings ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s', display: 'flex' }}>
+                                            <ChevronDown size={16} />
+                                        </span>
                                     </button>
 
                                     {showSettings && (
                                         <div style={{
                                             padding: '24px',
-                                            border: '1px solid #E0E0E0',
+                                            border: '1px solid var(--color-border)',
                                             borderTop: 'none',
-                                            borderRadius: '0 0 10px 10px',
+                                            borderRadius: '0 0 var(--radius-lg) var(--radius-lg)',
                                             background: 'white'
                                         }}>
                                             {/* 글자수 선택 */}
                                             <div style={{ marginBottom: '24px' }}>
-                                                <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '12px' }}>
-                                                    📝 글자수 선택
+                                                <label className="wizard-label">
+                                                    <Edit3 size={16} /> 글자수 선택
                                                 </label>
                                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
                                                     {LENGTH_OPTIONS.map(l => (
                                                         <button
                                                             key={l}
                                                             style={{
-                                                                padding: '14px 8px', borderRadius: '10px',
-                                                                border: selectedLength === l ? '2px solid var(--color-primary)' : '1px solid #ddd',
-                                                                background: selectedLength === l ? 'var(--color-primary-light)' : 'white',
-                                                                cursor: 'pointer', fontSize: '0.9rem', fontWeight: selectedLength === l ? 'bold' : 'normal'
+                                                                padding: '14px 8px', borderRadius: 'var(--radius-lg)',
+                                                                border: selectedLength === l ? '2px solid var(--color-brand)' : '1px solid var(--color-border)',
+                                                                background: selectedLength === l ? 'var(--color-brand-light)' : 'white',
+                                                                cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: selectedLength === l ? '600' : 'normal'
                                                             }}
                                                             onClick={() => setSelectedLength(l)}
                                                         >
@@ -1247,12 +1222,14 @@ const EditorPage = () => {
                                                     <p style={{
                                                         marginTop: '10px',
                                                         fontSize: '0.85rem',
-                                                        color: '#6366F1',
-                                                        background: '#EEF2FF',
+                                                        color: '#FF6B35',
+                                                        background: '#FFF3ED',
                                                         padding: '8px 12px',
                                                         borderRadius: '8px'
                                                     }}>
-                                                        📊 경쟁 블로그 평균 {competitorData.average.charCount.toLocaleString()}자 기준으로 <strong>{recommendLength(competitorData.average.charCount)}</strong>를 추천합니다
+                                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                                            <BarChart3 size={14} /> 경쟁 블로그 평균 {competitorData.average.charCount.toLocaleString()}자 기준으로 <strong>{recommendLength(competitorData.average.charCount)}</strong>를 추천합니다
+                                                        </span>
                                                     </p>
                                                 )}
                                             </div>
@@ -1267,15 +1244,15 @@ const EditorPage = () => {
                                                         <div
                                                             key={t.id}
                                                             style={{
-                                                                padding: '16px', borderRadius: '12px',
-                                                                border: selectedTone === t.id ? '2px solid var(--color-accent)' : '1px solid #ddd',
-                                                                background: selectedTone === t.id ? 'var(--color-accent-light)' : 'white',
+                                                                padding: '16px', borderRadius: 'var(--radius-lg)',
+                                                                border: selectedTone === t.id ? '2px solid var(--color-brand)' : '1px solid var(--color-border)',
+                                                                background: selectedTone === t.id ? 'var(--color-brand-light)' : 'white',
                                                                 cursor: 'pointer'
                                                             }}
                                                             onClick={() => setToneState(t.id)}
                                                         >
                                                             <div style={{ fontWeight: 'bold', fontSize: '0.95rem' }}>{t.label}</div>
-                                                            <div style={{ fontSize: '0.8rem', color: '#888', marginTop: '4px' }}>{t.desc}</div>
+                                                            <div style={{ fontSize: '0.8rem', color: 'var(--color-text-sub)', marginTop: '4px' }}>{t.desc}</div>
                                                         </div>
                                                     ))}
                                                 </div>
@@ -1284,12 +1261,12 @@ const EditorPage = () => {
                                     )}
                                 </div>
 
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '40px' }}>
+                                <div className="wizard-nav">
                                     <button
                                         onClick={isNewPost ? handleSwitchToDirect : () => setEditorMode('direct')}
-                                        style={{ background: 'none', border: 'none', color: '#999', cursor: 'pointer' }}
+                                        className="wizard-btn-ghost"
                                     >
-                                        ← 직접 작성으로 전환
+                                        <ArrowLeft size={16} /> 직접 작성으로 전환
                                     </button>
                                     <button
                                         onClick={() => setAiStep(2)}
@@ -1297,7 +1274,7 @@ const EditorPage = () => {
                                         className="wizard-btn-primary"
                                         style={{ opacity: canProceedToStep2 ? 1 : 0.5 }}
                                     >
-                                        다음: 이미지 업로드 →
+                                        다음: 이미지 업로드 <ArrowRight size={16} />
                                     </button>
                                 </div>
                             </div>
@@ -1305,14 +1282,18 @@ const EditorPage = () => {
 
                         {/* STEP 2: 이미지 업로드 & 분석 */}
                         {aiStep === 2 && (
-                            <div style={{
-                                background: 'white',
-                                borderRadius: '16px',
-                                padding: '40px',
-                                boxShadow: '0 2px 12px rgba(0,0,0,0.08)'
-                            }}>
-                                <h2 style={{ marginBottom: '24px' }}>📸 Step 2: 이미지 업로드 & AI 분석</h2>
-                                <p style={{ color: '#666', marginBottom: '32px' }}>
+                            <div className="wizard-card-wrap">
+                                <h1 style={{ marginBottom: '8px' }}>AI 본문 자동 작성</h1>
+                                <p style={{ color: 'var(--color-text-sub)', marginBottom: '32px' }}>
+                                    주제: <strong>{mainKeyword || '미설정'}</strong>
+                                </p>
+
+                                <StepIndicator />
+
+                                <h2 style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <Camera size={20} /> Step 2: 이미지 업로드 & AI 분석
+                                </h2>
+                                <p style={{ color: 'var(--color-text-sub)', marginBottom: '32px' }}>
                                     주제에 맞는 이미지를 업로드하면 AI가 분석하여 본문 작성에 활용합니다.
                                 </p>
 
@@ -1327,9 +1308,12 @@ const EditorPage = () => {
                                         onClick={handleAnalyzePhotos}
                                         disabled={isAnalyzingPhotos || !hasAnyPhotos}
                                         className="wizard-btn-primary"
-                                        style={{ padding: '14px 28px', opacity: hasAnyPhotos ? 1 : 0.5 }}
+                                        style={{ opacity: hasAnyPhotos ? 1 : 0.5 }}
                                     >
-                                        {isAnalyzingPhotos ? '⏳ 사진 분석 중...' : '🤖 사진 AI 분석하기'}
+                                        {isAnalyzingPhotos
+                                            ? <><Loader2 size={16} className="spin" /> 사진 분석 중...</>
+                                            : <><Bot size={16} /> 사진 AI 분석하기</>
+                                        }
                                     </button>
                                 </div>
 
@@ -1341,7 +1325,9 @@ const EditorPage = () => {
                                         borderRadius: '12px',
                                         border: '1px solid #86EFAC'
                                     }}>
-                                        <h4 style={{ marginBottom: '12px', color: '#16A34A' }}>✅ AI 분석 결과</h4>
+                                        <h4 style={{ marginBottom: '12px', color: '#16A34A', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <CheckCircle size={16} /> AI 분석 결과
+                                        </h4>
                                         <p style={{ fontSize: '0.9rem', color: '#333', whiteSpace: 'pre-wrap' }}>
                                             {typeof photoAnalysis === 'string' ? photoAnalysis : JSON.stringify(photoAnalysis, null, 2)}
                                         </p>
@@ -1358,12 +1344,12 @@ const EditorPage = () => {
                                     </div>
                                 )}
 
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '40px' }}>
+                                <div className="wizard-nav">
                                     <button
                                         onClick={() => setAiStep(1)}
-                                        style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer' }}
+                                        className="wizard-btn-ghost"
                                     >
-                                        ← 이전: 주제 + 키워드
+                                        <ArrowLeft size={16} /> 이전: 주제 + 키워드
                                     </button>
                                     <button
                                         onClick={() => setAiStep(3)}
@@ -1371,7 +1357,7 @@ const EditorPage = () => {
                                         className="wizard-btn-primary"
                                         style={{ opacity: canProceedToStep3 ? 1 : 0.5 }}
                                     >
-                                        다음: 아웃라인 + 생성 →
+                                        다음: 아웃라인 + 생성 <ArrowRight size={16} />
                                     </button>
                                 </div>
                             </div>
@@ -1379,41 +1365,44 @@ const EditorPage = () => {
 
                         {/* STEP 3: 아웃라인 + 생성 */}
                         {aiStep === 3 && (
-                            <div style={{
-                                background: 'white',
-                                borderRadius: '16px',
-                                padding: '40px',
-                                boxShadow: '0 2px 12px rgba(0,0,0,0.08)'
-                            }}>
-                                <h2 style={{ marginBottom: '24px' }}>🏗️ Step 3: 아웃라인 + 생성</h2>
-                                <p style={{ color: '#666', marginBottom: '32px' }}>
+                            <div className="wizard-card-wrap">
+                                <h1 style={{ marginBottom: '8px' }}>AI 본문 자동 작성</h1>
+                                <p style={{ color: 'var(--color-text-sub)', marginBottom: '32px' }}>
+                                    주제: <strong>{mainKeyword || '미설정'}</strong>
+                                </p>
+
+                                <StepIndicator />
+
+                                <h2 style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <Wand2 size={20} /> Step 3: 아웃라인 + 생성
+                                </h2>
+                                <p style={{ color: 'var(--color-text-sub)', marginBottom: '32px' }}>
                                     AI가 소제목 구조를 먼저 생성합니다. 순서 변경, 추가/삭제, 수정 후 본문을 생성하세요.
                                 </p>
 
                                 {/* 작성 정보 요약 */}
-                                <div style={{
-                                    padding: '20px',
-                                    background: '#F8F9FA',
-                                    borderRadius: '12px',
-                                    marginBottom: '32px'
-                                }}>
-                                    <h4 style={{ marginBottom: '12px' }}>📋 작성 정보 요약</h4>
-                                    <p style={{ margin: '4px 0', fontSize: '0.9rem' }}>
-                                        <strong>메인 키워드:</strong> {mainKeyword}
-                                    </p>
-                                    <p style={{ margin: '4px 0', fontSize: '0.9rem' }}>
-                                        <strong>서브 키워드:</strong> {selectedKeywords.map(k => getKw(k)).join(', ')}
-                                    </p>
-                                    <p style={{ margin: '4px 0', fontSize: '0.9rem' }}>
-                                        <strong>톤:</strong> {TONES.find(t => t.id === selectedTone)?.label || selectedTone} / <strong>글자수:</strong> {selectedLength}
-                                    </p>
-                                    <p style={{ margin: '4px 0', fontSize: '0.9rem' }}>
-                                        <strong>사진:</strong>{' '}
-                                        {(() => {
-                                            const total = Object.values(photoData.metadata).reduce((sum, v) => sum + v, 0);
-                                            return total > 0 ? `${total}장` : '없음';
-                                        })()}
-                                    </p>
+                                <div className="wizard-summary-grid">
+                                    <div className="wizard-summary-card">
+                                        <div className="summary-label">메인 키워드</div>
+                                        <div className="summary-value">{mainKeyword}</div>
+                                    </div>
+                                    <div className="wizard-summary-card">
+                                        <div className="summary-label">서브 키워드</div>
+                                        <div className="summary-value">{selectedKeywords.length}개</div>
+                                    </div>
+                                    <div className="wizard-summary-card">
+                                        <div className="summary-label">톤앤무드</div>
+                                        <div className="summary-value">{TONES.find(t => t.id === selectedTone)?.label?.replace(/^[^\s]+\s/, '') || selectedTone}</div>
+                                    </div>
+                                    <div className="wizard-summary-card">
+                                        <div className="summary-label">사진</div>
+                                        <div className="summary-value">
+                                            {(() => {
+                                                const total = Object.values(photoData.metadata).reduce((sum, v) => sum + v, 0);
+                                                return total > 0 ? `${total}장` : '없음';
+                                            })()}
+                                        </div>
+                                    </div>
                                 </div>
 
                                 {/* 아웃라인 생성 버튼 */}
@@ -1422,13 +1411,12 @@ const EditorPage = () => {
                                         onClick={handleGenerateOutline}
                                         disabled={isGeneratingOutline}
                                         className="wizard-btn-primary"
-                                        style={{ padding: '14px 28px' }}
                                     >
                                         {isGeneratingOutline
-                                            ? '⏳ 아웃라인 생성 중...'
+                                            ? <><Loader2 size={16} className="spin" /> 아웃라인 생성 중...</>
                                             : outlineItems.length > 0
-                                                ? '🔄 아웃라인 다시 생성'
-                                                : '🤖 AI 아웃라인 생성하기'
+                                                ? <><RefreshCw size={16} /> 아웃라인 다시 생성</>
+                                                : <><Bot size={16} /> AI 아웃라인 생성하기</>
                                         }
                                     </button>
                                 </div>
@@ -1440,8 +1428,10 @@ const EditorPage = () => {
                                             display: 'flex', justifyContent: 'space-between',
                                             alignItems: 'center', marginBottom: '16px'
                                         }}>
-                                            <label style={{ fontWeight: 'bold' }}>📋 소제목 구조</label>
-                                            <span style={{ fontSize: '0.85rem', color: '#888' }}>
+                                            <label style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <ClipboardList size={16} /> 소제목 구조
+                                            </label>
+                                            <span style={{ fontSize: '0.85rem', color: 'var(--color-text-sub)' }}>
                                                 H2: {outlineItems.filter(i => i.level === 'h2').length}개 / H3: {outlineItems.filter(i => i.level === 'h3').length}개
                                             </span>
                                         </div>
@@ -1456,9 +1446,9 @@ const EditorPage = () => {
                                                 <button
                                                     onClick={() => handleOutlineToggleLevel(idx)}
                                                     style={{
-                                                        padding: '4px 8px', borderRadius: '4px',
-                                                        border: '1px solid #ddd', background: item.level === 'h2' ? '#EEF2FF' : '#F3F4F6',
-                                                        color: item.level === 'h2' ? '#4338CA' : '#666',
+                                                        padding: '4px 8px', borderRadius: 'var(--radius-sm)',
+                                                        border: '1px solid var(--color-border)', background: item.level === 'h2' ? '#EEF2FF' : 'var(--color-surface-hover)',
+                                                        color: item.level === 'h2' ? '#4338CA' : 'var(--color-text-sub)',
                                                         fontWeight: 'bold', fontSize: '0.75rem',
                                                         cursor: 'pointer', flexShrink: 0, width: '36px'
                                                     }}
@@ -1475,7 +1465,7 @@ const EditorPage = () => {
                                                     placeholder="소제목 입력..."
                                                     style={{
                                                         flex: 1, padding: '8px 12px',
-                                                        border: '1px solid #E0E0E0', borderRadius: '6px',
+                                                        border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)',
                                                         fontSize: item.level === 'h2' ? '0.95rem' : '0.88rem',
                                                         fontWeight: item.level === 'h2' ? '600' : '400'
                                                     }}
@@ -1486,47 +1476,47 @@ const EditorPage = () => {
                                                     onClick={() => handleOutlineMove(idx, -1)}
                                                     disabled={idx === 0}
                                                     style={{
-                                                        padding: '4px 6px', border: '1px solid #ddd',
-                                                        borderRadius: '4px', background: 'white',
+                                                        padding: '4px 6px', border: '1px solid var(--color-border)',
+                                                        borderRadius: 'var(--radius-sm)', background: 'white',
                                                         cursor: idx === 0 ? 'not-allowed' : 'pointer',
-                                                        opacity: idx === 0 ? 0.3 : 1, fontSize: '0.8rem'
+                                                        opacity: idx === 0 ? 0.3 : 1, display: 'flex', alignItems: 'center'
                                                     }}
                                                     title="위로 이동"
-                                                >↑</button>
+                                                ><ChevronUp size={14} /></button>
                                                 <button
                                                     onClick={() => handleOutlineMove(idx, 1)}
                                                     disabled={idx === outlineItems.length - 1}
                                                     style={{
-                                                        padding: '4px 6px', border: '1px solid #ddd',
-                                                        borderRadius: '4px', background: 'white',
+                                                        padding: '4px 6px', border: '1px solid var(--color-border)',
+                                                        borderRadius: 'var(--radius-sm)', background: 'white',
                                                         cursor: idx === outlineItems.length - 1 ? 'not-allowed' : 'pointer',
-                                                        opacity: idx === outlineItems.length - 1 ? 0.3 : 1, fontSize: '0.8rem'
+                                                        opacity: idx === outlineItems.length - 1 ? 0.3 : 1, display: 'flex', alignItems: 'center'
                                                     }}
                                                     title="아래로 이동"
-                                                >↓</button>
+                                                ><ChevronDown size={14} /></button>
 
                                                 {/* 추가/삭제 */}
                                                 <button
                                                     onClick={() => handleOutlineAdd(idx)}
                                                     style={{
-                                                        padding: '4px 6px', border: '1px solid #ddd',
-                                                        borderRadius: '4px', background: 'white',
-                                                        cursor: 'pointer', fontSize: '0.8rem', color: '#16A34A'
+                                                        padding: '4px 6px', border: '1px solid var(--color-border)',
+                                                        borderRadius: 'var(--radius-sm)', background: 'white',
+                                                        cursor: 'pointer', color: '#16A34A', display: 'flex', alignItems: 'center'
                                                     }}
                                                     title="아래에 항목 추가"
-                                                >+</button>
+                                                ><Plus size={14} /></button>
                                                 <button
                                                     onClick={() => handleOutlineDelete(idx)}
                                                     disabled={outlineItems.length <= 1}
                                                     style={{
-                                                        padding: '4px 6px', border: '1px solid #ddd',
-                                                        borderRadius: '4px', background: 'white',
+                                                        padding: '4px 6px', border: '1px solid var(--color-border)',
+                                                        borderRadius: 'var(--radius-sm)', background: 'white',
                                                         cursor: outlineItems.length <= 1 ? 'not-allowed' : 'pointer',
                                                         opacity: outlineItems.length <= 1 ? 0.3 : 1,
-                                                        fontSize: '0.8rem', color: '#EF4444'
+                                                        color: '#EF4444', display: 'flex', alignItems: 'center'
                                                     }}
                                                     title="삭제"
-                                                >×</button>
+                                                ><Trash2 size={14} /></button>
                                             </div>
                                         ))}
 
@@ -1538,30 +1528,35 @@ const EditorPage = () => {
                                                 background: outlineItems.length >= competitorData.average.headingCount ? '#F0FDF4' : '#FEF2F2',
                                                 padding: '8px 12px', borderRadius: '8px'
                                             }}>
-                                                📊 경쟁 블로그 평균 소제목 {competitorData.average.headingCount}개 — 현재 {outlineItems.length}개
-                                                {outlineItems.length >= competitorData.average.headingCount ? ' ✅ 충분' : ' ⚠️ 부족'}
+                                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                                    <BarChart3 size={14} /> 경쟁 블로그 평균 소제목 {competitorData.average.headingCount}개 — 현재 {outlineItems.length}개
+                                                    {outlineItems.length >= competitorData.average.headingCount
+                                                        ? <> <CheckCircle size={14} /> 충분</>
+                                                        : ' ⚠️ 부족'
+                                                    }
+                                                </span>
                                             </p>
                                         )}
                                     </div>
                                 )}
 
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '40px' }}>
+                                <div className="wizard-nav">
                                     <button
                                         onClick={() => setAiStep(2)}
-                                        style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer' }}
+                                        className="wizard-btn-ghost"
                                     >
-                                        ← 이전: 이미지 업로드
+                                        <ArrowLeft size={16} /> 이전: 이미지 업로드
                                     </button>
                                     <button
                                         onClick={handleAiGenerate}
                                         disabled={outlineItems.length === 0}
                                         className="wizard-btn-primary"
                                         style={{
-                                            padding: '18px 36px', fontSize: '1.1rem',
+                                            padding: '18px 36px', fontSize: '1rem',
                                             opacity: outlineItems.length === 0 ? 0.5 : 1
                                         }}
                                     >
-                                        ✨ AI 본문 생성 시작
+                                        <Sparkles size={18} /> AI 본문 생성 시작
                                     </button>
                                 </div>
                             </div>
@@ -1575,43 +1570,44 @@ const EditorPage = () => {
     // 생성 중 로딩 UI (단계별 체크리스트 + 프로그레스 바)
     if (isGenerating) {
         const GENERATION_STEPS = [
-            { label: '준비 중 (이미지 변환)', icon: '📦' },
-            { label: '사진 분석 중', icon: '🔍' },
-            { label: '경쟁 분석 중', icon: '📊' },
-            { label: 'ALT 텍스트 생성 중', icon: '🏷️' },
-            { label: '본문 작성 중', icon: '✍️' },
+            { label: '준비 중 (이미지 변환)', icon: <Loader2 size={16} /> },
+            { label: '사진 분석 중', icon: <Search size={16} /> },
+            { label: '경쟁 분석 중', icon: <BarChart3 size={16} /> },
+            { label: 'ALT 텍스트 생성 중', icon: <Tag size={16} /> },
+            { label: '본문 작성 중', icon: <Sparkles size={16} /> },
         ];
         const progressPercent = Math.round((generationStep / (GENERATION_STEPS.length - 1)) * 100);
 
         return (
-            <div className="app-layout">
-                <Header />
+            <div>
                 <div style={{
                     flex: 1,
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    background: '#FAFAFA',
-                    minHeight: 'calc(100vh - 60px)'
+                    background: 'var(--color-surface-hover)',
+                    minHeight: 'calc(100vh - 52px)'
                 }}>
                     <div style={{
                         textAlign: 'center',
                         padding: '48px 60px',
                         background: 'white',
-                        borderRadius: '20px',
-                        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                        borderRadius: '12px',
+                        boxShadow: '0 1px 8px rgba(0, 0, 0, 0.06)',
                         minWidth: '400px'
                     }}>
-                        <div style={{ fontSize: '3rem', marginBottom: '16px' }}>✨</div>
+                        <div style={{ marginBottom: '16px', color: 'var(--color-brand)' }}>
+                            <Sparkles size={48} />
+                        </div>
                         <h2 style={{ marginBottom: '8px' }}>AI가 글을 작성하고 있어요</h2>
-                        <p style={{ color: '#666', marginBottom: '28px', fontSize: '0.9rem' }}>
+                        <p style={{ color: 'var(--color-text-sub)', marginBottom: '28px', fontSize: 'var(--font-size-sm)' }}>
                             잠시만 기다려주세요. 곧 완성됩니다!
                         </p>
 
                         {/* 프로그레스 바 */}
                         <div style={{
-                            width: '100%', height: '6px', background: '#E0E0E0', borderRadius: '3px',
+                            width: '100%', height: '6px', background: 'var(--color-border)', borderRadius: '3px',
                             overflow: 'hidden', marginBottom: '28px'
                         }}>
                             <div style={{
@@ -1631,12 +1627,12 @@ const EditorPage = () => {
                                     <div key={idx} style={{
                                         display: 'flex', alignItems: 'center', gap: '12px',
                                         padding: '8px 0',
-                                        color: isDone ? '#16A34A' : isCurrent ? 'var(--color-primary)' : '#ccc',
+                                        color: isDone ? 'var(--color-success)' : isCurrent ? 'var(--color-text-main)' : 'var(--color-border)',
                                         fontWeight: isCurrent ? '600' : '400',
-                                        fontSize: '0.9rem'
+                                        fontSize: 'var(--font-size-sm)'
                                     }}>
-                                        <span style={{ width: '24px', textAlign: 'center' }}>
-                                            {isDone ? '✅' : isCurrent ? step.icon : '⬜'}
+                                        <span style={{ width: '24px', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            {isDone ? <CheckCircle size={16} style={{ color: 'var(--color-success)' }} /> : isCurrent ? step.icon : <span style={{ width: '16px', height: '16px', borderRadius: '3px', border: '2px solid var(--color-border)', display: 'inline-block' }} />}
                                         </span>
                                         <span>{step.label}</span>
                                         {isCurrent && (
@@ -1696,8 +1692,7 @@ const EditorPage = () => {
 
     // 직접 작성 모드 (기존 에디터)
     return (
-        <div className="app-layout">
-            <Header />
+        <div>
             <MainContainer />
 
             {/* 이미지 SEO 가이드 플로팅 버튼 + 드로어 */}
@@ -1748,10 +1743,10 @@ const EditorPage = () => {
                     right: '24px',
                     width: '52px', height: '52px',
                     borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #6c5ce7, #a29bfe)',
+                    background: 'linear-gradient(135deg, #FF6B35, #F7931E)',
                     color: 'white',
                     border: 'none',
-                    boxShadow: '0 4px 16px rgba(108, 92, 231, 0.4)',
+                    boxShadow: '0 4px 16px rgba(255, 107, 53, 0.4)',
                     cursor: 'pointer',
                     fontSize: '1.4rem',
                     display: 'flex',

@@ -13,7 +13,7 @@ const PERIOD_OPTIONS = [
 ];
 
 const DONUT_COLORS = [
-    '#6c5ce7', '#2EAADC', '#10B981', '#F59E0B', '#EF4444',
+    '#FF6B35', '#E55A2B', '#10B981', '#F59E0B', '#EF4444',
     '#8B5CF6', '#EC4899', '#14B8A6', '#F97316', '#64748B',
 ];
 
@@ -261,21 +261,16 @@ const HistoryPage = () => {
             {/* Header */}
             <div className="history-header">
                 <h1>작성 히스토리</h1>
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                    <div className="period-filter">
-                        {PERIOD_OPTIONS.map(opt => (
-                            <button
-                                key={opt.key}
-                                className={`period-btn ${period === opt.key ? 'active' : ''}`}
-                                onClick={() => setPeriod(opt.key)}
-                            >
-                                {opt.label}
-                            </button>
-                        ))}
-                    </div>
-                    <div className="history-nav-btns">
-                        <Link to="/posts">글 목록</Link>
-                    </div>
+                <div className="period-filter">
+                    {PERIOD_OPTIONS.map(opt => (
+                        <button
+                            key={opt.key}
+                            className={`period-btn ${period === opt.key ? 'active' : ''}`}
+                            onClick={() => setPeriod(opt.key)}
+                        >
+                            {opt.label}
+                        </button>
+                    ))}
                 </div>
             </div>
 
@@ -543,7 +538,7 @@ const HistoryPage = () => {
                                                         className="heatmap-cell"
                                                         style={{
                                                             backgroundColor: count > 0
-                                                                ? `rgba(46, 170, 220, ${intensity})`
+                                                                ? `rgba(255, 107, 53, ${intensity})`
                                                                 : '#F3F4F6',
                                                         }}
                                                         data-tooltip={count > 0 ? `${DAY_LABELS[day]} ${h}시: ${count}편` : ''}
@@ -559,7 +554,7 @@ const HistoryPage = () => {
                                         <div
                                             key={i}
                                             className="heatmap-legend-cell"
-                                            style={{ backgroundColor: `rgba(46, 170, 220, ${opacity})` }}
+                                            style={{ backgroundColor: `rgba(255, 107, 53, ${opacity})` }}
                                         />
                                     ))}
                                     <span>많음</span>

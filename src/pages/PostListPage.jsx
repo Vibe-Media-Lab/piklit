@@ -142,35 +142,7 @@ const PostListPage = () => {
     );
 
     return (
-        <div className="main-container" style={{ display: 'block', maxWidth: '800px', margin: '0 auto', paddingTop: '40px' }}>
-            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
-                <h1 style={{ color: 'var(--color-primary)' }}>내 블로그</h1>
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                    <Link
-                        to="/history"
-                        style={{
-                            padding: '10px 20px',
-                            fontSize: '0.9rem',
-                            fontWeight: 500,
-                            color: 'var(--color-text-sub)',
-                            textDecoration: 'none',
-                            border: '1px solid var(--color-border)',
-                            borderRadius: 'var(--radius-lg)',
-                            transition: 'all 0.2s',
-                        }}
-                    >
-                        히스토리
-                    </Link>
-                    <button
-                        className="add-block-btn"
-                        onClick={handleCreate}
-                        style={{ background: 'var(--color-accent)', color: 'white', borderColor: 'var(--color-accent)', padding: '10px 20px', fontSize: '1rem' }}
-                    >
-                        + 새 글 작성
-                    </button>
-                </div>
-            </header>
-
+        <div style={{ maxWidth: '800px', padding: '40px 20px' }}>
             {stats && <StatsDashboard stats={stats} />}
 
             <div className="post-list">
@@ -264,7 +236,7 @@ const PostListPage = () => {
                                                 </span>
                                             )}
                                             {post.mode === 'ai' && (
-                                                <span style={{ padding: '2px 8px', borderRadius: '10px', fontSize: '0.7rem', background: '#F3F0FF', color: '#6c5ce7', fontWeight: 600 }}>AI</span>
+                                                <span style={{ padding: '2px 8px', borderRadius: '10px', fontSize: '0.7rem', background: '#FFF3ED', color: '#FF6B35', fontWeight: 600 }}>AI</span>
                                             )}
                                             <span>{charCount.toLocaleString()}자</span>
                                             <span>{formatDate(post.updatedAt)}</span>

@@ -130,7 +130,7 @@
 .ai-gen-btn {
     margin-top: 6px;
     padding: 3px 12px;
-    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+    background: linear-gradient(135deg, #FF6B35, #F7931E);
     color: white;
     border: none;
     border-radius: 12px;
@@ -141,7 +141,7 @@
     z-index: 2;
 }
 .ai-gen-btn:hover {
-    background: linear-gradient(135deg, #5b4bd5, #8b83f0);
+    background: linear-gradient(135deg, #E55A2B, #F7931E);
     transform: scale(1.05);
 }
 
@@ -228,7 +228,7 @@
 }
 .ai-modal-textarea:focus {
     outline: none;
-    border-color: #6c5ce7;
+    border-color: #FF6B35;
 }
 
 /* Style Chips */
@@ -249,12 +249,12 @@
     transition: all 0.2s;
 }
 .ai-style-chip:hover {
-    border-color: #c0b8f0;
-    background: #f5f3ff;
+    border-color: #FFCDB2;
+    background: #FFF3ED;
 }
 .ai-style-chip.active {
-    border-color: #6c5ce7;
-    background: #f0edff;
+    border-color: #FF6B35;
+    background: #FFF3ED;
 }
 .ai-style-chip-label {
     font-size: 0.8rem;
@@ -272,7 +272,7 @@
     width: 100%;
     margin-top: 20px;
     padding: 12px;
-    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+    background: linear-gradient(135deg, #FF6B35, #F7931E);
     color: white;
     border: none;
     border-radius: 10px;
@@ -282,7 +282,7 @@
     transition: all 0.2s;
 }
 .ai-modal-generate-btn:hover:not(:disabled) {
-    background: linear-gradient(135deg, #5b4bd5, #8b83f0);
+    background: linear-gradient(135deg, #E55A2B, #F7931E);
 }
 .ai-modal-generate-btn:disabled {
     opacity: 0.6;
@@ -333,7 +333,7 @@
 .ai-modal-apply-btn {
     flex: 2;
     padding: 10px;
-    background: #6c5ce7;
+    background: #FF6B35;
     color: white;
     border: none;
     border-radius: 8px;
@@ -343,7 +343,7 @@
     transition: all 0.2s;
 }
 .ai-modal-apply-btn:hover {
-    background: #5b4bd5;
+    background: #E55A2B;
 }
 
 /* Crop Button */
@@ -358,7 +358,7 @@
     transition: all 0.2s;
 }
 .ai-modal-crop-btn:hover {
-    background: #f5f3ff;
-    border-color: #6c5ce7;
-    color: #6c5ce7;
+    background: #FFF3ED;
+    border-color: #FF6B35;
+    color: #FF6B35;
 }

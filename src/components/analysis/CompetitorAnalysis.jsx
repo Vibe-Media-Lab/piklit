@@ -18,7 +18,7 @@ const BarChart = ({ label, value, max, unit = '' }) => {
                 <div style={{
                     height: '100%',
                     width: `${pct}%`,
-                    background: 'linear-gradient(90deg, #6366F1, #8B5CF6)',
+                    background: 'linear-gradient(90deg, #FF6B35, #F7931E)',
                     borderRadius: '4px',
                     transition: 'width 0.6s ease'
                 }} />
@@ -32,22 +32,22 @@ const CompetitorAnalysis = ({ data, loading, onAnalyze }) => {
         return (
             <div style={{
                 padding: '24px',
-                background: 'linear-gradient(135deg, #EEF2FF, #E0E7FF)',
+                background: 'linear-gradient(135deg, #FFF3ED, #FFE0D0)',
                 borderRadius: '12px',
                 textAlign: 'center',
-                border: '1px dashed #A5B4FC'
+                border: '1px dashed #FFCDB2'
             }}>
                 <div style={{ fontSize: '2rem', marginBottom: '8px' }}>📊</div>
-                <p style={{ color: '#4338CA', fontWeight: '600', marginBottom: '4px' }}>
+                <p style={{ color: '#E55A2B', fontWeight: '600', marginBottom: '4px' }}>
                     경쟁 블로그 분석
                 </p>
-                <p style={{ color: '#6366F1', fontSize: '0.85rem', marginBottom: '16px' }}>
+                <p style={{ color: '#FF6B35', fontSize: '0.85rem', marginBottom: '16px' }}>
                     같은 키워드 상위 블로그의 글자수, 이미지 수, 구조를 분석합니다
                 </p>
                 <button
                     onClick={onAnalyze}
                     className="wizard-btn-primary"
-                    style={{ padding: '10px 24px', background: '#6366F1' }}
+                    style={{ padding: '10px 24px', background: '#FF6B35' }}
                 >
                     🔍 경쟁 블로그 분석하기
                 </button>
@@ -87,7 +87,7 @@ const CompetitorAnalysis = ({ data, loading, onAnalyze }) => {
             {/* 평균값 요약 */}
             <div style={{
                 padding: '20px 24px',
-                background: 'linear-gradient(135deg, #6366F1, #8B5CF6)',
+                background: 'linear-gradient(135deg, #FF6B35, #F7931E)',
                 color: 'white'
             }}>
                 <h4 style={{ margin: '0 0 16px 0', fontSize: '1rem' }}>📊 상위 블로그 평균 가이드</h4>
@@ -143,7 +143,7 @@ const CompetitorAnalysis = ({ data, loading, onAnalyze }) => {
                                 width: '22px',
                                 height: '22px',
                                 borderRadius: '50%',
-                                background: '#6366F1',
+                                background: '#FF6B35',
                                 color: 'white',
                                 fontSize: '0.75rem',
                                 fontWeight: 'bold',

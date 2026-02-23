@@ -8,6 +8,7 @@ import PostListPage from './pages/PostListPage';
 import EditorPage from './pages/EditorPage';
 import HistoryPage from './pages/HistoryPage';
 import ErrorBoundary from './components/common/ErrorBoundary';
+import AppLayout from './components/layout/AppLayout';
 import './styles/global.css';
 import './styles/components.css';
 
@@ -30,7 +31,7 @@ const ProtectedRoute = ({ children }) => {
         return <Navigate to="/" replace />;
     }
 
-    return children;
+    return <AppLayout>{children}</AppLayout>;
 };
 
 function AppRoutes() {
@@ -47,7 +48,7 @@ function AppRoutes() {
                     <HistoryPage />
                 </ProtectedRoute>
             } />
-<Route path="/editor/:id" element={
+            <Route path="/editor/:id" element={
                 <ProtectedRoute>
                     <ErrorBoundary>
                         <EditorPage />

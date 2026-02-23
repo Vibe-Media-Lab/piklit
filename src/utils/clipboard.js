@@ -127,7 +127,7 @@ h2 { margin-top: 1.5em; color: #333; }
 h3 { margin-top: 1.2em; }
 p { margin-bottom: 0.8em; }
 img { max-width: 100%; border-radius: 8px; margin: 10px 0; }
-blockquote { border-left: 4px solid #6c5ce7; background: #f8f7ff; padding: 12px 16px; margin: 16px 0; border-radius: 0 8px 8px 0; }
+blockquote { border-left: 4px solid #FF6B35; background: #FFF3ED; padding: 12px 16px; margin: 16px 0; border-radius: 0 8px 8px 0; }
 </style>
 </head>
 <body>

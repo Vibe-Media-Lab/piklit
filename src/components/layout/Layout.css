@@ -1,39 +1,325 @@
-/* Header */
-.header {
-    height: 60px;
-    background-color: var(--color-surface-glass);
-    backdrop-filter: blur(10px);
+/* ===== App Layout (Sidebar + Main) ===== */
+.app-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* ===== Sidebar ===== */
+.app-sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    background: var(--color-surface);
+    border-right: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    padding: var(--spacing-md);
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 100;
+    transition: width 0.2s ease;
+}
+
+.app-sidebar.collapsed {
+    width: 64px;
+}
+
+/* 로고 */
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-xs) 0;
+}
+
+.sidebar-logo-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+}
+
+.sidebar-logo-img {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-md);
+    flex-shrink: 0;
+}
+
+.sidebar-logo-text {
+    font-size: var(--font-size-xl);
+    font-weight: 800;
+    color: var(--color-brand);
+    letter-spacing: -0.02em;
+}
+
+.app-sidebar.collapsed .sidebar-logo-text {
+    display: none;
+}
+
+/* 새 글 작성 버튼 */
+.sidebar-new-post {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px;
+    background: var(--color-brand);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: var(--spacing-lg);
+    transition: background 0.2s;
+}
+
+.sidebar-new-post:hover {
+    background: var(--color-brand-dark);
+}
+
+.app-sidebar.collapsed .sidebar-new-post span {
+    display: none;
+}
+
+/* 네비게이션 */
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.sidebar-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: var(--radius-md);
+    color: var(--color-text-sub);
+    text-decoration: none;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    transition: all 0.15s;
+    border: none;
+    background: none;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    position: relative;
+}
+
+.sidebar-nav-item:hover {
+    background: var(--color-surface-hover);
+    color: var(--color-text-main);
+}
+
+.sidebar-nav-item.active {
+    background: var(--color-brand-light);
+    color: var(--color-brand);
+    font-weight: 600;
+}
+
+.sidebar-nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 6px;
+    bottom: 6px;
+    width: 3px;
+    background: var(--color-brand);
+    border-radius: 0 2px 2px 0;
+}
+
+.sidebar-nav-item svg {
+    flex-shrink: 0;
+}
+
+.app-sidebar.collapsed .sidebar-nav-item {
+    justify-content: center;
+    padding: 10px;
+}
+
+.app-sidebar.collapsed .sidebar-nav-item span {
+    display: none;
+}
+
+/* 하단 영역 */
+.sidebar-bottom {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+/* 프로필 */
+.sidebar-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    border-top: 1px solid var(--color-border);
+    margin-top: var(--spacing-sm);
+}
+
+.sidebar-profile-img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.sidebar-profile-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 2px;
+}
+
+.sidebar-profile-name {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-text-main);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sidebar-logout-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 0.7rem;
+    color: var(--color-text-sub);
+    cursor: pointer;
+    text-align: left;
+}
+
+.sidebar-logout-btn:hover {
+    color: var(--color-error);
+}
+
+/* 접기/펼치기 버튼 */
+.sidebar-collapse-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    color: var(--color-text-sub);
+    cursor: pointer;
+    font-size: 0.8rem;
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    margin-top: 4px;
+}
+
+.sidebar-collapse-btn:hover {
+    background: var(--color-surface-hover);
+    color: var(--color-text-main);
+}
+
+.app-sidebar.collapsed .sidebar-collapse-btn span {
+    display: none;
+}
+
+/* ===== App Main Area ===== */
+.app-main {
+    flex: 1;
+    margin-left: 240px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    transition: margin-left 0.2s ease;
+}
+
+.app-sidebar.collapsed ~ .app-main,
+.app-layout:has(.app-sidebar.collapsed) .app-main {
+    margin-left: 64px;
+}
+
+/* ===== Top Bar ===== */
+.app-topbar {
+    height: 52px;
+    background: var(--color-surface);
     border-bottom: 1px solid var(--color-border);
     display: flex;
     align-items: center;
+    justify-content: space-between;
     padding: 0 var(--spacing-lg);
     position: sticky;
     top: 0;
-    z-index: 100;
-    box-shadow: var(--shadow-sm);
+    z-index: 50;
 }
 
-.header-logo {
-    font-size: var(--font-size-lg);
-    font-weight: 700;
-    color: var(--color-primary);
+.topbar-title {
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    color: var(--color-text-main);
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 400px;
+}
+
+.topbar-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.topbar-btn {
     display: flex;
     align-items: center;
-    gap: var(--spacing-sm);
+    gap: 6px;
+    padding: 6px 14px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-text-main);
+    cursor: pointer;
+    transition: all 0.15s;
 }
 
-.header-logo span {
-    color: var(--color-accent);
+.topbar-btn:hover {
+    background: var(--color-surface-hover);
 }
 
-/* Main Container */
+.topbar-btn-primary {
+    background: var(--color-brand);
+    color: white;
+    border-color: var(--color-brand);
+    font-weight: 600;
+}
+
+.topbar-btn-primary:hover {
+    background: var(--color-brand-dark);
+    border-color: var(--color-brand-dark);
+}
+
+/* ===== App Content ===== */
+.app-content {
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* ===== Legacy: Main Container (에디터 내부 2컬럼) ===== */
 .main-container {
     display: flex;
     max-width: 1440px;
     margin: 0 auto;
     padding: var(--spacing-lg);
     gap: var(--spacing-lg);
-    min-height: calc(100vh - 60px);
+    min-height: calc(100vh - 52px);
 }
 
 /* Editor Section */
@@ -44,7 +330,6 @@
     box-shadow: var(--shadow-sm);
     padding: var(--spacing-xl);
     min-width: 0;
-    /* Prevent flex overflow */
 }
 
 /* Analysis Section */
@@ -52,9 +337,8 @@
     width: 320px;
     flex-shrink: 0;
     position: sticky;
-    top: 84px;
-    /* Header + Check spacing */
-    height: calc(100vh - 108px);
+    top: 76px;
+    height: calc(100vh - 100px);
     overflow-y: auto;
     background-color: var(--color-surface);
     border-radius: var(--radius-lg);
@@ -62,6 +346,7 @@
     padding: var(--spacing-md);
 }
 
+/* ===== Responsive ===== */
 @media (max-width: 1024px) {
     .main-container {
         flex-direction: column;
@@ -71,5 +356,40 @@
         width: 100%;
         position: static;
         height: auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .app-sidebar {
+        width: 64px;
+        padding: var(--spacing-sm);
+    }
+
+    .app-sidebar .sidebar-nav-item span {
+        display: none;
+    }
+
+    .app-sidebar .sidebar-nav-item {
+        justify-content: center;
+    }
+
+    .app-sidebar .sidebar-new-post span {
+        display: none;
+    }
+
+    .app-sidebar .sidebar-profile-info {
+        display: none;
+    }
+
+    .app-sidebar .sidebar-logo-text {
+        display: none;
+    }
+
+    .app-sidebar .sidebar-collapse-btn {
+        display: none;
+    }
+
+    .app-main {
+        margin-left: 64px;
     }
 }

@@ -18,13 +18,13 @@
 .landing-logo {
   font-size: var(--font-size-xl);
   font-weight: 800;
-  color: #FF6B35;
+  color: var(--color-brand);
   text-decoration: none;
 }
 
 .landing-header-cta {
   padding: 8px 20px;
-  background: #FF6B35;
+  background: var(--color-brand);
   color: white;
   border-radius: var(--radius-lg);
   font-weight: 600;
@@ -33,7 +33,7 @@
 }
 
 .landing-header-cta:hover {
-  background: #e55a2b;
+  background: var(--color-brand-dark);
 }
 
 /* Hero Section */
@@ -47,8 +47,8 @@
 .landing-badge {
   display: inline-block;
   padding: 6px 16px;
-  background: #FFF3ED;
-  color: #FF6B35;
+  background: var(--color-brand-light);
+  color: var(--color-brand);
   border-radius: 20px;
   font-size: var(--font-size-sm);
   font-weight: 600;
@@ -65,7 +65,7 @@
 }
 
 .landing-hero h1 .highlight {
-  color: #FF6B35;
+  color: var(--color-brand);
 }
 
 .landing-hero-desc {
@@ -84,7 +84,7 @@
 
 .landing-cta-primary {
   padding: 14px 32px;
-  background: #FF6B35;
+  background: var(--color-brand);
   color: white;
   border-radius: var(--radius-lg);
   font-size: var(--font-size-base);
@@ -93,7 +93,7 @@
 }
 
 .landing-cta-primary:hover {
-  background: #e55a2b;
+  background: var(--color-brand-dark);
   transform: translateY(-1px);
 }
 
@@ -193,7 +193,7 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: #FF6B35;
+  background: var(--color-brand);
   color: white;
   font-size: var(--font-size-lg);
   font-weight: 700;
@@ -256,7 +256,7 @@
 
 .landing-footer-brand {
   font-weight: 700;
-  color: #FF6B35;
+  color: var(--color-brand);
 }
 
 .landing-footer p {

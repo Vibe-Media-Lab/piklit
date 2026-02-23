@@ -158,7 +158,7 @@ const ImageGeneratorPanel = ({ mainKeyword, onInsertImage }) => {
                     onClick={() => handleEnhance()}
                     disabled={isEnhancing || !userInput.trim()}
                     style={{
-                        padding: '8px 14px', background: '#6c5ce7', color: 'white',
+                        padding: '8px 14px', background: '#FF6B35', color: 'white',
                         border: 'none', borderRadius: '8px', fontSize: '0.78rem',
                         fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
                         opacity: isEnhancing ? 0.6 : 1
@@ -180,11 +180,11 @@ const ImageGeneratorPanel = ({ mainKeyword, onInsertImage }) => {
                         disabled={isEnhancing}
                         style={{
                             padding: '6px 12px', borderRadius: '8px',
-                            border: style === opt.id ? '2px solid #6c5ce7' : '1px solid #e0e0e0',
-                            background: style === opt.id ? '#f0edff' : '#fafafa',
+                            border: style === opt.id ? '2px solid #FF6B35' : '1px solid #e0e0e0',
+                            background: style === opt.id ? '#FFF3ED' : '#fafafa',
                             cursor: 'pointer', fontSize: '0.78rem',
                             fontWeight: style === opt.id ? 600 : 400,
-                            color: style === opt.id ? '#6c5ce7' : '#666'
+                            color: style === opt.id ? '#FF6B35' : '#666'
                         }}
                     >
                         {opt.label}
@@ -203,11 +203,11 @@ const ImageGeneratorPanel = ({ mainKeyword, onInsertImage }) => {
                         onClick={() => setRatio(opt.id)}
                         style={{
                             padding: '6px 12px', borderRadius: '8px',
-                            border: ratio === opt.id ? '2px solid #6c5ce7' : '1px solid #e0e0e0',
-                            background: ratio === opt.id ? '#f0edff' : '#fafafa',
+                            border: ratio === opt.id ? '2px solid #FF6B35' : '1px solid #e0e0e0',
+                            background: ratio === opt.id ? '#FFF3ED' : '#fafafa',
                             cursor: 'pointer', fontSize: '0.78rem',
                             fontWeight: ratio === opt.id ? 600 : 400,
-                            color: ratio === opt.id ? '#6c5ce7' : '#666'
+                            color: ratio === opt.id ? '#FF6B35' : '#666'
                         }}
                     >
                         {opt.label}
@@ -221,7 +221,7 @@ const ImageGeneratorPanel = ({ mainKeyword, onInsertImage }) => {
                 <>
                     <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#555', margin: '16px 0 6px' }}>
                         생성 프롬프트
-                        {isEnhancing && <span style={{ color: '#6c5ce7', marginLeft: '8px', fontWeight: 400 }}>최적화 중...</span>}
+                        {isEnhancing && <span style={{ color: '#FF6B35', marginLeft: '8px', fontWeight: 400 }}>최적화 중...</span>}
                     </label>
                     <textarea
                         value={prompt}
@@ -243,7 +243,7 @@ const ImageGeneratorPanel = ({ mainKeyword, onInsertImage }) => {
                 disabled={loading || isEnhancing || (!prompt.trim() && !userInput.trim())}
                 style={{
                     width: '100%', marginTop: '20px', padding: '12px',
-                    background: loading ? '#a29bfe' : 'linear-gradient(135deg, #6c5ce7, #a29bfe)',
+                    background: loading ? '#F7931E' : 'linear-gradient(135deg, #FF6B35, #F7931E)',
                     color: 'white', border: 'none', borderRadius: '10px',
                     fontSize: '0.9rem', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer',
                     opacity: ((!prompt.trim() && !userInput.trim()) && !loading) ? 0.5 : 1
@@ -339,7 +339,7 @@ const ImageGeneratorPanel = ({ mainKeyword, onInsertImage }) => {
                         <button
                             onClick={handleInsert}
                             style={{
-                                flex: 2, padding: '8px', background: '#6c5ce7',
+                                flex: 2, padding: '8px', background: '#FF6B35',
                                 color: 'white', border: 'none', borderRadius: '8px',
                                 fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer'
                             }}

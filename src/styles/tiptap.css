@@ -80,7 +80,7 @@
     width: 14px;
     height: 14px;
     cursor: pointer;
-    accent-color: #6c5ce7;
+    accent-color: #FF6B35;
     margin: 0;
 }
 .ai-footer-label {
@@ -269,7 +269,7 @@
 }
 
 .cta-toolbar-btn {
-    color: #E67E22 !important;
+    color: var(--color-brand) !important;
     font-weight: 600 !important;
 }
 
@@ -454,7 +454,7 @@
 .intro-generate-btn {
     width: 100%;
     padding: 12px;
-    background: linear-gradient(135deg, #6366F1, #8B5CF6);
+    background: linear-gradient(135deg, #FF6B35, #F7931E);
     color: white;
     border: none;
     border-radius: 8px;
@@ -490,12 +490,12 @@
 }
 
 .intro-alt-card:hover {
-    border-color: #6366F1;
+    border-color: #FF6B35;
 }
 
 .intro-alt-strategy {
     font-size: 0.75rem;
-    color: #6366F1;
+    color: #FF6B35;
     font-weight: 600;
     margin-bottom: 6px;
 }
@@ -516,7 +516,7 @@
 .intro-apply-btn {
     margin-left: auto;
     padding: 5px 14px;
-    background: #6366F1;
+    background: #FF6B35;
     color: white;
     border: none;
     border-radius: 6px;
@@ -527,7 +527,7 @@
 }
 
 .intro-apply-btn:hover {
-    background: #4F46E5;
+    background: #E55A2B;
 }
 
 /* 상단 정보 카드 (맛집/카페) */
@@ -754,7 +754,7 @@
 }
 
 .readability-suggestion-info .readability-suggestion-icon {
-    background: #6366F1;
+    background: #FF6B35;
     color: white;
 }
 
