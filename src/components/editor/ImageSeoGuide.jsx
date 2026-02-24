@@ -36,7 +36,7 @@ const generateSeoFilename = (mainKeyword, slotId, index) => {
  * 이미지 SEO 가이드 컴포넌트
  * 추천 파일명 + ALT 텍스트를 슬롯별/이미지별로 보여주고 복사 기능 제공
  */
-const ImageSeoGuide = ({ mainKeyword, imageAlts, photoMetadata }) => {
+const ImageSeoGuide = ({ mainKeyword, imageAlts, imageCaptions = {}, photoMetadata }) => {
     const [copiedKey, setCopiedKey] = useState(null);
 
     const handleCopy = useCallback(async (text, key) => {
@@ -76,7 +76,11 @@ const ImageSeoGuide = ({ mainKeyword, imageAlts, photoMetadata }) => {
                 const filename = generateSeoFilename(mainKeyword, slot, i);
                 const altArr = imageAlts[slot] || [];
                 const alt = altArr[i] || `${mainKeyword} ${slotKorean}`;
-                lines.push(`[${slotKorean}-${i + 1}] 파일명: ${filename} | ALT: ${alt}`);
+                const captionArr = imageCaptions[slot] || [];
+                const caption = captionArr[i] || '';
+                let line = `[${slotKorean}-${i + 1}] 파일명: ${filename} | ALT: ${alt}`;
+                if (caption) line += ` | 캡션: ${caption}`;
+                lines.push(line);
             }
         });
         return lines.join('\n');
@@ -103,6 +107,7 @@ const ImageSeoGuide = ({ mainKeyword, imageAlts, photoMetadata }) => {
                     const emoji = SLOT_EMOJI[slot] || '📷';
                     const slotKorean = SLOT_LABELS[slot] || slot;
                     const altArr = imageAlts[slot] || [];
+                    const captionArr = imageCaptions[slot] || [];
 
                     return (
                         <div key={slot} className="image-seo-slot-section">
@@ -114,8 +119,10 @@ const ImageSeoGuide = ({ mainKeyword, imageAlts, photoMetadata }) => {
                             {Array.from({ length: count }, (_, i) => {
                                 const filename = generateSeoFilename(mainKeyword, slot, i);
                                 const alt = altArr[i] || `${mainKeyword} ${slotKorean}`;
+                                const caption = captionArr[i] || '';
                                 const fnKey = `fn-${slot}-${i}`;
                                 const altKey = `alt-${slot}-${i}`;
+                                const capKey = `cap-${slot}-${i}`;
 
                                 return (
                                     <div key={i} className="image-seo-item">
@@ -140,6 +147,18 @@ const ImageSeoGuide = ({ mainKeyword, imageAlts, photoMetadata }) => {
                                                 {copiedKey === altKey ? '✅' : '복사'}
                                             </button>
                                         </div>
+                                        {caption && (
+                                            <div className="image-seo-row">
+                                                <span className="image-seo-row-label">캡션</span>
+                                                <span className="image-seo-row-value">{caption}</span>
+                                                <button
+                                                    className={`image-seo-copy-btn ${copiedKey === capKey ? 'copied' : ''}`}
+                                                    onClick={() => handleCopy(caption, capKey)}
+                                                >
+                                                    {copiedKey === capKey ? '✅' : '복사'}
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                 );
                             })}
@@ -149,11 +168,12 @@ const ImageSeoGuide = ({ mainKeyword, imageAlts, photoMetadata }) => {
             </div>
 
             <div className="image-seo-footer">
-                💡 위 파일명으로 이미지 파일을 변경한 후 네이버 블로그에 업로드하고,
-                ALT 텍스트를 이미지의 대체 텍스트에 입력하세요.
+                💡 위 파일명으로 이미지를 저장하고, ALT 텍스트는 대체 텍스트에,
+                캡션은 이미지 아래 설명에 입력하세요.
             </div>
         </div>
     );
 };
 
+export { generateSeoFilename };
 export default ImageSeoGuide;

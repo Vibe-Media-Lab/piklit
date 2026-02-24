@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Camera, Upload, Info } from 'lucide-react';
 import { AIService } from '../../services/openai';
+import { generateSeoFilename } from './ImageSeoGuide';
 import ImageCropper from './ImageCropper';
 import { addAiWatermark } from '../../utils/watermark';
 import '../../styles/PhotoUploader.css';
@@ -220,13 +221,12 @@ const PhotoUploader = ({ keyword, onUpdate, categoryId }) => {
         const processedFiles = [];
         const newPreviews = [];
 
+        const existingCount = (files[slotId] || []).length;
         for (let i = 0; i < rawFiles.length; i++) {
             const file = rawFiles[i];
             try {
                 const resizedBlob = await resizeImage(file);
-                const timestamp = Date.now();
-                const cleanKeyword = keyword ? keyword.replace(/\s+/g, '_') : 'myblog';
-                const newName = `${cleanKeyword}_${slotId}_${i + 1}_${timestamp}.jpg`;
+                const newName = generateSeoFilename(keyword || 'myblog', slotId, existingCount + i);
                 const newFile = new File([resizedBlob], newName, { type: 'image/jpeg' });
                 processedFiles.push(newFile);
                 newPreviews.push(URL.createObjectURL(newFile));

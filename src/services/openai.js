@@ -331,51 +331,60 @@ Output strictly a valid JSON:
      * 경쟁 블로그 분석 — 캐시 우선, 없으면 단독 호출
      */
     async analyzeCompetitors(keyword) {
-        // 캐시에 같은 키워드 데이터가 있고, 블로그 3개 이상이면 즉시 반환
-        if (this._competitorCache.keyword === keyword && this._competitorCache.data) {
-            const cachedBlogs = this._competitorCache.data.blogs || [];
-            if (cachedBlogs.length >= 3) {
-                console.log('[경쟁 분석] 캐시 사용:', keyword, `(${cachedBlogs.length}개)`);
-                return this._competitorCache.data;
-            }
-            console.log(`[경쟁 분석] 캐시 데이터 부족 (${cachedBlogs.length}개), 재분석`);
+        // 캐시에 같은 키워드 데이터가 있고 average가 있으면 즉시 반환
+        if (this._competitorCache.keyword === keyword && this._competitorCache.data?.average) {
+            console.log('[경쟁 분석] 캐시 사용:', keyword);
+            return this._competitorCache.data;
         }
 
         const prompt = `너는 네이버 블로그 SEO 분석 전문가야.
 구글 검색으로 "${keyword}" 관련 상위 네이버 블로그 글 5개를 찾아 분석해줘.
 
 [분석 항목]
-각 글의 제목(title), 추정 글자수(charCount), 이미지수(imageCount), 소제목수(headingCount).
+각 글의 추정 글자수(charCount), 이미지수(imageCount), 소제목수(headingCount).
 글자수는 100단위 반올림. average는 5개 블로그의 평균값.
 
 [중요]
-- 반드시 5개 블로그를 찾아서 blogs 배열에 5개 항목을 넣어야 함
+- 반드시 5개 블로그를 분석하여 평균값을 산출할 것
 - 실제 검색 결과를 바탕으로 현실적인 수치를 넣을 것
 - 예시의 숫자를 그대로 복사하지 말 것
 - 반드시 JSON만 출력할 것. 설명이나 부가 텍스트 금지.
 
 Output strictly a valid JSON:
-{"blogs":[{"title":"블로그1 제목","charCount":2100,"imageCount":12,"headingCount":7},{"title":"블로그2 제목","charCount":1800,"imageCount":9,"headingCount":5},{"title":"블로그3 제목","charCount":2400,"imageCount":15,"headingCount":8},{"title":"블로그4 제목","charCount":1600,"imageCount":7,"headingCount":4},{"title":"블로그5 제목","charCount":2000,"imageCount":10,"headingCount":6}],"average":{"charCount":1980,"imageCount":11,"headingCount":6}}`;
+{"average":{"charCount":1980,"imageCount":11,"headingCount":6}}`;
 
         // thinkingBudget 제거: google_search + 복잡 JSON 조합에서 thinking 활성화 필요
         const result = await this.generateContent([{ text: prompt }], {
             tools: [{ google_search: {} }]
         }, '경쟁 블로그 분석');
 
-        // 정상 응답: blogs 배열이 있는 경우
-        if (result?.blogs && Array.isArray(result.blogs)) {
+        // 정상 응답: average 객체가 있는 경우
+        if (result?.average) {
             this._competitorCache = { keyword, data: result };
             return result;
+        }
+
+        // 레거시 호환: blogs 배열이 있으면 average 계산
+        if (result?.blogs && Array.isArray(result.blogs)) {
+            const blogs = result.blogs;
+            const avg = {
+                charCount: Math.round(blogs.reduce((s, b) => s + (b.charCount || 0), 0) / blogs.length),
+                imageCount: Math.round(blogs.reduce((s, b) => s + (b.imageCount || 0), 0) / blogs.length),
+                headingCount: Math.round(blogs.reduce((s, b) => s + (b.headingCount || 0), 0) / blogs.length),
+            };
+            const data = { average: avg };
+            this._competitorCache = { keyword, data };
+            return data;
         }
 
         // fallback 응답({ html, text })에서 JSON 재추출 시도
         const rawText = result?.text || result?.html || '';
         if (rawText) {
-            const jsonMatch = rawText.match(/\{[\s\S]*"blogs"\s*:\s*\[[\s\S]*\][\s\S]*\}/);
+            const jsonMatch = rawText.match(/\{[\s\S]*"average"\s*:\s*\{[\s\S]*\}[\s\S]*\}/);
             if (jsonMatch) {
                 try {
                     const parsed = JSON.parse(jsonMatch[0]);
-                    if (parsed.blogs && Array.isArray(parsed.blogs)) {
+                    if (parsed.average) {
                         this._competitorCache = { keyword, data: parsed };
                         console.log('[경쟁 분석] fallback 재파싱 성공');
                         return parsed;
@@ -885,6 +894,15 @@ ${toneInstruction}
             exampleOutput[s] = Array.from({ length: count }, (_, i) => `ALT 텍스트 ${i + 1}`);
         });
 
+        const captionExampleOutput = {};
+        uploadedSlots.forEach(s => {
+            const count = slotCounts[s] || 1;
+            captionExampleOutput[s] = Array.from({ length: count }, (_, i) => ({
+                alt: `ALT 텍스트 ${i + 1}`,
+                caption: `캡션 문장 ${i + 1}`
+            }));
+        });
+
         const prompt = `너는 네이버 블로그 이미지 SEO 전문가야.
 
 메인 키워드: ${mainKeyword}
@@ -895,34 +913,41 @@ ${analysisSection}
 ${slotList}
 
 [작업]
-각 이미지 슬롯의 이미지 개수만큼 개별 ALT 텍스트를 생성해줘.
-같은 슬롯이라도 각 이미지의 ALT는 서로 다른 내용으로 작성해야 함.
+각 이미지 슬롯의 이미지 개수만큼 ALT 텍스트와 캡션을 함께 생성해줘.
+같은 슬롯이라도 각 이미지의 ALT와 캡션은 서로 다른 내용으로 작성해야 함.
 
 [규칙]
 1. 각 ALT 텍스트에 메인 키워드를 반드시 포함
-2. 5~7단어, 15~30자 이내로 간결하게 작성
-3. 사진 분석 결과가 있으면 실제 내용을 반영
-4. 자연스러운 한국어 문장 (예: "제주 김선문 식당 외관 전경")
-5. 서브 키워드를 각 ALT에 분산 배치하여 SEO 최적화
-6. 같은 슬롯의 이미지끼리 다른 관점/요소를 묘사
+2. ALT: 5~7단어, 15~30자 이내 (이미지 대체 텍스트)
+3. caption: 1~2문장, 30~60자 (본문 이미지 아래 표시될 설명)
+4. 사진 분석 결과가 있으면 실제 내용을 반영
+5. 자연스러운 한국어 문장 (예: ALT "제주 김선문 식당 외관 전경", caption "제주 서귀포에 위치한 김선문 식당의 깔끔한 외관이 눈에 띈다.")
+6. 서브 키워드를 ALT와 캡션에 분산 배치하여 SEO 최적화
+7. 같은 슬롯의 이미지끼리 다른 관점/요소를 묘사
 
-Output strictly a valid JSON object (각 슬롯은 ALT 텍스트 배열):
-${JSON.stringify(exampleOutput)}`;
+Output strictly a valid JSON object:
+${JSON.stringify(captionExampleOutput)}`;
 
         const result = await this.generateContent([{ text: prompt }], {
             thinkingBudget: 0
         }, '이미지 ALT 생성');
 
-        // 결과 검증 및 정규화: 문자열이면 [문자열]로 변환
+        // 결과 검증 및 정규화: {alt, caption} 객체 배열로 통일
         if (result && typeof result === 'object') {
             const normalized = {};
             for (const slot of uploadedSlots) {
-                if (Array.isArray(result[slot])) {
-                    normalized[slot] = result[slot];
-                } else if (typeof result[slot] === 'string') {
-                    normalized[slot] = [result[slot]];
+                const items = result[slot];
+                if (Array.isArray(items)) {
+                    normalized[slot] = items.map(item => {
+                        if (typeof item === 'string') {
+                            return { alt: item, caption: '' };
+                        }
+                        return { alt: item.alt || item, caption: item.caption || '' };
+                    });
+                } else if (typeof items === 'string') {
+                    normalized[slot] = [{ alt: items, caption: '' }];
                 } else {
-                    normalized[slot] = [`${mainKeyword} ${slotLabels[slot] || slot}`];
+                    normalized[slot] = [{ alt: `${mainKeyword} ${slotLabels[slot] || slot}`, caption: '' }];
                 }
             }
             return normalized;

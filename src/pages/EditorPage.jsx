@@ -75,6 +75,7 @@ const EditorPage = () => {
     const [photoAnalysis, setPhotoAnalysis] = useState(null);
     const [isAnalyzingPhotos, setIsAnalyzingPhotos] = useState(false);
     const [imageAlts, setImageAlts] = useState({});
+    const [imageCaptions, setImageCaptions] = useState({});
     const [cachedPhotoAssets, setCachedPhotoAssets] = useState([]);
     const imageAltsRef = useRef({});
 
@@ -327,10 +328,10 @@ const EditorPage = () => {
         recordAiAction('competitorAnalysis');
         try {
             const result = await AIService.analyzeCompetitors(mainKeyword);
-            if (result && result.blogs && Array.isArray(result.blogs)) {
+            if (result?.average) {
                 setCompetitorData(result);
                 // 경쟁 분석 평균 글자수 기반 글자수 자동 선택
-                if (result.average?.charCount) {
+                if (result.average.charCount) {
                     const recommended = recommendLength(result.average.charCount);
                     if (recommended) setSelectedLength(recommended);
                 }
@@ -398,10 +399,16 @@ const EditorPage = () => {
                 uploadedSlots.forEach(slot => { slotCounts[slot] = photoData.metadata[slot]; });
                 try {
                     const keywordStrings = selectedKeywords.map(k => getKw(k));
-                    const alts = await AIService.generateImageAlts(mainKeyword, keywordStrings, result, uploadedSlots, slotCounts);
-                    if (alts && Object.keys(alts).length > 0) {
+                    const altResult = await AIService.generateImageAlts(mainKeyword, keywordStrings, result, uploadedSlots, slotCounts);
+                    if (altResult && Object.keys(altResult).length > 0) {
+                        const alts = {}, captions = {};
+                        for (const [slot, items] of Object.entries(altResult)) {
+                            alts[slot] = items.map(i => typeof i === 'string' ? i : i.alt);
+                            captions[slot] = items.map(i => typeof i === 'string' ? '' : i.caption);
+                        }
                         setImageAlts(alts);
-                        console.log('[이미지 ALT] 생성 완료:', alts);
+                        setImageCaptions(captions);
+                        console.log('[이미지 ALT+캡션] 생성 완료:', alts, captions);
                     }
                 } catch (altErr) {
                     console.warn('[이미지 ALT] 생성 실패, 기본 ALT 사용:', altErr.message);
@@ -542,13 +549,18 @@ const EditorPage = () => {
 
             const files = photoData.files[slotName];
             if (files && files.length > 0) {
-                // SEO 최적화: 개별 이미지별 ALT 배열 → fallback
+                // SEO 최적화: 개별 이미지별 ALT 배열 + 캡션 → fallback
                 const altArr = imageAlts[slotName];
+                const captionArr = imageCaptions[slotName];
                 return files.map((file, idx) => {
                     const altText = (Array.isArray(altArr) ? altArr[idx] : altArr)
                         || `${mainKeyword} ${slotLabels[slotName] || slotName}`;
+                    const caption = Array.isArray(captionArr) ? captionArr[idx] : '';
+                    const captionHtml = caption
+                        ? `<p style="text-align:center;color:#787774;font-size:0.85rem;margin:4px 0 16px;">${caption}</p>`
+                        : '';
                     const imageUrl = URL.createObjectURL(file);
-                    return `</p><p><img src="${imageUrl}" alt="${altText}" style="width: 100%; max-width: 800px; border-radius: 8px; margin: 10px 0;" /></p><p>`;
+                    return `</p><p><img src="${imageUrl}" alt="${altText}" style="width: 100%; max-width: 800px; border-radius: 8px; margin: 10px 0;" /></p>${captionHtml}<p>`;
                 }).join('');
             }
             // 파일 없는 슬롯 → TIP 박스로 변환 (한국어 라벨 사용)
@@ -631,10 +643,16 @@ const EditorPage = () => {
                     const slotCounts = {};
                     uploadedSlots.forEach(slot => { slotCounts[slot] = photoData.metadata[slot]; });
                     try {
-                        const alts = await AIService.generateImageAlts(mainKeyword, keywordStrings, photoAnalysis, uploadedSlots, slotCounts);
-                        if (alts && Object.keys(alts).length > 0) {
+                        const altResult = await AIService.generateImageAlts(mainKeyword, keywordStrings, photoAnalysis, uploadedSlots, slotCounts);
+                        if (altResult && Object.keys(altResult).length > 0) {
+                            const alts = {}, captions = {};
+                            for (const [slot, items] of Object.entries(altResult)) {
+                                alts[slot] = items.map(i => typeof i === 'string' ? i : i.alt);
+                                captions[slot] = items.map(i => typeof i === 'string' ? '' : i.caption);
+                            }
                             setImageAlts(alts);
-                            console.log('[이미지 ALT] 본문 생성 전 생성 완료:', alts);
+                            setImageCaptions(captions);
+                            console.log('[이미지 ALT+캡션] 본문 생성 전 생성 완료:', alts, captions);
                         }
                     } catch (altErr) {
                         console.warn('[이미지 ALT] 생성 실패, 기본 ALT 사용:', altErr.message);
@@ -1471,6 +1489,7 @@ const EditorPage = () => {
                                         <ImageSeoGuide
                                             mainKeyword={mainKeyword}
                                             imageAlts={imageAlts}
+                                            imageCaptions={imageCaptions}
                                             photoMetadata={photoData.metadata}
                                         />
                                     </div>
@@ -1795,6 +1814,7 @@ const EditorPage = () => {
                             <ImageSeoGuide
                                 mainKeyword={mainKeyword}
                                 imageAlts={imageAlts}
+                                imageCaptions={imageCaptions}
                                 photoMetadata={photoData.metadata}
                             />
                         </div>
