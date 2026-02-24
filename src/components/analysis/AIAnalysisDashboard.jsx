@@ -3,6 +3,7 @@ import { useEditor } from '../../context/EditorContext';
 import { useToast } from '../common/Toast';
 import { AIService } from '../../services/openai';
 import ReadabilityPanel from './ReadabilityPanel';
+import HumannessPanel from './HumannessPanel';
 import PostHistory from './PostHistory';
 
 const AIAnalysisDashboard = () => {
@@ -195,6 +196,9 @@ const AIAnalysisDashboard = () => {
 
             {/* Readability Panel */}
             <ReadabilityPanel />
+
+            {/* Humanness Detection Panel */}
+            <HumannessPanel />
 
             {/* Post History Timeline */}
             <PostHistory />

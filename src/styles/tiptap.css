@@ -20,8 +20,8 @@
     gap: 16px;
     flex-wrap: wrap;
     position: sticky;
-    top: 60px;
-    z-index: 50;
+    top: 0;
+    z-index: 40;
     border-radius: 8px 8px 0 0;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
@@ -811,4 +811,310 @@
     0% { background: #FDE68A; box-shadow: 0 0 0 4px #FDE68A; }
     30% { background: #FDE68A; box-shadow: 0 0 0 4px #FDE68A; }
     100% { background: transparent; box-shadow: none; }
+}
+
+/* ===== Humanness Detection Panel ===== */
+.humanness-panel {
+    margin-top: 24px;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.humanness-panel-toggle {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: #FAFBFC;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-text-main);
+}
+
+.humanness-panel-toggle:hover {
+    background: #F0F2F5;
+}
+
+.humanness-panel-body {
+    padding: 20px;
+    border-top: 1px solid var(--color-border);
+}
+
+.humanness-gauge-row {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.humanness-gauge {
+    position: relative;
+    flex-shrink: 0;
+    width: 90px;
+    height: 90px;
+}
+
+.humanness-gauge-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.humanness-gauge-score {
+    font-size: 1.4rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.humanness-gauge-label {
+    font-size: 0.65rem;
+    color: #888;
+    margin-top: 2px;
+}
+
+.humanness-metrics-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.humanness-metric {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.humanness-metric-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.humanness-metric-label {
+    font-size: 0.78rem;
+    color: #555;
+}
+
+.humanness-metric-score {
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.humanness-metric-bar-bg {
+    height: 6px;
+    background: #E5E7EB;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.humanness-metric-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.4s ease;
+}
+
+/* 개선 포인트 */
+.humanness-suggestions {
+    border-top: 1px solid var(--color-border);
+    padding-top: 16px;
+}
+
+.humanness-suggestions-title {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 10px;
+}
+
+.humanness-suggestion-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    margin-bottom: 6px;
+    font-size: 0.84rem;
+    line-height: 1.5;
+}
+
+.humanness-suggestion-warning {
+    background: #FEF3C7;
+    color: #92400E;
+}
+
+.humanness-suggestion-info {
+    background: #EEF2FF;
+    color: #3730A3;
+}
+
+.humanness-suggestion-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    font-size: 0.7rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.humanness-suggestion-warning .humanness-suggestion-icon {
+    background: #F59E0B;
+    color: white;
+}
+
+.humanness-suggestion-info .humanness-suggestion-icon {
+    background: #FF6B35;
+    color: white;
+}
+
+.humanness-perfect {
+    text-align: center;
+    padding: 16px;
+    background: #F0FDF4;
+    border-radius: 8px;
+    color: #16A34A;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* AI 휴먼라이징 버튼 */
+.humanness-ai-btn {
+    width: 100%;
+    padding: 10px;
+    margin-top: 16px;
+    background: #FF6B35;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: opacity 0.2s;
+}
+
+.humanness-ai-btn:hover {
+    opacity: 0.9;
+}
+
+.humanness-ai-btn:disabled {
+    background: var(--color-border);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* AI 제안 결과 */
+.humanness-ai-results {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.humanness-ai-tip {
+    padding: 10px 12px;
+    background: var(--color-brand-light, #FFF3ED);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: var(--color-brand-dark, #E55A2B);
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.humanness-ai-card {
+    padding: 12px;
+    background: #FAFBFC;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.humanness-ai-original {
+    font-size: 0.84rem;
+    color: #999;
+    text-decoration: line-through;
+    line-height: 1.5;
+}
+
+.humanness-ai-arrow {
+    color: var(--color-brand, #FF6B35);
+    display: flex;
+    align-items: center;
+}
+
+.humanness-ai-revised {
+    font-size: 0.84rem;
+    color: var(--color-text-main);
+    font-weight: 500;
+    line-height: 1.5;
+    background: #FFF3ED;
+    padding: 6px 10px;
+    border-radius: 4px;
+}
+
+.humanness-ai-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.humanness-ai-reason {
+    font-size: 0.72rem;
+    color: white;
+    background: var(--color-brand, #FF6B35);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 500;
+}
+
+.humanness-ai-apply-btn {
+    padding: 4px 14px;
+    background: var(--color-brand, #FF6B35);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.15s;
+}
+
+.humanness-ai-apply-btn:hover {
+    opacity: 0.85;
+}
+
+.humanness-ai-apply-btn.applied {
+    background: #16A34A;
+    cursor: default;
+}
+
+.humanness-ai-apply-btn:disabled {
+    opacity: 0.7;
+    cursor: default;
+}
+
+.humanness-ai-card-applied {
+    opacity: 0.6;
+    border-color: #16A34A;
+}
+
+.humanness-ai-card-applied .humanness-ai-original {
+    text-decoration: line-through;
+    opacity: 0.5;
 }

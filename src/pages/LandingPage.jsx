@@ -333,7 +333,9 @@ const HeroSection = ({ handleStart, loginLoading }) => (
                         : '무료로 시작하기'
                     }
                 </button>
-                <span className="landing-hero-sub">회원가입 없이 Google로 바로 시작</span>
+                <span className="landing-cta-hint">
+                    ← Google 계정으로 바로 시작 · 회원가입 불필요
+                </span>
             </div>
         </div>
         <div className="landing-hero-mockup">

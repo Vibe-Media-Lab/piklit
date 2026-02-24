@@ -872,7 +872,7 @@ ${toneInstruction}
      * @param {Object} slotCounts - 슬롯별 이미지 개수 (예: { entrance: 2, food: 3 })
      * @returns {Promise<Object>} 슬롯별 ALT 텍스트 배열 맵 (예: { entrance: ["ALT1", "ALT2"], food: ["ALT1", "ALT2", "ALT3"] })
      */
-    async generateImageAlts(mainKeyword, subKeywords = [], photoAnalysis = null, uploadedSlots = [], slotCounts = {}) {
+    async generateImageAlts(mainKeyword, subKeywords = [], photoAnalysis = null, uploadedSlots = [], slotCounts = {}, tone = 'friendly') {
         if (!uploadedSlots.length) return {};
 
         const slotLabels = {
@@ -903,6 +903,14 @@ ${toneInstruction}
             }));
         });
 
+        const toneGuide = {
+            friendly: '해요체/~요 (예: "눈에 띄어요", "느낌이에요")',
+            professional: '합쇼체/~니다 (예: "확인할 수 있습니다", "눈에 띕니다")',
+            honest: '반말/~다 (예: "눈에 띈다", "느낌이다")',
+            emotional: '평어체/반말 (예: "눈길을 끈다", "인상적이다")',
+            guide: '권유형/~세요 (예: "확인해보세요", "주목할 만해요")',
+        }[tone] || '해요체/~요';
+
         const prompt = `너는 네이버 블로그 이미지 SEO 전문가야.
 
 메인 키워드: ${mainKeyword}
@@ -921,9 +929,10 @@ ${slotList}
 2. ALT: 5~7단어, 15~30자 이내 (이미지 대체 텍스트)
 3. caption: 1~2문장, 30~60자 (본문 이미지 아래 표시될 설명)
 4. 사진 분석 결과가 있으면 실제 내용을 반영
-5. 자연스러운 한국어 문장 (예: ALT "제주 김선문 식당 외관 전경", caption "제주 서귀포에 위치한 김선문 식당의 깔끔한 외관이 눈에 띈다.")
+5. 자연스러운 한국어 문장
 6. 서브 키워드를 ALT와 캡션에 분산 배치하여 SEO 최적화
 7. 같은 슬롯의 이미지끼리 다른 관점/요소를 묘사
+8. **중요: 캡션 문체는 반드시 ${toneGuide}로 통일** — 본문과 톤이 달라지면 부자연스러움
 
 Output strictly a valid JSON object:
 ${JSON.stringify(captionExampleOutput)}`;
@@ -1233,6 +1242,43 @@ ${styleDesc}
       Return strictly a JSON object.
     `;
         return this.generateContent([{ text: prompt }], { thinkingBudget: 0 }, '키워드 추천');
+    },
+
+    /**
+     * AI 휴먼라이징 제안 — 본문에서 AI 느낌 나는 부분을 찾아 수정안 제시
+     * @param {string} content - 본문 텍스트
+     * @param {string} mainKeyword - 메인 키워드 (맥락 제공용)
+     * @returns {Promise<{suggestions: Array<{original: string, revised: string, reason: string}>, overallTip: string}>}
+     */
+    async analyzeHumanness(content, mainKeyword = '') {
+        const prompt = `너는 네이버 블로그 AI 감지 회피 전문가야.
+아래 블로그 본문에서 "AI가 쓴 것 같은" 부분을 찾아 사람처럼 고쳐줘.
+${mainKeyword ? `주제: "${mainKeyword}"` : ''}
+
+[분석 기준]
+1. AI 단골 표현 ("다양한", "효과적인", "살펴보겠습니다" 등) → 자연스러운 구어체로
+2. 너무 균일한 문장 구조 → 길이·톤에 변화 주기
+3. 1인칭/경험체 부족 → "제가 직접~", "솔직히~" 추가 제안
+4. 과도한 나열 표현 → 대화체로 변환
+5. 감정·반응 부재 → 감탄, 질문, 솔직한 감상 추가
+
+[본문]
+${content.substring(0, 4000)}
+
+Output strictly a valid JSON:
+{
+  "suggestions": [
+    {"original": "원문 문장", "revised": "수정한 문장", "reason": "3~5단어 이유"}
+  ],
+  "overallTip": "전체적인 개선 조언 1문장"
+}
+suggestions는 최대 5개, 가장 효과적인 수정부터 정렬.`;
+
+        return this.generateContent(
+            [{ text: prompt }],
+            { thinkingBudget: 2048 },
+            'AI 휴먼라이징'
+        );
     }
 };
 

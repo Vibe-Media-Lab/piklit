@@ -235,6 +235,35 @@
 - [ ] 경쟁 매장 블로그 모니터링
 - [ ] 주간 자동 포스팅
 
+## 완료된 작업 (2026-02-24) — AI 감지 분석 + 키워드 직접 입력 + 레이아웃 수정
+
+### 신규 기능: AI 감지 분석 (Humanness Detection)
+- [x] `humanness.js` 신규 생성 — 6개 지표 + 5가지 톤별 가중치 프리셋 (100점 만점)
+  - 문장 길이 다양성, 개인 표현, AI 패턴 감지, 문단 다양성, 구어체 마커, 이모지/비격식
+  - 톤앤무드(friendly/professional/honest/emotional/guide)별 배점 자동 조정
+- [x] `openai.js`에 `analyzeHumanness()` 메서드 추가 — Gemini API 기반 AI 휴먼라이징 제안
+- [x] `HumannessPanel.jsx` 신규 생성 — 접이식 패널 + 게이지 + 메트릭바 + AI 제안 카드
+  - "적용" 버튼 클릭 시 TipTap 에디터에서 원문 찾아 수정안으로 자동 치환
+- [x] `AIAnalysisDashboard.jsx`에 HumannessPanel 삽입 (ReadabilityPanel 아래)
+- [x] `tiptap.css`에 `.humanness-*` 스타일 추가 (~180줄)
+
+### 신규 기능: 키워드 직접 입력
+- [x] `EditorPage.jsx` 위자드 Step 1에 키워드 직접 입력 필드 추가
+  - Enter 키 또는 "추가" 버튼으로 추가, 5개 제한 + 중복 검사
+  - 직접 입력 키워드는 보라색 칩 + 연필 아이콘으로 시각 구분
+  - 삭제 시 제안 목록으로 복귀하지 않고 바로 삭제
+
+### 버그 수정
+- [x] 사진 분석 결과 마크다운 원문 노출 — `### 사진 N:` 형태 헤더 파서 추가 (줄 단위 재작성)
+- [x] 이미지 캡션 톤 불일치 — `generateImageAlts()`에 `tone` 파라미터 추가, 프롬프트에 톤 가이드 삽입
+- [x] 사이드바 sticky 미동작 — `.analysis-section` `top: 76px` → `top: 24px`
+
+### 레이아웃 수정
+- [x] TopBar 사라짐 — `.app-main` `min-height: 100vh` → `height: 100vh; overflow: hidden`
+- [x] TopBar에 `flex-shrink: 0` 추가, `position: sticky` 제거 (불필요)
+- [x] `.app-content`에 `min-height: 0` 추가 (flex 자식 overflow 정상 처리)
+- [x] `.editor-toolbar` `top: 60px` → `top: 0`, `z-index: 50` → `40` (TopBar와 충돌 방지)
+
 ## 이전 완료 작업 (2026-02-06)
 
 ### 버그 수정

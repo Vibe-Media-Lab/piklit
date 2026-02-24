@@ -52,6 +52,7 @@ const EditorPage = () => {
     const [mainKeyword, setMainKeyword] = useState('');
     const [suggestedKeywords, setSuggestedKeywords] = useState([]); // AI가 제안한 키워드 목록
     const [selectedKeywords, setSelectedKeywords] = useState([]); // 사용자가 선택한 키워드 (최소 3, 최대 5)
+    const [customKeywordInput, setCustomKeywordInput] = useState(''); // 직접 입력 키워드
     const [isAnalyzingKeywords, setIsAnalyzingKeywords] = useState(false);
 
     // 키워드 강도 확인 상태
@@ -268,15 +269,32 @@ const EditorPage = () => {
         }
     };
 
-    // 선택한 키워드 제거 (isSeason이면 시즌 목록으로, 아니면 제안 목록으로 복귀)
+    // 선택한 키워드 제거 (isSeason이면 시즌 목록으로, isCustom이면 그냥 삭제, 아니면 제안 목록으로 복귀)
     const handleRemoveSelectedKeyword = (kwObj) => {
         const kw = kwObj.keyword || kwObj;
         setSelectedKeywords(prev => prev.filter(k => (k.keyword || k) !== kw));
-        if (kwObj.isSeason) {
+        if (kwObj.isCustom) {
+            // 직접 입력한 키워드는 복귀 없이 삭제
+        } else if (kwObj.isSeason) {
             setSeasonKeywords(prev => [...prev, { keyword: kw, reason: kwObj.reason || '', timing: kwObj.timing || '' }]);
         } else {
             setSuggestedKeywords(prev => [...prev, kwObj]);
         }
+    };
+
+    // 키워드 직접 입력 추가
+    const handleAddCustomKeyword = () => {
+        const kw = customKeywordInput.trim();
+        if (!kw) return;
+        if (selectedKeywords.length >= 5) {
+            return showToast('서브 키워드는 최대 5개까지 선택할 수 있습니다.', 'warning');
+        }
+        const allKws = selectedKeywords.map(k => (k.keyword || k));
+        if (allKws.includes(kw)) {
+            return showToast('이미 추가된 키워드입니다.', 'warning');
+        }
+        setSelectedKeywords(prev => [...prev, { keyword: kw, isCustom: true }]);
+        setCustomKeywordInput('');
     };
 
     // 시즌 트렌드 키워드 분석
@@ -399,7 +417,7 @@ const EditorPage = () => {
                 uploadedSlots.forEach(slot => { slotCounts[slot] = photoData.metadata[slot]; });
                 try {
                     const keywordStrings = selectedKeywords.map(k => getKw(k));
-                    const altResult = await AIService.generateImageAlts(mainKeyword, keywordStrings, result, uploadedSlots, slotCounts);
+                    const altResult = await AIService.generateImageAlts(mainKeyword, keywordStrings, result, uploadedSlots, slotCounts, selectedTone || 'friendly');
                     if (altResult && Object.keys(altResult).length > 0) {
                         const alts = {}, captions = {};
                         for (const [slot, items] of Object.entries(altResult)) {
@@ -643,7 +661,7 @@ const EditorPage = () => {
                     const slotCounts = {};
                     uploadedSlots.forEach(slot => { slotCounts[slot] = photoData.metadata[slot]; });
                     try {
-                        const altResult = await AIService.generateImageAlts(mainKeyword, keywordStrings, photoAnalysis, uploadedSlots, slotCounts);
+                        const altResult = await AIService.generateImageAlts(mainKeyword, keywordStrings, photoAnalysis, uploadedSlots, slotCounts, selectedTone || 'friendly');
                         if (altResult && Object.keys(altResult).length > 0) {
                             const alts = {}, captions = {};
                             for (const [slot, items] of Object.entries(altResult)) {
@@ -796,10 +814,16 @@ const EditorPage = () => {
         comparison: '예: 다이슨 에어랩 vs 샤오미 드라이어',
         review: '예: 삼성 갤럭시 S25 울트라',
         travel: '예: 제주도 2박3일 여행',
+        pet: '예: 골든리트리버 산책 코스 추천',
         tech: '예: 애플 비전프로 개발자 리뷰',
         recipe: '예: 초간단 원팬 파스타',
         parenting: '예: 12개월 아기 이유식',
         tips: '예: 자취방 곰팡이 제거 꿀팁',
+        economy: '예: 2026 청년 주택청약 총정리',
+        medical: '예: 역류성 식도염 증상과 생활습관',
+        law: '예: 전세 보증금 반환 청구 절차',
+        tutorial: '예: 노션 자동화 워크플로우 만들기',
+        daily: '예: 직장인 퇴근 후 루틴 공유',
     };
 
     // "직접 작성" 전환 핸들러
@@ -976,9 +1000,9 @@ const EditorPage = () => {
                                                     onClick={() => handleRemoveSelectedKeyword(kwObj)}
                                                     style={{
                                                         padding: '8px 16px',
-                                                        background: kwObj.isSeason ? '#FFEDD5' : 'var(--color-brand-light)',
-                                                        color: kwObj.isSeason ? '#C2410C' : '#E8590C',
-                                                        border: kwObj.isSeason ? '1px solid #FDBA74' : '1px solid #FFCAB0',
+                                                        background: kwObj.isCustom ? '#EEF2FF' : kwObj.isSeason ? '#FFEDD5' : 'var(--color-brand-light)',
+                                                        color: kwObj.isCustom ? '#4338CA' : kwObj.isSeason ? '#C2410C' : '#E8590C',
+                                                        border: kwObj.isCustom ? '1px solid #A5B4FC' : kwObj.isSeason ? '1px solid #FDBA74' : '1px solid #FFCAB0',
                                                         borderRadius: '20px',
                                                         fontSize: 'var(--font-size-sm)',
                                                         fontWeight: '600',
@@ -989,12 +1013,57 @@ const EditorPage = () => {
                                                         transition: 'all 0.15s'
                                                     }}
                                                 >
-                                                    {kwObj.isSeason && <Flame size={13} />}{getKw(kwObj)}
+                                                    {kwObj.isSeason && <Flame size={13} />}{kwObj.isCustom && <Edit3 size={13} />}{getKw(kwObj)}
                                                     {difficultyChecked && <DifficultyBadge difficulty={getDifficulty(kwObj)} />}
                                                     <span style={{ fontSize: '0.8rem', opacity: 0.5 }}>×</span>
                                                 </span>
                                             ))
                                         )}
+                                    </div>
+
+                                    {/* 키워드 직접 입력 */}
+                                    <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                                        <input
+                                            type="text"
+                                            value={customKeywordInput}
+                                            onChange={e => setCustomKeywordInput(e.target.value)}
+                                            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustomKeyword(); } }}
+                                            placeholder="키워드 직접 입력"
+                                            disabled={selectedKeywords.length >= 5}
+                                            style={{
+                                                flex: 1,
+                                                padding: '8px 14px',
+                                                border: '1px solid var(--color-border)',
+                                                borderRadius: '20px',
+                                                fontSize: 'var(--font-size-sm)',
+                                                color: 'var(--color-text-main)',
+                                                background: 'white',
+                                                outline: 'none',
+                                                transition: 'border-color 0.2s',
+                                            }}
+                                            onFocus={e => { e.target.style.borderColor = 'var(--color-brand)'; }}
+                                            onBlur={e => { e.target.style.borderColor = 'var(--color-border)'; }}
+                                        />
+                                        <button
+                                            onClick={handleAddCustomKeyword}
+                                            disabled={!customKeywordInput.trim() || selectedKeywords.length >= 5}
+                                            style={{
+                                                padding: '8px 14px',
+                                                background: customKeywordInput.trim() && selectedKeywords.length < 5 ? 'var(--color-brand)' : 'var(--color-border)',
+                                                color: 'white',
+                                                border: 'none',
+                                                borderRadius: '20px',
+                                                cursor: customKeywordInput.trim() && selectedKeywords.length < 5 ? 'pointer' : 'not-allowed',
+                                                fontSize: 'var(--font-size-sm)',
+                                                fontWeight: '600',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '4px',
+                                                transition: 'opacity 0.2s',
+                                            }}
+                                        >
+                                            <Plus size={14} /> 추가
+                                        </button>
                                     </div>
                                 </div>
 
@@ -1163,7 +1232,7 @@ const EditorPage = () => {
                                             borderRadius: 'var(--radius-lg)',
                                             background: '#FFFBF5'
                                         }}>
-                                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', marginBottom: '12px', color: '#C2410C' }}>
+                                            <label className="wizard-label" style={{ color: '#C2410C' }}>
                                                 <Flame size={16} /> 시즌 트렌드 키워드
                                             </label>
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -1312,7 +1381,7 @@ const EditorPage = () => {
 
                                             {/* 톤앤무드 선택 */}
                                             <div>
-                                                <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '12px' }}>
+                                                <label className="wizard-label">
                                                     <Sparkles size={16} /> 톤앤무드 선택
                                                 </label>
                                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -1428,28 +1497,30 @@ const EditorPage = () => {
                                         <div className="photo-analysis-body">
                                             {(() => {
                                                 const raw = typeof photoAnalysis === 'string' ? photoAnalysis : JSON.stringify(photoAnalysis, null, 2);
-                                                const blocks = raw.split(/\n{2,}|\n(?=\*{2}\d+\.)/).filter(b => b.trim());
-                                                // 사진별로 그룹핑: 제목 블록을 만나면 새 그룹
+                                                const lines = raw.split('\n').filter(l => l.trim() && !/^-{3,}$/.test(l.trim()));
+                                                // 줄 단위로 사진별 그룹핑
                                                 const groups = [];
                                                 let current = null;
-                                                blocks.forEach(block => {
-                                                    const trimmed = block.trim();
-                                                    if (/^-{3,}$/.test(trimmed)) return;
-                                                    const titleMatch = trimmed.match(/^\*{0,2}(\d+)\.\s*(?:사진\s*\d*:\s*)?(.+?)\*{0,2}$/);
+                                                lines.forEach(line => {
+                                                    const trimmed = line.trim();
+                                                    // 제목 패턴들: "### 사진 1: 제목", "**1. 사진 제목**", "사진 1: 제목"
+                                                    const titleMatch = trimmed.match(/^#{2,}\s*사진\s*(\d+)\s*[:：]\s*(.+?)[:：]?\s*$/)
+                                                        || trimmed.match(/^\*{2}(\d+)\.\s*(?:사진\s*\d*:\s*)?(.+?)\*{2}$/)
+                                                        || trimmed.match(/^(\d+)\.\s*사진\s*\d*\s*[:：]\s*(.+?)[:：]?\s*$/)
+                                                        || trimmed.match(/^#{2,}\s*(\d+)\.\s*(.+?)[:：]?\s*$/);
                                                     if (titleMatch) {
-                                                        current = { num: titleMatch[1], title: titleMatch[2].replace(/\*{1,2}/g, ''), items: [] };
+                                                        current = { num: titleMatch[1], title: titleMatch[2].replace(/\*{1,2}/g, '').replace(/[:：]\s*$/, ''), lines: [] };
                                                         groups.push(current);
                                                     } else if (current) {
-                                                        current.items.push(trimmed);
+                                                        current.lines.push(trimmed);
                                                     } else {
-                                                        // 제목 없는 항목 (인트로 텍스트 등)
-                                                        groups.push({ num: null, title: null, items: [trimmed] });
+                                                        groups.push({ num: null, title: null, lines: [trimmed] });
                                                     }
                                                 });
+                                                const clean = (s) => s.replace(/\*{1,2}/g, '').replace(/^#+\s*/, '');
                                                 return groups.map((group, gi) => {
                                                     if (!group.num) {
-                                                        // 인트로 텍스트
-                                                        return <p key={gi} className="photo-analysis-item" style={{ marginBottom: '8px' }}>{group.items.join(' ').replace(/\*{1,2}/g, '')}</p>;
+                                                        return <p key={gi} className="photo-analysis-item" style={{ marginBottom: '8px' }}>{clean(group.lines.join(' '))}</p>;
                                                     }
                                                     return (
                                                         <div key={gi} className="photo-analysis-card">
@@ -1457,25 +1528,21 @@ const EditorPage = () => {
                                                                 <span className="photo-analysis-num">{group.num}</span>
                                                                 {group.title}
                                                             </h5>
-                                                            {group.items.map((block, bi) => {
-                                                                const lines = block.split('\n').filter(l => l.trim());
-                                                                return (
-                                                                    <div key={bi} className="photo-analysis-items">
-                                                                        {lines.map((line, j) => {
-                                                                            let text = line.replace(/^\s*[\*\-]\s*/, '').trim();
-                                                                            const labelMatch = text.match(/^\*{0,2}([^:*]+)\*{0,2}:\s*(.+)$/);
-                                                                            if (labelMatch) {
-                                                                                return (
-                                                                                    <p key={j} className="photo-analysis-item">
-                                                                                        <strong>{labelMatch[1].replace(/\*{1,2}/g, '')}:</strong> {labelMatch[2].replace(/\*{1,2}/g, '')}
-                                                                                    </p>
-                                                                                );
-                                                                            }
-                                                                            return <p key={j} className="photo-analysis-item">{text.replace(/\*{1,2}/g, '')}</p>;
-                                                                        })}
-                                                                    </div>
-                                                                );
-                                                            })}
+                                                            <div className="photo-analysis-items">
+                                                                {group.lines.map((line, j) => {
+                                                                    let text = clean(line.replace(/^\s*[\*\-]\s*/, '').trim());
+                                                                    if (!text) return null;
+                                                                    const labelMatch = text.match(/^([^:]+)[:：]\s*(.+)$/);
+                                                                    if (labelMatch) {
+                                                                        return (
+                                                                            <p key={j} className="photo-analysis-item">
+                                                                                <strong>{labelMatch[1]}:</strong> {labelMatch[2]}
+                                                                            </p>
+                                                                        );
+                                                                    }
+                                                                    return <p key={j} className="photo-analysis-item">{text}</p>;
+                                                                })}
+                                                            </div>
                                                         </div>
                                                     );
                                                 });
