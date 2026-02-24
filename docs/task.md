@@ -205,8 +205,26 @@
 - [x] CDO.md Phase 3 업데이트 — 리텐션(성과 추적) + 소상공인 특화 4개 기능 추가
 - [x] CDO.md 경쟁 분석 — 가제트AI, 워들리 추가, 비교표 5개 서비스로 확장
 
+## 완료된 작업 (2026-02-24) — 사진 SEO 3요소 자동화 + 경쟁 분석 간소화
+
+### 사진 SEO 3요소 자동화 (Phase 2 첫 기능)
+- [x] `openai.js` — `generateImageAlts()` ALT+캡션 동시 생성으로 확장 ({alt, caption} 객체 배열 반환)
+- [x] `PhotoUploader.jsx` — 업로드 시 SEO 파일명 자동 적용 (`generateSeoFilename` import, 키워드-슬롯명-순번.jpg)
+- [x] `EditorPage.jsx` — `imageCaptions` 상태 추가, AI 결과 ALT/캡션 분리 저장, 이미지 아래 캡션 HTML 자동 삽입
+- [x] `ImageSeoGuide.jsx` — `generateSeoFilename` export, `imageCaptions` prop, 파일명/ALT/캡션 3요소 표시+복사
+
+### 경쟁 분석 간소화
+- [x] `openai.js` — 프롬프트에서 개별 blogs 배열 제거, 평균값만 반환하도록 변경
+- [x] `CompetitorAnalysis.jsx` — 개별 블로그 카드 섹션 제거, 평균 가이드만 표시
+- [x] `EditorPage.jsx` — 응답 검증 `result.blogs` → `result?.average` 기준으로 수정
+- [x] `components.css` — 미사용 CSS 정리 (competitor-card, competitor-bar 등 ~120줄 삭제)
+
+### 버그 수정
+- [x] `openai.js` 캐시 체크 — `blogs.length >= 3` → `data?.average` 존재 여부로 변경
+- [x] `EditorPage.jsx` 경쟁 분석 응답 검증 — `result.blogs && Array.isArray(...)` → `result?.average`
+
 ### Phase 2 신규 기능 계획 (구현 예정)
-- [ ] 사진 SEO 최적화 (파일명, alt, 설명 자동 생성)
+- [x] 사진 SEO 최적화 (파일명, alt, 캡션 자동 생성) ← 완료
 - [ ] 사진 → 썸네일 자동 생성 (Canvas + 텍스트 오버레이)
 - [ ] 다음 글 추천 (히스토리 기반 AI 주제 제안)
 - [ ] 사진 묶음 → 여러 글 분리 (다수 사진 그룹핑)
