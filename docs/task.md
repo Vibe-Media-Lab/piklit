@@ -225,7 +225,7 @@
 
 ### Phase 2 신규 기능 계획 (구현 예정)
 - [x] 사진 SEO 최적화 (파일명, alt, 캡션 자동 생성) ← 완료
-- [ ] 사진 → 썸네일 자동 생성 (Canvas + 텍스트 오버레이)
+- [x] 사진 → 썸네일 자동 생성 (Canvas + 텍스트 오버레이) ← 2026-02-25 완료
 - [ ] 다음 글 추천 (히스토리 기반 AI 주제 제안)
 - [ ] 사진 묶음 → 여러 글 분리 (다수 사진 그룹핑)
 
@@ -263,6 +263,44 @@
 - [x] TopBar에 `flex-shrink: 0` 추가, `position: sticky` 제거 (불필요)
 - [x] `.app-content`에 `min-height: 0` 추가 (flex 자식 overflow 정상 처리)
 - [x] `.editor-toolbar` `top: 60px` → `top: 0`, `z-index: 50` → `40` (TopBar와 충돌 방지)
+
+## 완료된 작업 (2026-02-25) — 썸네일 자동 생성 기능 구현
+
+### 신규 기능: 썸네일 자동 생성 (Canvas 기반)
+- [x] `thumbnail.js` 신규 생성 — Canvas 렌더링 엔진 (1200×675 출력, 세이프존 675×675)
+  - 5가지 스타일: 하단 그라데이션(A), 중앙 박스(B), 상단 오렌지 띠(C), 전면 블러(D), 원본(E)
+  - `getImageData` 기반 자동 밝기 감지 → 스타일별 텍스트 색상 자동 전환
+  - 줌(1x~2.5x) + 오프셋(-1~1) 기반 사진 위치·확대 커스텀
+- [x] `fontLoader.js` 신규 생성 — Google Fonts 동적 로더 (중복 방지 Set + document.fonts.load 대기)
+- [x] `ThumbnailPanel.jsx` 신규 생성 — 사이드바 접이식 패널
+  - 사진 선택 그리드, 스타일 드롭다운, 커스텀 폰트 드롭다운 (실제 글씨체로 미리보기)
+  - 메인/서브 텍스트 편집, AI 텍스트 자동 생성, 다운로드, 본문 삽입
+  - 줌 슬라이더 + 드래그 패닝 (마우스/터치)
+  - 200ms 디바운스 Canvas 실시간 렌더링
+- [x] `ThumbnailPanel.css` 신규 생성 — 전용 스타일
+- [x] `openai.js`에 `generateThumbnailText()` 메서드 추가 (10자/15자 트렁케이션)
+- [x] `EditorContext.jsx`에 `photoPreviewUrls` 상태 + setter 추가
+- [x] `EditorPage.jsx`에 photoData.files → Context 동기화 useEffect 추가
+- [x] `AIAnalysisDashboard.jsx`에 ThumbnailPanel 마운트
+
+### 카테고리별 폰트 (Google Fonts, 각 4개)
+- [x] 맛집: Black Han Sans, Jua, Do Hyeon, Gugi
+- [x] 카페: Gowun Batang, Nanum Myeongjo, IBM Plex Sans KR, Noto Serif KR
+- [x] 여행: Gaegu, Nanum Pen Script, Hi Melody, Gamja Flower
+- [x] 일상: Jua, Gowun Dodum, Sunflower, Poor Story
+- [x] 반려동물: Jua, Cute Font, Gamja Flower, Hi Melody
+
+### 모바일 가독성 최적화
+- [x] 폰트 사이즈 상향 — 메인 64~68px, 서브 34~38px (모바일 360px에서 실효 10px 이상 보장)
+- [x] 서브 텍스트 font-weight 500→600, 그림자 blur 6→10px / opacity 0.5→0.7
+
+### 버그 수정
+- [x] 사진 미업로드 슬롯의 null URL이 깨진 이미지로 표시 — files 기반 ObjectURL 동기화로 수정
+- [x] PhotoUploader onUpdate 인라인 콜백 → 무한 루프 위험 — 안정된 setter + useEffect 분리
+
+### 기타
+- [x] `/commit` 스킬 신규 생성 (빌드 확인 → 변경 분석 → 커밋 메시지 제안 → 승인 → 커밋)
+- [x] Phase 2 task.md "사진 → 썸네일 자동 생성" 항목 완료 처리
 
 ## 이전 완료 작업 (2026-02-06)
 

@@ -1,26 +1,26 @@
-# 피클릿 (Piklit) - 세션 워크스루 (2026-02-24)
+# 피클릿 (Piklit) - 세션 워크스루 (2026-02-25)
 
 ## 프로젝트 개요
 네이버 블로그 SEO 최적화 AI 작성기 (React 19 + Vite 7 + TipTap + Google Gemini 2.5 Flash API)
 
 ## 이번 세션 요약
-AI 감지 분석(Humanness Detection) 2단계 시스템 구현 + 키워드 직접 입력 + 사진 분석 파서/톤 수정 + 레이아웃 수정
+썸네일 자동 생성 기능 구현 — Canvas 기반 5스타일 렌더링 + 카테고리별 Google Fonts + 줌/패닝 + AI 텍스트 추출 + 모바일 가독성 최적화
 
 ## 수정 파일
 
 | 파일 | 변경 사항 |
 |------|----------|
-| `src/utils/humanness.js` | **신규** — 로컬 실시간 분석 유틸 (6개 지표, 톤별 가중치 프리셋, 100점 만점) |
-| `src/components/analysis/HumannessPanel.jsx` | **신규** — 접이식 패널 UI (게이지+메트릭바+AI 제안+적용 버튼) |
-| `src/services/openai.js` | `analyzeHumanness()` 메서드 추가, `generateImageAlts()` tone 파라미터 추가 |
-| `src/components/analysis/AIAnalysisDashboard.jsx` | HumannessPanel 삽입 (ReadabilityPanel 아래) |
-| `src/pages/EditorPage.jsx` | 키워드 직접 입력 UI, 사진 분석 파서 4패턴 대응, tone 전달 |
-| `src/styles/tiptap.css` | `.humanness-*` 스타일 ~180줄 추가, 에디터 툴바 z-index 조정 |
-| `src/components/layout/Layout.css` | TopBar flex-shrink 고정, app-main 높이/오버플로우 수정 |
-| `src/pages/LandingPage.jsx` | 랜딩페이지 미세 조정 |
-| `src/styles/landing.css` | 랜딩 스타일 미세 조정 |
-| `docs/task.md` | 2026-02-24 세션 작업 내역 추가 |
+| `src/utils/thumbnail.js` | **신규** — Canvas 렌더링 엔진 (5스타일, 자동 밝기 감지, 줌/오프셋) |
+| `src/utils/fontLoader.js` | **신규** — Google Fonts 동적 로더 (중복 방지, 비동기 대기) |
+| `src/components/analysis/ThumbnailPanel.jsx` | **신규** — 사이드바 썸네일 패널 (사진 선택, 스타일/폰트, 텍스트 편집, 줌/패닝, 다운로드/삽입) |
+| `src/styles/ThumbnailPanel.css` | **신규** — 썸네일 패널 전용 스타일 (커스텀 폰트 드롭다운, 줌 슬라이더, 드래그 커서) |
+| `src/services/openai.js` | `generateThumbnailText()` 메서드 추가 |
+| `src/context/EditorContext.jsx` | `photoPreviewUrls` 상태 + setter 추가 |
+| `src/pages/EditorPage.jsx` | photoData.files → Context 동기화 useEffect 추가 |
+| `src/components/analysis/AIAnalysisDashboard.jsx` | ThumbnailPanel 마운트 |
+| `.claude/skills/commit/SKILL.md` | **신규** — /commit 슬래시 커맨드 |
+| `docs/task.md` | 2026-02-25 세션 작업 내역 추가 |
 
 ## 현재 릴리즈 상태
 - 빌드: 정상
-- 주요 변경: AI 감지 분석 기능 1건, 키워드 직접 입력 1건, 버그 수정 3건 (사진 파서, 톤 불일치, TopBar 레이아웃)
+- 주요 변경: 썸네일 자동 생성 기능 1건, /commit 스킬 1건, 버그 수정 2건 (사진 null URL, 무한 루프 위험)
