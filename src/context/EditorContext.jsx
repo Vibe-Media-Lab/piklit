@@ -13,7 +13,14 @@ const EditorContext = createContext();
 export const useEditor = () => useContext(EditorContext);
 
 export const EditorProvider = ({ children }) => {
-    const [posts, setPosts] = useState([]);
+    // 1. Posts — 동기 초기화 (localStorage는 동기 API이므로 첫 렌더부터 데이터 사용 가능)
+    const [posts, setPosts] = useState(() => {
+        const savedPosts = localStorage.getItem('naver_blog_posts');
+        if (savedPosts) {
+            return migratePosts(JSON.parse(savedPosts));
+        }
+        return [];
+    });
     const [currentPostId, setCurrentPostId] = useState(null);
 
     // Editor State
@@ -30,23 +37,17 @@ export const EditorProvider = ({ children }) => {
     // Session tracking ref (in-memory only, no re-renders)
     const sessionRef = React.useRef(null);
 
-    // 1. Load Posts (with migration)
+    // 1-b. History rebuild (마운트 시 1회)
     useEffect(() => {
-        const savedPosts = localStorage.getItem('naver_blog_posts');
-        if (savedPosts) {
-            const parsed = JSON.parse(savedPosts);
-            const migrated = migratePosts(parsed);
-            setPosts(migrated);
-
-            // Rebuild history from migrated posts on first load
-            const history = loadHistory();
-            updateCategoryStats(history, migrated);
-            migrated.forEach(p => updateKeywordHistory(history, p));
-            updateWeeklyScores(history, migrated);
-            pruneHistory(history);
-            saveHistory(history);
-        }
-    }, []);
+        if (posts.length === 0) return;
+        const history = loadHistory();
+        updateCategoryStats(history, posts);
+        posts.forEach(p => updateKeywordHistory(history, p));
+        updateWeeklyScores(history, posts);
+        pruneHistory(history);
+        saveHistory(history);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // 초기 로드 시 1회만 실행 — posts는 동기 초기화로 이미 존재
 
     // 2. Save Posts
     useEffect(() => {

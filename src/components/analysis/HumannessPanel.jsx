@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useEditor } from '../../context/EditorContext';
+import { Loader2 } from 'lucide-react';
 import { useToast } from '../common/Toast';
 import { analyzeHumanness } from '../../utils/humanness';
 import { AIService } from '../../services/openai';
@@ -103,37 +104,30 @@ const HumannessPanel = () => {
             return;
         }
 
-        // TipTap 문서의 텍스트 오프셋 → 실제 문서 position으로 변환
-        let from = null;
-        let to = null;
+        // 텍스트 오프셋 → ProseMirror position 매핑 테이블 구축
+        // 노드 경계(서식 태그 등)를 정확히 반영
+        const posMap = []; // { textOffset, pmPos }
         let textOffset = 0;
-
         editor.state.doc.descendants((node, nodePos) => {
-            if (from !== null) return false; // 이미 찾았으면 중단
             if (node.isText) {
-                const nodeText = node.text;
-                const startInNode = pos - textOffset;
-                const endInNode = pos + searchText.length - textOffset;
-                if (startInNode >= 0 && startInNode < nodeText.length) {
-                    from = nodePos + startInNode;
-                    // 끝이 같은 노드 안에 있을 수도, 다음 노드까지 이어질 수도 있음
-                    if (endInNode <= nodeText.length) {
-                        to = nodePos + endInNode;
-                    }
+                for (let i = 0; i < node.text.length; i++) {
+                    posMap.push({ textOffset: textOffset + i, pmPos: nodePos + i });
                 }
-                textOffset += nodeText.length;
+                textOffset += node.text.length;
             }
         });
-
-        // from만 찾고 to를 못 찾은 경우 (여러 노드에 걸쳐있는 경우) — 간단한 범위 계산
-        if (from !== null && to === null) {
-            to = from + searchText.length;
+        // 끝 위치용: 마지막 문자 다음 position
+        if (posMap.length > 0) {
+            const last = posMap[posMap.length - 1];
+            posMap.push({ textOffset: last.textOffset + 1, pmPos: last.pmPos + 1 });
         }
 
-        if (from !== null && to !== null) {
+        const fromEntry = posMap.find(e => e.textOffset === pos);
+        const toEntry = posMap.find(e => e.textOffset === pos + searchText.length);
+
+        if (fromEntry && toEntry) {
             editor.chain()
-                .focus()
-                .insertContentAt({ from, to }, revised)
+                .insertContentAt({ from: fromEntry.pmPos, to: toEntry.pmPos }, revised)
                 .run();
             setAppliedIndices(prev => new Set([...prev, index]));
             showToast('수정안이 적용되었습니다.', 'success');
@@ -222,7 +216,7 @@ const HumannessPanel = () => {
                                 onClick={handleAiAnalyze}
                                 disabled={aiLoading}
                             >
-                                {aiLoading ? '분석 중...' : 'AI 휴먼라이징 제안'}
+                                {aiLoading ? <span className="btn-loading-spinner"><Loader2 size={14} className="spin" /> 분석 중...</span> : 'AI 휴먼라이징 제안'}
                             </button>
 
                             {/* AI 제안 결과 */}

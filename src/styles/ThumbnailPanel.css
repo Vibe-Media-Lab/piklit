@@ -29,10 +29,10 @@
     border-top: 1px solid var(--color-border);
 }
 
-/* 미리보기 */
+/* 미리보기 — 1:1 정사각형 */
 .thumbnail-preview {
     width: 100%;
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 1 / 1;
     border-radius: 6px;
     overflow: hidden;
     background: #f5f5f5;
@@ -64,6 +64,33 @@
     text-align: center;
     padding: 20px;
     line-height: 1.5;
+}
+
+/* 섹션 디바이더 */
+.thumbnail-section-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.72rem;
+    color: var(--color-text-sub);
+    margin: 16px 0 10px;
+    letter-spacing: 0.02em;
+}
+
+.thumbnail-section-label::before,
+.thumbnail-section-label::after {
+    content: '';
+    height: 1px;
+    background: var(--color-border);
+}
+
+.thumbnail-section-label::before {
+    width: 4px;
+    flex-shrink: 0;
+}
+
+.thumbnail-section-label::after {
+    flex: 1;
 }
 
 /* 컨트롤 */
@@ -176,7 +203,7 @@
     margin-bottom: 14px;
 }
 
-.thumbnail-text-inputs input {
+.thumbnail-text-inputs input[type="text"] {
     width: 100%;
     padding: 7px 10px;
     border: 1px solid var(--color-border);
@@ -184,7 +211,7 @@
     font-size: 0.82rem;
 }
 
-.thumbnail-text-inputs input:focus {
+.thumbnail-text-inputs input[type="text"]:focus {
     outline: none;
     border-color: var(--color-accent);
 }
@@ -196,10 +223,80 @@
     margin-top: -2px;
 }
 
-/* 버튼 */
+/* 폰트 사이즈 슬라이더 (줌 슬라이더 패턴 재사용) */
+.thumbnail-slider-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 4px 0 2px;
+}
+
+.thumbnail-slider-row label {
+    font-size: 0.75rem;
+    color: var(--color-text-sub);
+    min-width: 56px;
+    flex-shrink: 0;
+}
+
+.thumbnail-slider-row input[type="range"] {
+    flex: 1;
+    height: 4px;
+    accent-color: #FF6B35;
+}
+
+.thumbnail-slider-value {
+    font-size: 0.73rem;
+    color: var(--color-text-sub);
+    min-width: 40px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+/* 폰트 컬러 행 */
+.thumbnail-font-color-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 4px 0 2px;
+}
+
+.thumbnail-font-color-row label {
+    font-size: 0.75rem;
+    color: var(--color-text-sub);
+    min-width: 56px;
+    flex-shrink: 0;
+}
+
+.thumbnail-color-reset {
+    padding: 3px 8px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: white;
+    font-size: 0.72rem;
+    color: var(--color-text-sub);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.thumbnail-color-reset:hover {
+    background: var(--color-bg-hover, #f5f5f5);
+}
+
+/* 글꼴 & 스타일링 섹션 */
+.thumbnail-styling-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+/* 하단 내보내기 버튼 */
 .thumbnail-actions {
     display: flex;
     gap: 8px;
+    padding-top: 14px;
+    border-top: 1px solid var(--color-border);
+    margin-top: 4px;
 }
 
 .thumbnail-actions button {
@@ -221,9 +318,29 @@
     cursor: not-allowed;
 }
 
+/* AI 텍스트 버튼 — 텍스트 섹션 내 오렌지 아웃라인 */
 .thumbnail-btn-ai {
+    width: 100%;
+    padding: 8px 0;
+    border: 1.5px solid #FF6B35;
+    border-radius: 6px;
+    background: white;
+    color: #FF6B35;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    margin-top: 4px;
+}
+
+.thumbnail-btn-ai:hover {
     background: #FF6B35;
     color: white;
+}
+
+.thumbnail-btn-ai:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 .thumbnail-btn-download {
@@ -294,4 +411,69 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+/* 컬러 띠 옵션 (스타일 E) */
+.thumbnail-band-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding: 12px;
+    background: var(--color-bg-hover, #f9f9f9);
+    border-radius: 6px;
+    border: 1px solid var(--color-border);
+}
+
+.thumbnail-band-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.thumbnail-band-row label {
+    font-size: 0.75rem;
+    color: var(--color-text-sub);
+    min-width: 36px;
+    flex-shrink: 0;
+}
+
+.thumbnail-band-row select {
+    flex: 1;
+    padding: 5px 8px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    font-size: 0.82rem;
+    background: white;
+    color: var(--color-text-main);
+}
+
+.thumbnail-band-row input[type="range"] {
+    flex: 1;
+    height: 4px;
+    accent-color: #FF6B35;
+}
+
+/* 컬러 피커 */
+.thumbnail-color-picker {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+}
+
+.thumbnail-color-picker input[type="color"] {
+    width: 32px;
+    height: 28px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    padding: 2px;
+    cursor: pointer;
+    background: none;
+}
+
+.thumbnail-color-picker span {
+    font-size: 0.75rem;
+    color: var(--color-text-sub);
+    font-family: monospace;
 }

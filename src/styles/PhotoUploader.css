@@ -31,11 +31,55 @@
     opacity: 0.8;
 }
 
+/* ── Progress Guide ── */
+.photo-progress-guide {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    margin-bottom: 16px;
+    background: var(--color-surface-hover, #F7F6F3);
+    border: 1px solid var(--color-border, #E3E2E0);
+    border-radius: var(--radius-md, 6px);
+    font-size: var(--font-size-sm, 14px);
+    color: var(--color-text-sub, #787774);
+    transition: all 0.3s ease;
+}
+.photo-progress-guide.sufficient {
+    background: #f0faf0;
+    border-color: #b7e4b7;
+    color: #2d8a2d;
+}
+.photo-progress-text {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+.photo-progress-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--color-border, #E3E2E0);
+    border-radius: 3px;
+    overflow: hidden;
+    min-width: 80px;
+}
+.photo-progress-fill {
+    height: 100%;
+    background: var(--color-text-sub, #787774);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+.photo-progress-guide.sufficient .photo-progress-fill {
+    background: #4caf50;
+}
+
 /* ── Bottom Note ── */
 .photo-upload-note {
     display: flex;
     align-items: center;
-    justify-content: center;
     gap: 6px;
     font-size: 0.85rem;
     color: var(--color-text-sub, #787774);

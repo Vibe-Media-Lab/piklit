@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart3, Search, Loader2, CheckCircle } from 'lucide-react';
+import { BarChart3, Search, Sparkles, CheckCircle } from 'lucide-react';
 
 const CompetitorAnalysis = ({ data, loading, onAnalyze }) => {
     if (!data && !loading) {
@@ -23,9 +23,10 @@ const CompetitorAnalysis = ({ data, loading, onAnalyze }) => {
         return (
             <div className="competitor-loading">
                 <div className="competitor-loading-icon">
-                    <Loader2 size={32} className="spin" />
+                    <Sparkles size={36} />
                 </div>
-                <p className="competitor-loading-text">경쟁 블로그를 분석하고 있습니다...</p>
+                <p className="competitor-loading-text">경쟁 블로그를 분석하고 있어요</p>
+                <p className="competitor-loading-sub">잠시만 기다려주세요.</p>
                 <div className="ai-progress-bar-track" style={{ marginTop: '16px', maxWidth: '280px', marginInline: 'auto' }}>
                     <div className="ai-progress-bar-fill" />
                 </div>
@@ -56,7 +57,7 @@ const CompetitorAnalysis = ({ data, loading, onAnalyze }) => {
                     </div>
                     <div className="competitor-stat">
                         <div className="competitor-stat-value">{average.imageCount || 0}</div>
-                        <div className="competitor-stat-label">평균 이미지</div>
+                        <div className="competitor-stat-label">권장 이미지</div>
                     </div>
                     <div className="competitor-stat">
                         <div className="competitor-stat-value">{average.headingCount || 0}</div>
@@ -65,7 +66,7 @@ const CompetitorAnalysis = ({ data, loading, onAnalyze }) => {
                 </div>
                 <p className="competitor-header-note">
                     <CheckCircle size={14} />
-                    이 분석 결과가 AI 본문 생성에 자동 반영됩니다
+                    글자수·소제목은 검색 기반 분석, 이미지는 카테고리별 권장값
                 </p>
             </div>
         </div>

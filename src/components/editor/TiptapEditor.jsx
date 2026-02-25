@@ -9,6 +9,7 @@ import Highlight from '@tiptap/extension-highlight';
 import { LongSentenceExtension } from '../../extensions/LongSentenceExtension';
 import { SEO_TEMPLATES } from '../../data/templates';
 import { AIService } from '../../services/openai';
+import { humanizeText } from '../../utils/humanness';
 import '../../styles/tiptap.css';
 
 // 톤별 CTA 템플릿
@@ -248,9 +249,12 @@ const TiptapEditor = () => {
                 mode
             );
 
-            const newText = result?.text || '';
-            if (newText) {
-                editor.chain().focus().insertContentAt({ from, to }, newText).run();
+            const rawText = result?.text || '';
+            if (rawText) {
+                // AI 패턴 후처리 적용 (텍스트를 임시 <p>로 감싸서 처리 후 추출)
+                const processed = humanizeText(`<p>${rawText}</p>`, suggestedTone || 'friendly')
+                    .replace(/^<p>/, '').replace(/<\/p>$/, '');
+                editor.chain().focus().insertContentAt({ from, to }, processed).run();
             }
         } catch (error) {
             console.error('[AI 재작성] 실패:', error);
@@ -258,7 +262,7 @@ const TiptapEditor = () => {
         } finally {
             setAiLoading(false);
         }
-    }, [editor, keywords, showToast]);
+    }, [editor, keywords, suggestedTone, showToast]);
 
     // Content Sync Logic: 외부(스트리밍 등)에서 content가 변경되면 에디터에 반영
     // emitUpdate=false로 onUpdate 콜백 미발생 → 무한 루프 방지

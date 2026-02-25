@@ -22,8 +22,20 @@ const ThumbnailPanel = () => {
     const [zoom, setZoom] = useState(1);
     const [offsetX, setOffsetX] = useState(0);
     const [offsetY, setOffsetY] = useState(0);
-    const dragRef = useRef(null); // { startX, startY, startOx, startOy }
+    const dragRef = useRef(null);
     const previewRef = useRef(null);
+
+    // 폰트 사이즈
+    const [mainFontSize, setMainFontSize] = useState(64);
+    const [subFontSize, setSubFontSize] = useState(36);
+
+    // 폰트 컬러
+    const [fontColor, setFontColor] = useState('');
+
+    // 컬러 띠 옵션 (스타일 E)
+    const [bandPosition, setBandPosition] = useState('top');
+    const [bandColor, setBandColor] = useState('#FF6B35');
+    const [bandHeight, setBandHeight] = useState(150);
 
     // 카테고리 & 폰트
     const currentPost = posts.find(p => p.id === currentPostId);
@@ -90,19 +102,21 @@ const ThumbnailPanel = () => {
         if (debounceRef.current) clearTimeout(debounceRef.current);
         debounceRef.current = setTimeout(async () => {
             try {
-                if (style !== 'E') {
+                if (style !== 'G') {
                     await loadGoogleFont(fontFamily);
                 }
                 const dataUrl = await generateThumbnail(selectedPhoto, {
                     style, mainText, subText, fontFamily,
                     zoom, offsetX, offsetY,
+                    mainFontSize, subFontSize, fontColor,
+                    bandPosition, bandColor, bandHeight,
                 });
                 setPreviewUrl(dataUrl);
             } catch {
                 setPreviewUrl(null);
             }
         }, 200);
-    }, [selectedPhoto, style, mainText, subText, fontFamily, zoom, offsetX, offsetY]);
+    }, [selectedPhoto, style, mainText, subText, fontFamily, zoom, offsetX, offsetY, mainFontSize, subFontSize, fontColor, bandPosition, bandColor, bandHeight]);
 
     useEffect(() => {
         if (isOpen) renderPreview();
@@ -113,7 +127,7 @@ const ThumbnailPanel = () => {
     const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
 
     const handlePointerDown = (e) => {
-        if (zoom <= 1) return; // 줌 1x면 패닝 불필요
+        if (zoom <= 1) return;
         e.preventDefault();
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
@@ -127,7 +141,6 @@ const ThumbnailPanel = () => {
         const rect = previewRef.current?.getBoundingClientRect();
         if (!rect) return;
 
-        // 드래그 이동 픽셀 → -1~1 범위 변환 (미리보기 크기 기준)
         const dx = (clientX - dragRef.current.startX) / (rect.width / 2);
         const dy = (clientY - dragRef.current.startY) / (rect.height / 2);
         setOffsetX(clamp(dragRef.current.startOx - dx, -1, 1));
@@ -187,6 +200,7 @@ const ThumbnailPanel = () => {
     };
 
     const hasPhotos = photoPreviewUrls.length > 0;
+    const showTextControls = style !== 'G';
 
     return (
         <div className="thumbnail-panel">
@@ -208,7 +222,8 @@ const ThumbnailPanel = () => {
                         </div>
                     ) : (
                         <>
-                            {/* 사진 선택 */}
+                            {/* ── 사진 섹션 ── */}
+                            <div className="thumbnail-section-label">사진</div>
                             <div className="thumbnail-photo-grid">
                                 {photoPreviewUrls.map((url, i) => (
                                     <div
@@ -220,8 +235,6 @@ const ThumbnailPanel = () => {
                                     </div>
                                 ))}
                             </div>
-
-                            {/* 미리보기 (드래그 패닝 가능) */}
                             <div
                                 ref={previewRef}
                                 className={`thumbnail-preview ${zoom > 1 ? 'thumbnail-preview-draggable' : ''}`}
@@ -234,8 +247,6 @@ const ThumbnailPanel = () => {
                                     <div className="thumbnail-preview-empty">미리보기 생성 중...</div>
                                 )}
                             </div>
-
-                            {/* 줌 슬라이더 */}
                             <div className="thumbnail-zoom-row">
                                 <label>확대</label>
                                 <input
@@ -249,7 +260,8 @@ const ThumbnailPanel = () => {
                                 <span className="thumbnail-zoom-value">{zoom.toFixed(1)}x</span>
                             </div>
 
-                            {/* 컨트롤 */}
+                            {/* ── 스타일 섹션 ── */}
+                            <div className="thumbnail-section-label">스타일</div>
                             <div className="thumbnail-controls">
                                 <div className="thumbnail-control-row">
                                     <label>스타일</label>
@@ -259,70 +271,156 @@ const ThumbnailPanel = () => {
                                         ))}
                                     </select>
                                 </div>
-                                {style !== 'E' && (
-                                    <div className="thumbnail-control-row">
-                                        <label>폰트</label>
-                                        <div className="thumbnail-font-dropdown" ref={fontDropdownRef}>
-                                            <button
-                                                className="thumbnail-font-selected"
-                                                onClick={() => setFontDropdownOpen(prev => !prev)}
-                                                style={{ fontFamily: `"${fontFamily}", Pretendard, sans-serif` }}
-                                            >
-                                                <span>{fontFamily}</span>
-                                                <span className="thumbnail-font-arrow">{fontDropdownOpen ? '▲' : '▼'}</span>
-                                            </button>
-                                            {fontDropdownOpen && (
-                                                <ul className="thumbnail-font-list">
-                                                    {fontMap.fonts.map(f => (
-                                                        <li
-                                                            key={f}
-                                                            className={f === fontFamily ? 'active' : ''}
-                                                            style={{ fontFamily: `"${f}", Pretendard, sans-serif` }}
-                                                            onClick={() => { setFontFamily(f); setFontDropdownOpen(false); }}
-                                                        >
-                                                            {f}
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            )}
+                            </div>
+                            {style === 'E' && (
+                                <div className="thumbnail-band-options">
+                                    <div className="thumbnail-band-row">
+                                        <label>위치</label>
+                                        <select value={bandPosition} onChange={e => setBandPosition(e.target.value)}>
+                                            <option value="top">상단</option>
+                                            <option value="center">중앙</option>
+                                            <option value="bottom">하단</option>
+                                        </select>
+                                    </div>
+                                    <div className="thumbnail-band-row">
+                                        <label>색상</label>
+                                        <div className="thumbnail-color-picker">
+                                            <input
+                                                type="color"
+                                                value={bandColor}
+                                                onChange={e => setBandColor(e.target.value)}
+                                            />
+                                            <span>{bandColor}</span>
                                         </div>
                                     </div>
-                                )}
-                            </div>
-
-                            {/* 텍스트 입력 */}
-                            {style !== 'E' && (
-                                <div className="thumbnail-text-inputs">
-                                    <input
-                                        type="text"
-                                        value={mainText}
-                                        onChange={e => setMainText(e.target.value)}
-                                        placeholder="메인 텍스트 (10자 이내)"
-                                        maxLength={12}
-                                    />
-                                    <div className="thumbnail-char-hint">{mainText.length}/10</div>
-                                    <input
-                                        type="text"
-                                        value={subText}
-                                        onChange={e => setSubText(e.target.value)}
-                                        placeholder="서브 텍스트 (15자 이내)"
-                                        maxLength={17}
-                                    />
-                                    <div className="thumbnail-char-hint">{subText.length}/15</div>
+                                    <div className="thumbnail-band-row">
+                                        <label>두께</label>
+                                        <input
+                                            type="range"
+                                            min="80"
+                                            max="400"
+                                            step="10"
+                                            value={bandHeight}
+                                            onChange={e => setBandHeight(Number(e.target.value))}
+                                        />
+                                        <span className="thumbnail-slider-value">{bandHeight}px</span>
+                                    </div>
                                 </div>
                             )}
 
-                            {/* 버튼 */}
+                            {/* ── 텍스트 섹션 ── */}
+                            {showTextControls && (
+                                <>
+                                    <div className="thumbnail-section-label">텍스트</div>
+                                    <div className="thumbnail-text-inputs">
+                                        <input
+                                            type="text"
+                                            value={mainText}
+                                            onChange={e => setMainText(e.target.value)}
+                                            placeholder="메인 텍스트 (10자 이내)"
+                                            maxLength={12}
+                                        />
+                                        <div className="thumbnail-char-hint">{mainText.length}/10</div>
+                                        <input
+                                            type="text"
+                                            value={subText}
+                                            onChange={e => setSubText(e.target.value)}
+                                            placeholder="서브 텍스트 (15자 이내)"
+                                            maxLength={17}
+                                        />
+                                        <div className="thumbnail-char-hint">{subText.length}/15</div>
+                                        <button
+                                            className="thumbnail-btn-ai"
+                                            onClick={handleGenerateText}
+                                            disabled={isGeneratingText || !title}
+                                        >
+                                            {isGeneratingText ? 'AI 생성 중...' : '✦ AI 텍스트 생성'}
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+
+                            {/* ── 글꼴 & 스타일링 섹션 ── */}
+                            {showTextControls && (
+                                <>
+                                    <div className="thumbnail-section-label">글꼴 &amp; 스타일링</div>
+                                    <div className="thumbnail-styling-section">
+                                        <div className="thumbnail-control-row">
+                                            <label>폰트</label>
+                                            <div className="thumbnail-font-dropdown" ref={fontDropdownRef}>
+                                                <button
+                                                    className="thumbnail-font-selected"
+                                                    onClick={() => setFontDropdownOpen(prev => !prev)}
+                                                    style={{ fontFamily: `"${fontFamily}", Pretendard, sans-serif` }}
+                                                >
+                                                    <span>{fontFamily}</span>
+                                                    <span className="thumbnail-font-arrow">{fontDropdownOpen ? '▲' : '▼'}</span>
+                                                </button>
+                                                {fontDropdownOpen && (
+                                                    <ul className="thumbnail-font-list">
+                                                        {fontMap.fonts.map(f => (
+                                                            <li
+                                                                key={f}
+                                                                className={f === fontFamily ? 'active' : ''}
+                                                                style={{ fontFamily: `"${f}", Pretendard, sans-serif` }}
+                                                                onClick={() => { setFontFamily(f); setFontDropdownOpen(false); }}
+                                                            >
+                                                                {f}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="thumbnail-slider-row">
+                                            <label>메인 크기</label>
+                                            <input
+                                                type="range"
+                                                min="36"
+                                                max="96"
+                                                step="2"
+                                                value={mainFontSize}
+                                                onChange={e => setMainFontSize(Number(e.target.value))}
+                                            />
+                                            <span className="thumbnail-slider-value">{mainFontSize}px</span>
+                                        </div>
+                                        <div className="thumbnail-slider-row">
+                                            <label>서브 크기</label>
+                                            <input
+                                                type="range"
+                                                min="20"
+                                                max="56"
+                                                step="2"
+                                                value={subFontSize}
+                                                onChange={e => setSubFontSize(Number(e.target.value))}
+                                            />
+                                            <span className="thumbnail-slider-value">{subFontSize}px</span>
+                                        </div>
+                                        <div className="thumbnail-font-color-row">
+                                            <label>색상</label>
+                                            <div className="thumbnail-color-picker">
+                                                <input
+                                                    type="color"
+                                                    value={fontColor || '#ffffff'}
+                                                    onChange={e => setFontColor(e.target.value)}
+                                                />
+                                                <span>{fontColor || '자동'}</span>
+                                            </div>
+                                            {fontColor && (
+                                                <button
+                                                    className="thumbnail-color-reset"
+                                                    onClick={() => setFontColor('')}
+                                                >
+                                                    초기화
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+
+                            {/* 하단 내보내기 버튼 */}
                             <div className="thumbnail-actions">
-                                {style !== 'E' && (
-                                    <button
-                                        className="thumbnail-btn-ai"
-                                        onClick={handleGenerateText}
-                                        disabled={isGeneratingText || !title}
-                                    >
-                                        {isGeneratingText ? 'AI 생성 중...' : 'AI 텍스트'}
-                                    </button>
-                                )}
                                 <button
                                     className="thumbnail-btn-download"
                                     onClick={handleDownload}

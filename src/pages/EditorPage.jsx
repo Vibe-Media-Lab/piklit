@@ -7,6 +7,7 @@ import { useToast } from '../components/common/Toast';
 import { getTemplateById } from '../data/templates';
 import { AIService } from '../services/openai';
 import { formatParagraphs } from '../utils/analysis';
+import { humanizeText } from '../utils/humanness';
 import PhotoUploader from '../components/editor/PhotoUploader';
 import ImageSeoGuide from '../components/editor/ImageSeoGuide';
 import ImageGeneratorPanel from '../components/editor/ImageGeneratorPanel';
@@ -357,7 +358,7 @@ const EditorPage = () => {
         setIsAnalyzingCompetitors(true);
         recordAiAction('competitorAnalysis');
         try {
-            const result = await AIService.analyzeCompetitors(mainKeyword);
+            const result = await AIService.analyzeCompetitors(mainKeyword, selectedCategory?.id || 'daily');
             if (result?.average) {
                 setCompetitorData(result);
                 // 경쟁 분석 평균 글자수 기반 글자수 자동 선택
@@ -608,6 +609,9 @@ const EditorPage = () => {
         // 3. 후처리: 긴 문단 강제 분리 (AI가 규칙 안 따라도 보장)
         injectedHtml = formatParagraphs(injectedHtml);
 
+        // 3.5. AI 패턴 후처리: 금지 표현 자동 교정 + 종결어미 변환
+        injectedHtml = humanizeText(injectedHtml, selectedTone || 'friendly');
+
         // 4. 이모지 전용 <p> 태그를 다음 문단과 병합 (이모지가 별도 줄로 분리되는 현상 방지)
         injectedHtml = injectedHtml.replace(/<p>\s*([\u{1F300}-\u{1FAD6}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{200D}\u{20E3}\u{E0020}-\u{E007F}\s]{1,6})\s*<\/p>\s*<p>/gu, '<p>$1 ');
 
@@ -716,6 +720,10 @@ const EditorPage = () => {
                 await streamContentToEditor(htmlContent);
                 // 메인 키워드 업데이트
                 updateMainKeyword(mainKeyword);
+                // 생성 완료 요약 피드백
+                const photoCount = Object.values(photoData.metadata).filter(v => v > 0).length;
+                const charCount = htmlContent.replace(/<[^>]*>/g, '').length;
+                showToast(`글 생성 완료 — 키워드 ${keywordStrings.length}개 반영, ${charCount.toLocaleString()}자, 이미지 ${photoCount}장`, 'success');
             } else {
                 showToast('AI 응답 형식이 올바르지 않습니다. 다시 시도해주세요.', 'error');
             }
@@ -878,19 +886,13 @@ const EditorPage = () => {
     if (editorMode === 'ai' && !isGenerating) {
         return (
             <div>
-                <div style={{
-                    flex: 1,
-                    background: 'var(--color-surface-hover)',
-                    padding: '40px 20px',
-                    minHeight: 'calc(100vh - 52px)',
-                    overflowY: 'auto'
-                }}>
-                    <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+                <div className="wizard-page">
+                    <div className="wizard-page-inner">
                         {/* STEP 1: 주제 설정 + 키워드 분석 + 세부 설정 */}
                         {aiStep === 1 && (
                             <div className="wizard-card-wrap">
-                                <h1 style={{ marginBottom: '8px' }}>AI 본문 자동 작성</h1>
-                                <p style={{ color: 'var(--color-text-sub)', marginBottom: '32px' }}>
+                                <h1 className="wizard-page-title">AI 본문 자동 작성</h1>
+                                <p className="wizard-page-subtitle">
                                     {mainKeyword
                                         ? <>주제: <strong>{mainKeyword}</strong></>
                                         : '주제를 입력하고 키워드를 분석해보세요'
@@ -899,52 +901,32 @@ const EditorPage = () => {
 
                                 <StepIndicator />
 
-                                <h2 style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <Search size={20} style={{ color: 'var(--color-brand)' }} /> Step 1: 주제 설정 + 키워드 분석
+                                <h2 className="wizard-step-heading">
+                                    <Search size={20} /> Step 1: 주제 설정 + 키워드 분석
                                 </h2>
-                                <p style={{ color: 'var(--color-text-sub)', marginBottom: '32px' }}>
+                                <p className="wizard-step-desc">
                                     카테고리와 주제를 선택하고, AI가 SEO 최적화 키워드를 제안합니다.
                                 </p>
 
                                 {/* 카테고리 그리드 */}
                                 {isNewPost && (
-                                    <div style={{ marginBottom: '28px' }}>
+                                    <div className="wizard-form-group">
                                         <label className="wizard-label">
-                                            <FolderOpen size={16} /> 카테고리 선택 <span style={{ color: 'red' }}>*</span>
+                                            <FolderOpen size={16} /> 카테고리 선택 <span className="wizard-required">*</span>
                                         </label>
-                                        <div style={{
-                                            display: 'grid',
-                                            gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
-                                            gap: '10px'
-                                        }}>
+                                        <div className="wizard-category-grid">
                                             {CATEGORIES.map(cat => (
                                                 <div
                                                     key={cat.id}
+                                                    className={`wizard-category-card ${selectedCategory?.id === cat.id ? 'selected' : ''}`}
                                                     onClick={() => {
                                                         setSelectedCategory(cat);
                                                         setToneState(getToneForCategory(cat.id));
                                                         updatePostMeta(id, { categoryId: cat.id, tone: getToneForCategory(cat.id) });
                                                     }}
-                                                    style={{
-                                                        padding: '14px 12px',
-                                                        borderRadius: 'var(--radius-lg)',
-                                                        border: selectedCategory?.id === cat.id
-                                                            ? '2px solid var(--color-brand)'
-                                                            : '1px solid var(--color-border)',
-                                                        background: selectedCategory?.id === cat.id
-                                                            ? 'var(--color-brand-light)'
-                                                            : 'white',
-                                                        cursor: 'pointer',
-                                                        textAlign: 'center',
-                                                        transition: 'all 0.2s',
-                                                        fontSize: 'var(--font-size-sm)'
-                                                    }}
                                                 >
-                                                    <span style={{ fontSize: '1.3rem', display: 'block', marginBottom: '4px' }}>{cat.icon}</span>
-                                                    <span style={{
-                                                        fontWeight: selectedCategory?.id === cat.id ? 'bold' : 'normal',
-                                                        color: selectedCategory?.id === cat.id ? 'var(--color-brand)' : 'var(--color-text-main)'
-                                                    }}>
+                                                    <span className="wizard-category-card-icon">{cat.icon}</span>
+                                                    <span className="wizard-category-card-label">
                                                         {cat.label}
                                                     </span>
                                                 </div>
@@ -955,9 +937,9 @@ const EditorPage = () => {
 
                                 {/* 주제 입력 */}
                                 {isNewPost && (
-                                    <div style={{ marginBottom: '28px' }}>
+                                    <div className="wizard-form-group">
                                         <label className="wizard-label">
-                                            <Edit3 size={16} /> 주제 입력 <span style={{ color: 'red' }}>*</span>
+                                            <Edit3 size={16} /> 주제 입력 <span className="wizard-required">*</span>
                                         </label>
                                         <input
                                             type="text"
@@ -976,9 +958,9 @@ const EditorPage = () => {
 
                                 {/* 메인 키워드 (기존 글 재편집 시 표시) */}
                                 {!isNewPost && (
-                                    <div style={{ marginBottom: '32px' }}>
+                                    <div className="wizard-form-group">
                                         <label className="wizard-label">
-                                            <Edit3 size={16} /> 메인 키워드 <span style={{ color: 'red' }}>*</span>
+                                            <Edit3 size={16} /> 메인 키워드 <span className="wizard-required">*</span>
                                         </label>
                                         <input
                                             type="text"
@@ -991,50 +973,33 @@ const EditorPage = () => {
                                 )}
 
                                 {/* 선택된 키워드 */}
-                                <div style={{ marginBottom: '24px' }}>
+                                <div className="wizard-selected-keywords">
                                     <label className="wizard-label">
                                         <CheckCircle size={16} /> 선택한 서브 키워드 ({selectedKeywords.length}/5)
                                         {selectedKeywords.length < 3 && (
-                                            <span style={{ color: '#EF4444', fontWeight: 'normal', marginLeft: '8px', fontSize: '0.85rem' }}>
-                                                최소 3개 선택 필요
-                                            </span>
+                                            <span className="wizard-min-warning">최소 3개 선택 필요</span>
                                         )}
                                     </label>
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', minHeight: '40px' }}>
+                                    <div className="wizard-chip-list">
                                         {selectedKeywords.length === 0 ? (
-                                            <span style={{ color: 'var(--color-text-sub)', fontSize: 'var(--font-size-sm)' }}>
-                                                아래 제안된 키워드를 클릭하여 선택하세요
-                                            </span>
+                                            <span className="wizard-chip-placeholder">아래 제안된 키워드를 클릭하여 선택하세요</span>
                                         ) : (
                                             selectedKeywords.map((kwObj, i) => (
                                                 <span
                                                     key={i}
                                                     onClick={() => handleRemoveSelectedKeyword(kwObj)}
-                                                    style={{
-                                                        padding: '8px 16px',
-                                                        background: kwObj.isCustom ? '#EEF2FF' : kwObj.isSeason ? '#FFEDD5' : 'var(--color-brand-light)',
-                                                        color: kwObj.isCustom ? '#4338CA' : kwObj.isSeason ? '#C2410C' : '#E8590C',
-                                                        border: kwObj.isCustom ? '1px solid #A5B4FC' : kwObj.isSeason ? '1px solid #FDBA74' : '1px solid #FFCAB0',
-                                                        borderRadius: '20px',
-                                                        fontSize: 'var(--font-size-sm)',
-                                                        fontWeight: '600',
-                                                        cursor: 'pointer',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        gap: '6px',
-                                                        transition: 'all 0.15s'
-                                                    }}
+                                                    className={`wizard-keyword-chip ${kwObj.isCustom ? 'custom' : kwObj.isSeason ? 'season' : ''}`}
                                                 >
                                                     {kwObj.isSeason && <Flame size={13} />}{kwObj.isCustom && <Edit3 size={13} />}{getKw(kwObj)}
                                                     {difficultyChecked && <DifficultyBadge difficulty={getDifficulty(kwObj)} />}
-                                                    <span style={{ fontSize: '0.8rem', opacity: 0.5 }}>×</span>
+                                                    <span className="chip-remove">×</span>
                                                 </span>
                                             ))
                                         )}
                                     </div>
 
                                     {/* 키워드 직접 입력 */}
-                                    <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                                    <div className="wizard-custom-input-row">
                                         <input
                                             type="text"
                                             value={customKeywordInput}
@@ -1042,37 +1007,12 @@ const EditorPage = () => {
                                             onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustomKeyword(); } }}
                                             placeholder="키워드 직접 입력"
                                             disabled={selectedKeywords.length >= 5}
-                                            style={{
-                                                flex: 1,
-                                                padding: '8px 14px',
-                                                border: '1px solid var(--color-border)',
-                                                borderRadius: '20px',
-                                                fontSize: 'var(--font-size-sm)',
-                                                color: 'var(--color-text-main)',
-                                                background: 'white',
-                                                outline: 'none',
-                                                transition: 'border-color 0.2s',
-                                            }}
-                                            onFocus={e => { e.target.style.borderColor = 'var(--color-brand)'; }}
-                                            onBlur={e => { e.target.style.borderColor = 'var(--color-border)'; }}
+                                            className="wizard-custom-input"
                                         />
                                         <button
                                             onClick={handleAddCustomKeyword}
                                             disabled={!customKeywordInput.trim() || selectedKeywords.length >= 5}
-                                            style={{
-                                                padding: '8px 14px',
-                                                background: customKeywordInput.trim() && selectedKeywords.length < 5 ? 'var(--color-brand)' : 'var(--color-border)',
-                                                color: 'white',
-                                                border: 'none',
-                                                borderRadius: '20px',
-                                                cursor: customKeywordInput.trim() && selectedKeywords.length < 5 ? 'pointer' : 'not-allowed',
-                                                fontSize: 'var(--font-size-sm)',
-                                                fontWeight: '600',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '4px',
-                                                transition: 'opacity 0.2s',
-                                            }}
+                                            className="wizard-custom-add-btn"
                                         >
                                             <Plus size={14} /> 추가
                                         </button>
@@ -1080,7 +1020,7 @@ const EditorPage = () => {
                                 </div>
 
                                 {/* AI 키워드 분석 버튼 */}
-                                <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
+                                <div className="wizard-keyword-actions">
                                     <button
                                         onClick={handleAnalyzeKeywords}
                                         disabled={isAnalyzingKeywords}
@@ -1108,10 +1048,7 @@ const EditorPage = () => {
                                         </button>
                                     )}
                                     {difficultyChecked && (
-                                        <span style={{
-                                            display: 'flex', alignItems: 'center', gap: '6px',
-                                            fontSize: '0.9rem', color: '#FF6B35'
-                                        }}>
+                                        <span className="wizard-difficulty-done">
                                             <CheckCircle size={16} /> 강도 확인 완료
                                         </span>
                                     )}
@@ -1119,7 +1056,7 @@ const EditorPage = () => {
 
                                 {/* 키워드 분석 프로그레스 */}
                                 {isAnalyzingKeywords && (
-                                    <div className="ai-progress-card" style={{ marginBottom: '20px' }}>
+                                    <div className="ai-progress-card wizard-progress-mb">
                                         <div className="ai-progress-header">
                                             <Loader2 size={16} className="spin" />
                                             네이버 검색 데이터를 기반으로 키워드를 분석하고 있습니다
@@ -1147,39 +1084,16 @@ const EditorPage = () => {
 
                                 {/* 제안된 키워드 목록 */}
                                 {suggestedKeywords.length > 0 && (
-                                    <div style={{ marginBottom: '24px' }}>
+                                    <div className="wizard-suggested-section">
                                         <label className="wizard-label">
                                             <Tag size={16} /> AI 제안 키워드 (클릭하여 선택)
                                         </label>
-                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                                        <div className="wizard-chip-list">
                                             {suggestedKeywords.map((kwObj, i) => (
                                                 <span
                                                     key={i}
                                                     onClick={() => handleKeywordToggle(kwObj)}
-                                                    style={{
-                                                        padding: '8px 16px',
-                                                        background: 'var(--color-surface-hover)',
-                                                        color: 'var(--color-text-main)',
-                                                        borderRadius: '20px',
-                                                        fontSize: 'var(--font-size-sm)',
-                                                        cursor: selectedKeywords.length >= 5 ? 'not-allowed' : 'pointer',
-                                                        border: '1px solid transparent',
-                                                        transition: 'all 0.2s',
-                                                        opacity: selectedKeywords.length >= 5 ? 0.5 : 1,
-                                                        display: 'inline-flex',
-                                                        alignItems: 'center',
-                                                        gap: '4px'
-                                                    }}
-                                                    onMouseEnter={e => {
-                                                        if (selectedKeywords.length < 5) {
-                                                            e.target.style.background = 'var(--color-brand-light)';
-                                                            e.target.style.borderColor = 'var(--color-brand)';
-                                                        }
-                                                    }}
-                                                    onMouseLeave={e => {
-                                                        e.target.style.background = 'var(--color-surface-hover)';
-                                                        e.target.style.borderColor = 'transparent';
-                                                    }}
+                                                    className={`wizard-suggested-chip ${selectedKeywords.length >= 5 ? 'disabled' : ''}`}
                                                 >
                                                     + {getKw(kwObj)}
                                                     {difficultyChecked && <DifficultyBadge difficulty={getDifficulty(kwObj)} />}
@@ -1190,16 +1104,11 @@ const EditorPage = () => {
                                 )}
 
                                 {/* 시즌 트렌드 키워드 섹션 */}
-                                <div style={{ marginBottom: '24px', marginTop: '8px' }}>
+                                <div className="wizard-season-section">
                                     <button
                                         onClick={handleAnalyzeSeasonKeywords}
                                         disabled={isAnalyzingSeason || !mainKeyword.trim()}
-                                        className="wizard-btn-primary"
-                                        style={{
-                                            width: '100%',
-                                            opacity: isAnalyzingSeason ? 0.7 : 1,
-                                            justifyContent: 'center'
-                                        }}
+                                        className="wizard-btn-primary wizard-season-btn-full"
                                     >
                                         {isAnalyzingSeason
                                             ? <><Loader2 size={16} className="spin" /> 시즌 트렌드를 분석하고 있습니다...</>
@@ -1237,47 +1146,25 @@ const EditorPage = () => {
                                     )}
 
                                     {seasonKeywords.length > 0 && !isAnalyzingSeason && (
-                                        <div style={{
-                                            marginTop: '12px',
-                                            padding: '20px',
-                                            border: '1px solid #FB923C',
-                                            borderRadius: 'var(--radius-lg)',
-                                            background: '#FFFBF5'
-                                        }}>
-                                            <label className="wizard-label" style={{ color: '#C2410C' }}>
+                                        <div className="wizard-season-panel">
+                                            <label className="wizard-label">
                                                 <Flame size={16} /> 시즌 트렌드 키워드
                                             </label>
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                            <div className="wizard-season-list">
                                                 {seasonKeywords.map((sk, i) => (
-                                                    <div key={i} style={{
-                                                        display: 'flex', alignItems: 'center', gap: '12px',
-                                                        padding: '12px 16px',
-                                                        background: 'white',
-                                                        borderRadius: '10px',
-                                                        border: '1px solid #FED7AA'
-                                                    }}>
-                                                        <div style={{ flex: 1 }}>
-                                                            <div style={{ fontWeight: '600', fontSize: 'var(--font-size-sm)', color: '#C2410C', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                    <div key={i} className="wizard-season-card">
+                                                        <div className="wizard-season-card-body">
+                                                            <div className="wizard-season-card-title">
                                                                 <Flame size={14} /> {sk.keyword}
                                                             </div>
-                                                            <div style={{ fontSize: '0.8rem', color: 'var(--color-text-sub)', marginTop: '4px' }}>
+                                                            <div className="wizard-season-card-meta">
                                                                 {sk.reason} · {sk.timing}
                                                             </div>
                                                         </div>
                                                         <button
                                                             onClick={() => handleAddSeasonKeyword(sk)}
                                                             disabled={selectedKeywords.length >= 5}
-                                                            style={{
-                                                                padding: '6px 14px',
-                                                                background: selectedKeywords.length >= 5 ? 'var(--color-border)' : 'var(--color-brand)',
-                                                                color: 'white',
-                                                                border: 'none',
-                                                                borderRadius: 'var(--radius-md)',
-                                                                cursor: selectedKeywords.length >= 5 ? 'not-allowed' : 'pointer',
-                                                                fontSize: '0.85rem',
-                                                                fontWeight: '500',
-                                                                flexShrink: 0
-                                                            }}
+                                                            className="wizard-season-add-btn"
                                                         >
                                                             + 선택
                                                         </button>
@@ -1289,20 +1176,10 @@ const EditorPage = () => {
                                 </div>
 
                                 {/* 진행 상태 */}
-                                <div style={{
-                                    padding: '16px',
-                                    background: selectedKeywords.length >= 3 ? '#FFF3ED' : '#FEF3C7',
-                                    borderRadius: '12px',
-                                    marginTop: '24px',
-                                    border: selectedKeywords.length >= 3 ? '1px solid #FFCAB0' : '1px solid #FCD34D'
-                                }}>
-                                    <p style={{
-                                        margin: 0,
-                                        fontSize: '0.9rem',
-                                        color: selectedKeywords.length >= 3 ? '#D4520E' : '#92400E'
-                                    }}>
+                                <div className={`wizard-status-bar ${selectedKeywords.length >= 3 ? 'ready' : 'pending'}`}>
+                                    <p>
                                         {selectedKeywords.length >= 3
-                                            ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                            ? <span className="wizard-status-inline">
                                                 <CheckCircle size={16} /> {selectedKeywords.length}개의 서브 키워드가 선택되었습니다. 다음 단계로 진행할 수 있습니다.
                                               </span>
                                             : `${3 - selectedKeywords.length}개의 서브 키워드를 더 선택해주세요.`
@@ -1311,7 +1188,7 @@ const EditorPage = () => {
                                 </div>
 
                                 {/* 경쟁 블로그 분석 */}
-                                <div style={{ marginTop: '32px' }}>
+                                <div className="wizard-section-mt">
                                     <CompetitorAnalysis
                                         data={competitorData}
                                         loading={isAnalyzingCompetitors}
@@ -1320,55 +1197,31 @@ const EditorPage = () => {
                                 </div>
 
                                 {/* 세부 설정 (톤앤무드 + 글자수) — 접힌 상태 */}
-                                <div style={{ marginTop: '32px' }}>
+                                <div className="wizard-section-mt">
                                     <button
                                         onClick={() => setShowSettings(!showSettings)}
-                                        style={{
-                                            width: '100%',
-                                            padding: '14px 20px',
-                                            background: 'var(--color-surface-hover)',
-                                            border: '1px solid var(--color-border)',
-                                            borderRadius: 'var(--radius-lg)',
-                                            cursor: 'pointer',
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            alignItems: 'center',
-                                            fontSize: '0.95rem',
-                                            fontWeight: '600',
-                                            color: 'var(--color-text-main)'
-                                        }}
+                                        className="wizard-settings-toggle"
                                     >
-                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                                        <span className="wizard-settings-toggle-label">
                                             <Settings size={16} /> 세부 설정 (톤앤무드 · 글자수)
                                         </span>
-                                        <span style={{ transform: showSettings ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s', display: 'flex' }}>
+                                        <span className={`wizard-settings-chevron ${showSettings ? 'open' : ''}`}>
                                             <ChevronDown size={16} />
                                         </span>
                                     </button>
 
                                     {showSettings && (
-                                        <div style={{
-                                            padding: '24px',
-                                            border: '1px solid var(--color-border)',
-                                            borderTop: 'none',
-                                            borderRadius: '0 0 var(--radius-lg) var(--radius-lg)',
-                                            background: 'white'
-                                        }}>
+                                        <div className="wizard-settings-panel">
                                             {/* 글자수 선택 */}
-                                            <div style={{ marginBottom: '24px' }}>
+                                            <div className="wizard-section-mb">
                                                 <label className="wizard-label">
                                                     <Edit3 size={16} /> 글자수 선택
                                                 </label>
-                                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+                                                <div className="wizard-length-grid">
                                                     {LENGTH_OPTIONS.map(l => (
                                                         <button
                                                             key={l}
-                                                            style={{
-                                                                padding: '14px 8px', borderRadius: 'var(--radius-lg)',
-                                                                border: selectedLength === l ? '2px solid var(--color-brand)' : '1px solid var(--color-border)',
-                                                                background: selectedLength === l ? 'var(--color-brand-light)' : 'white',
-                                                                cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: selectedLength === l ? '600' : 'normal'
-                                                            }}
+                                                            className={`wizard-length-option ${selectedLength === l ? 'selected' : ''}`}
                                                             onClick={() => setSelectedLength(l)}
                                                         >
                                                             {l}
@@ -1376,15 +1229,8 @@ const EditorPage = () => {
                                                     ))}
                                                 </div>
                                                 {competitorData?.average?.charCount && (
-                                                    <p style={{
-                                                        marginTop: '10px',
-                                                        fontSize: '0.85rem',
-                                                        color: '#FF6B35',
-                                                        background: '#FFF3ED',
-                                                        padding: '8px 12px',
-                                                        borderRadius: '8px'
-                                                    }}>
-                                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                                    <p className="wizard-length-recommend">
+                                                        <span>
                                                             <BarChart3 size={14} /> 경쟁 블로그 평균 {competitorData.average.charCount.toLocaleString()}자 기준으로 <strong>{recommendLength(competitorData.average.charCount)}</strong>를 추천합니다
                                                         </span>
                                                     </p>
@@ -1396,20 +1242,15 @@ const EditorPage = () => {
                                                 <label className="wizard-label">
                                                     <Sparkles size={16} /> 톤앤무드 선택
                                                 </label>
-                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                                <div className="wizard-tone-grid">
                                                     {TONES.map(t => (
                                                         <div
                                                             key={t.id}
-                                                            style={{
-                                                                padding: '16px', borderRadius: 'var(--radius-lg)',
-                                                                border: selectedTone === t.id ? '2px solid var(--color-brand)' : '1px solid var(--color-border)',
-                                                                background: selectedTone === t.id ? 'var(--color-brand-light)' : 'white',
-                                                                cursor: 'pointer'
-                                                            }}
+                                                            className={`wizard-tone-option ${selectedTone === t.id ? 'selected' : ''}`}
                                                             onClick={() => setToneState(t.id)}
                                                         >
-                                                            <div style={{ fontWeight: 'bold', fontSize: '0.95rem' }}>{t.label}</div>
-                                                            <div style={{ fontSize: '0.8rem', color: 'var(--color-text-sub)', marginTop: '4px' }}>{t.desc}</div>
+                                                            <div className="wizard-tone-label">{t.label}</div>
+                                                            <div className="wizard-tone-desc">{t.desc}</div>
                                                         </div>
                                                     ))}
                                                 </div>
@@ -1429,7 +1270,6 @@ const EditorPage = () => {
                                         onClick={() => setAiStep(2)}
                                         disabled={!canProceedToStep2}
                                         className="wizard-btn-primary"
-                                        style={{ opacity: canProceedToStep2 ? 1 : 0.5 }}
                                     >
                                         다음: 이미지 업로드 <ArrowRight size={16} />
                                     </button>
@@ -1440,17 +1280,17 @@ const EditorPage = () => {
                         {/* STEP 2: 이미지 업로드 & 분석 */}
                         {aiStep === 2 && (
                             <div className="wizard-card-wrap">
-                                <h1 style={{ marginBottom: '8px' }}>AI 본문 자동 작성</h1>
-                                <p style={{ color: 'var(--color-text-sub)', marginBottom: '32px' }}>
+                                <h1 className="wizard-page-title">AI 본문 자동 작성</h1>
+                                <p className="wizard-page-subtitle">
                                     주제: <strong>{mainKeyword || '미설정'}</strong>
                                 </p>
 
                                 <StepIndicator />
 
-                                <h2 style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <Camera size={20} style={{ color: 'var(--color-brand)' }} /> Step 2: 이미지 업로드 & AI 분석
+                                <h2 className="wizard-step-heading">
+                                    <Camera size={20} /> Step 2: 이미지 업로드 & AI 분석
                                 </h2>
-                                <p style={{ color: 'var(--color-text-sub)', marginBottom: '32px' }}>
+                                <p className="wizard-step-desc">
                                     주제에 맞는 이미지를 업로드하면 AI가 분석하여 본문 작성에 활용합니다.
                                 </p>
 
@@ -1460,12 +1300,11 @@ const EditorPage = () => {
                                     categoryId={categoryId}
                                 />
 
-                                <div style={{ marginTop: '32px', textAlign: 'center' }}>
+                                <div className="wizard-section-mt wizard-center">
                                     <button
                                         onClick={handleAnalyzePhotos}
                                         disabled={isAnalyzingPhotos || !hasAnyPhotos}
                                         className="wizard-btn-primary"
-                                        style={{ opacity: hasAnyPhotos ? 1 : 0.5 }}
                                     >
                                         {isAnalyzingPhotos
                                             ? <><Loader2 size={16} className="spin" /> 사진 분석 중...</>
@@ -1475,7 +1314,7 @@ const EditorPage = () => {
                                 </div>
 
                                 {isAnalyzingPhotos && (
-                                    <div className="ai-progress-card" style={{ marginTop: '16px' }}>
+                                    <div className="ai-progress-card wizard-mt-16">
                                         <div className="ai-progress-header">
                                             <Loader2 size={16} className="spin" />
                                             업로드한 사진을 AI가 분석하고 있습니다
@@ -1515,11 +1354,14 @@ const EditorPage = () => {
                                                 let current = null;
                                                 lines.forEach(line => {
                                                     const trimmed = line.trim();
-                                                    // 제목 패턴들: "### 사진 1: 제목", "**1. 사진 제목**", "사진 1: 제목"
+                                                    // 제목 패턴들: "### 사진 1: 제목", "[사진 1] 제목", "**1. 사진**", "1. 사진 1:"
                                                     const titleMatch = trimmed.match(/^#{2,}\s*사진\s*(\d+)\s*[:：]\s*(.+?)[:：]?\s*$/)
+                                                        || trimmed.match(/^\[사진\s*(\d+)\]\s*(.+?)[:：]?\s*$/)
+                                                        || trimmed.match(/^\*{2}사진\s*(\d+)\s*[:：]\s*(.+?)\*{2}\s*$/)
                                                         || trimmed.match(/^\*{2}(\d+)\.\s*(?:사진\s*\d*:\s*)?(.+?)\*{2}$/)
                                                         || trimmed.match(/^(\d+)\.\s*사진\s*\d*\s*[:：]\s*(.+?)[:：]?\s*$/)
-                                                        || trimmed.match(/^#{2,}\s*(\d+)\.\s*(.+?)[:：]?\s*$/);
+                                                        || trimmed.match(/^#{2,}\s*(\d+)\.\s*(.+?)[:：]?\s*$/)
+                                                        || trimmed.match(/^사진\s*(\d+)\s*[:：]\s*(.+?)[:：]?\s*$/);
                                                     if (titleMatch) {
                                                         current = { num: titleMatch[1], title: titleMatch[2].replace(/\*{1,2}/g, '').replace(/[:：]\s*$/, ''), lines: [] };
                                                         groups.push(current);
@@ -1532,7 +1374,7 @@ const EditorPage = () => {
                                                 const clean = (s) => s.replace(/\*{1,2}/g, '').replace(/^#+\s*/, '');
                                                 return groups.map((group, gi) => {
                                                     if (!group.num) {
-                                                        return <p key={gi} className="photo-analysis-item" style={{ marginBottom: '8px' }}>{clean(group.lines.join(' '))}</p>;
+                                                        return <p key={gi} className="photo-analysis-item">{clean(group.lines.join(' '))}</p>;
                                                     }
                                                     return (
                                                         <div key={gi} className="photo-analysis-card">
@@ -1564,7 +1406,7 @@ const EditorPage = () => {
                                 )}
 
                                 {(photoAnalysis || Object.keys(imageAlts).length > 0) && (
-                                    <div style={{ marginTop: '16px' }}>
+                                    <div className="wizard-mt-16">
                                         <ImageSeoGuide
                                             mainKeyword={mainKeyword}
                                             imageAlts={imageAlts}
@@ -1581,14 +1423,23 @@ const EditorPage = () => {
                                     >
                                         <ArrowLeft size={16} /> 이전: 주제 + 키워드
                                     </button>
-                                    <button
-                                        onClick={() => setAiStep(3)}
-                                        disabled={!canProceedToStep3}
-                                        className="wizard-btn-primary"
-                                        style={{ opacity: canProceedToStep3 ? 1 : 0.5 }}
-                                    >
-                                        다음: 아웃라인 + 생성 <ArrowRight size={16} />
-                                    </button>
+                                    <div className="wizard-nav-flex">
+                                        {!hasAnyPhotos && (
+                                            <button
+                                                onClick={() => setAiStep(3)}
+                                                className="wizard-btn-secondary"
+                                            >
+                                                사진 없이 진행하기 <ArrowRight size={16} />
+                                            </button>
+                                        )}
+                                        <button
+                                            onClick={() => setAiStep(3)}
+                                            disabled={!canProceedToStep3}
+                                            className="wizard-btn-primary"
+                                        >
+                                            다음: 아웃라인 + 생성 <ArrowRight size={16} />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -1596,17 +1447,17 @@ const EditorPage = () => {
                         {/* STEP 3: 아웃라인 + 생성 */}
                         {aiStep === 3 && (
                             <div className="wizard-card-wrap">
-                                <h1 style={{ marginBottom: '8px' }}>AI 본문 자동 작성</h1>
-                                <p style={{ color: 'var(--color-text-sub)', marginBottom: '32px' }}>
+                                <h1 className="wizard-page-title">AI 본문 자동 작성</h1>
+                                <p className="wizard-page-subtitle">
                                     주제: <strong>{mainKeyword || '미설정'}</strong>
                                 </p>
 
                                 <StepIndicator />
 
-                                <h2 style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <Wand2 size={20} style={{ color: 'var(--color-brand)' }} /> Step 3: 아웃라인 + 생성
+                                <h2 className="wizard-step-heading">
+                                    <Wand2 size={20} /> Step 3: 아웃라인 + 생성
                                 </h2>
-                                <p style={{ color: 'var(--color-text-sub)', marginBottom: '32px' }}>
+                                <p className="wizard-step-desc">
                                     AI가 소제목 구조를 먼저 생성합니다. 순서 변경, 추가/삭제, 수정 후 본문을 생성하세요.
                                 </p>
 
@@ -1636,7 +1487,7 @@ const EditorPage = () => {
                                 </div>
 
                                 {/* 아웃라인 생성 버튼 */}
-                                <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                                <div className="wizard-center wizard-section-mb">
                                     <button
                                         onClick={handleGenerateOutline}
                                         disabled={isGeneratingOutline}
@@ -1652,7 +1503,7 @@ const EditorPage = () => {
                                 </div>
 
                                 {isGeneratingOutline && (
-                                    <div className="ai-progress-card" style={{ marginBottom: '24px' }}>
+                                    <div className="ai-progress-card wizard-section-mb">
                                         <div className="ai-progress-header">
                                             <Loader2 size={16} className="spin" />
                                             글의 구조를 설계하고 있습니다
@@ -1761,11 +1612,7 @@ const EditorPage = () => {
                                     <button
                                         onClick={handleAiGenerate}
                                         disabled={outlineItems.length === 0}
-                                        className="wizard-btn-primary"
-                                        style={{
-                                            padding: '18px 36px', fontSize: '1rem',
-                                            opacity: outlineItems.length === 0 ? 0.5 : 1
-                                        }}
+                                        className="wizard-btn-primary wizard-btn-generate"
                                     >
                                         <Sparkles size={18} /> AI 본문 생성 시작
                                     </button>

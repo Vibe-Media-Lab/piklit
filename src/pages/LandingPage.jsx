@@ -2,9 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
-    Loader2, Camera, Search, Sparkles, BarChart3, Edit3, Clock,
+    Loader2, Camera, Search, Sparkles, BarChart3,
     ChevronDown, Zap, Grid3x3, Check, X, Store, TrendingUp, Users,
-    Upload, Copy, Rocket, Image, Bot, FileText
+    Upload, Copy, Rocket, Image, Bot, FileText, ArrowRight, Eye, Target
 } from 'lucide-react';
 import { CATEGORIES } from '../data/categories';
 import '../styles/landing.css';
@@ -15,50 +15,34 @@ const FEATURES = [
     {
         id: 'photo',
         icon: Camera,
-        label: '사진 AI 분석',
-        title: '사진만 올리면 AI가 분석합니다',
-        desc: '업로드한 사진의 장소, 음식, 분위기를 AI가 자동 인식하여 블로그 본문에 자연스럽게 녹여냅니다. 최대 10장까지 한 번에 분석 가능합니다.',
-        bullets: ['장소·음식·분위기 자동 인식', '사진별 설명 자동 생성', '본문 내 자연스러운 사진 배치'],
+        label: '사진 분석',
+        title: '사진만 올리면 글감이 완성됩니다',
+        desc: '업로드한 사진의 장소, 음식, 분위기를 AI가 자동 인식합니다. 최대 10장까지 한 번에 분석하여 본문에 자연스럽게 녹여냅니다.',
+        bullets: ['장소·음식·분위기 자동 인식', '사진별 SEO 설명 자동 생성', '본문 내 자연스러운 배치'],
     },
     {
         id: 'keyword',
         icon: Search,
-        label: '키워드·경쟁 분석',
-        title: '실시간 검색 데이터로 키워드를 찾습니다',
-        desc: '네이버 실시간 검색 트렌드 기반으로 상위 노출 키워드를 추천합니다. 경쟁 블로그 분석으로 차별화 전략까지 제안합니다.',
-        bullets: ['실시간 검색 트렌드 분석', '경쟁 블로그 상위 10개 분석', '롱테일 키워드 자동 추천'],
+        label: '키워드 분석',
+        title: '상위 노출 키워드를 30초 만에 찾아줍니다',
+        desc: '네이버 실시간 검색 트렌드와 경쟁 블로그를 분석하여 상위 노출 확률이 높은 키워드를 추천합니다.',
+        bullets: ['실시간 검색 트렌드 분석', '경쟁 블로그 상위 노출 분석', '롱테일 키워드 자동 추천'],
     },
     {
         id: 'generate',
         icon: Sparkles,
-        label: 'AI 본문 생성',
-        title: 'SEO 최적화된 본문을 자동 생성합니다',
-        desc: '키워드 분석 결과를 바탕으로 네이버 SEO에 최적화된 블로그 본문을 생성합니다. 카테고리별 맞춤 톤과 구조를 적용합니다.',
-        bullets: ['카테고리별 맞춤 톤 적용', '소제목·문단 자동 구성', '키워드 밀도 자동 최적화'],
+        label: 'AI 글 생성',
+        title: '10분이면 발행 가능한 글이 나옵니다',
+        desc: '키워드 분석 결과를 바탕으로 SEO 최적화 본문을 생성합니다. AI 버블 메뉴로 문장 다듬기, 늘리기, 톤 변경까지 한 번에.',
+        bullets: ['카테고리별 맞춤 톤·구조 적용', '소제목·문단 자동 구성', 'AI 버블 메뉴로 실시간 편집'],
     },
     {
         id: 'seo',
         icon: BarChart3,
         label: 'SEO 코칭',
-        title: '실시간으로 SEO 점수를 알려줍니다',
-        desc: '12개 SEO 항목을 실시간으로 분석하여 점수와 개선 포인트를 안내합니다. 글을 수정할 때마다 점수가 업데이트됩니다.',
+        title: '글을 쓰는 동안 SEO 점수가 올라갑니다',
+        desc: '12개 SEO 항목을 실시간으로 분석하여 점수와 개선 포인트를 안내합니다. 수정할 때마다 점수가 업데이트됩니다.',
         bullets: ['12개 항목 실시간 분석', '개선 포인트 즉시 안내', '경쟁 글 대비 점수 비교'],
-    },
-    {
-        id: 'edit',
-        icon: Edit3,
-        label: 'AI 편집 도구',
-        title: '문장 단위로 AI가 편집을 도와줍니다',
-        desc: '텍스트를 선택하면 AI 버블 메뉴가 나타납니다. 문장 다듬기, 늘리기, 줄이기, 톤 변경 등 다양한 편집 기능을 제공합니다.',
-        bullets: ['버블 메뉴 AI 편집', '문장 다듬기·늘리기·줄이기', '도입부 자동 최적화'],
-    },
-    {
-        id: 'history',
-        icon: Clock,
-        label: '히스토리 관리',
-        title: '작성 이력을 한눈에 관리합니다',
-        desc: '작성한 모든 글의 키워드, SEO 점수, AI 사용량을 대시보드에서 확인할 수 있습니다. 과거 글을 불러와 수정할 수도 있습니다.',
-        bullets: ['작성 이력 대시보드', 'SEO 점수 추이 확인', '과거 글 불러오기·수정'],
     },
 ];
 
@@ -94,14 +78,14 @@ const PERSONAS = [
 ];
 
 const COMPARISON = [
-    { feature: '네이버 SEO 특화', piklit: true, chatgpt: false, rytn: false },
-    { feature: '사진 분석 → 본문 반영', piklit: true, chatgpt: false, rytn: false },
-    { feature: '실시간 키워드 분석', piklit: true, chatgpt: false, rytn: true },
-    { feature: '경쟁 블로그 분석', piklit: true, chatgpt: false, rytn: false },
-    { feature: '12개 SEO 항목 코칭', piklit: true, chatgpt: false, rytn: false },
-    { feature: 'AI 버블 메뉴 편집', piklit: true, chatgpt: false, rytn: false },
-    { feature: '카테고리별 맞춤 톤', piklit: true, chatgpt: false, rytn: true },
-    { feature: '무료 사용 가능', piklit: true, chatgpt: false, rytn: true },
+    { feature: '네이버 SEO 특화', piklit: true, gadget: true, wordly: true, chatgpt: false, rytn: false },
+    { feature: '사진 분석 → 본문 반영', piklit: true, gadget: false, wordly: false, chatgpt: false, rytn: false },
+    { feature: '내장 에디터 (실시간 편집)', piklit: true, gadget: false, wordly: false, chatgpt: false, rytn: false },
+    { feature: '실시간 키워드 분석', piklit: true, gadget: false, wordly: false, chatgpt: false, rytn: true },
+    { feature: '경쟁 블로그 분석', piklit: true, gadget: false, wordly: false, chatgpt: false, rytn: false },
+    { feature: '12개 SEO 항목 코칭', piklit: true, gadget: false, wordly: false, chatgpt: false, rytn: false },
+    { feature: '카테고리별 맞춤 톤', piklit: true, gadget: true, wordly: true, chatgpt: false, rytn: true },
+    { feature: '무료 무제한 (BYOK)', piklit: true, gadget: false, wordly: false, chatgpt: false, rytn: false },
 ];
 
 const PRICING = [
@@ -218,21 +202,24 @@ const REVIEWS = [
 const STEPS = [
     {
         num: 1,
-        title: '사진 올리기',
-        desc: '블로그에 사용할 사진을 업로드하세요. AI가 사진 속 장소, 음식, 분위기를 자동으로 분석합니다.',
+        title: '사진을 올리고 카테고리를 선택하세요',
+        desc: '사진만 있으면 준비 끝. AI가 장소, 음식, 분위기를 자동으로 파악합니다.',
         icon: Upload,
+        substeps: ['사진 최대 10장 드래그 & 드롭', '16개 카테고리 중 선택', 'AI가 사진 속 정보 자동 인식'],
     },
     {
         num: 2,
-        title: 'AI가 글을 작성합니다',
-        desc: '키워드 분석, 경쟁 블로그 조사, SEO 최적화까지 AI가 한 번에 처리합니다. 카테고리별 맞춤 톤이 적용됩니다.',
+        title: 'AI가 키워드 분석 → 경쟁 조사 → 본문 생성을 한 번에',
+        desc: '버튼 한 번이면 전체 파이프라인이 자동으로 실행됩니다.',
         icon: Bot,
+        substeps: ['실시간 키워드 트렌드 분석', '경쟁 블로그 상위 10개 조사', 'SEO 최적화 본문 자동 생성'],
     },
     {
         num: 3,
-        title: '복사해서 발행하기',
-        desc: '완성된 글을 클립보드에 복사하여 네이버 블로그에 바로 붙여넣기 하세요. HTML 서식이 그대로 유지됩니다.',
-        icon: Copy,
+        title: 'SEO 92점 이상의 글을 네이버에 발행하세요',
+        desc: '실시간 SEO 코칭으로 점수를 높이고, 복사 한 번으로 발행 완료.',
+        icon: Rocket,
+        substeps: ['12개 SEO 항목 실시간 체크', 'AI 편집 도구로 문장 다듬기', '클립보드 복사 → 네이버 발행'],
     },
 ];
 
@@ -491,46 +478,166 @@ const PainSection = () => (
     </section>
 );
 
-const FeatureShowcase = () => {
-    const [activeTab, setActiveTab] = useState(0);
-    const feat = FEATURES[activeTab];
-
-    return (
-        <section className="landing-features reveal-on-scroll" id="features">
-            <div className="landing-section-inner">
-                <span className="landing-section-badge">핵심 기능</span>
-                <h2 className="landing-section-title">블로그 작성에 필요한 모든 것</h2>
-                <div className="features-tabs">
-                    {FEATURES.map((f, i) => (
-                        <button
-                            key={f.id}
-                            className={`feature-tab ${i === activeTab ? 'active' : ''}`}
-                            onClick={() => setActiveTab(i)}
-                        >
-                            <f.icon size={18} />
-                            <span>{f.label}</span>
-                        </button>
-                    ))}
-                </div>
-                <div className="feature-detail">
-                    <div className="feature-detail-text">
-                        <h3>{feat.title}</h3>
-                        <p>{feat.desc}</p>
-                        <ul>
-                            {feat.bullets.map((b, i) => (
-                                <li key={i}><Check size={16} /> {b}</li>
-                            ))}
-                        </ul>
-                    </div>
-                    <div className="feature-detail-visual">
-                        <div className="feature-visual-card">
-                            <feat.icon size={48} />
-                        </div>
-                    </div>
+const FeatureMockup = ({ id }) => {
+    if (id === 'photo') return (
+        <div className="feat-mockup feat-mockup-photo">
+            <div className="fm-photo-grid">
+                <div className="fm-photo"><span>🍜</span></div>
+                <div className="fm-photo"><span>☕</span></div>
+                <div className="fm-photo"><span>🏪</span></div>
+            </div>
+            <div className="fm-photo-tags">
+                <span className="fm-tag">📍 강남역</span>
+                <span className="fm-tag">🍜 라멘</span>
+                <span className="fm-tag">✨ 아늑한 분위기</span>
+            </div>
+        </div>
+    );
+    if (id === 'keyword') return (
+        <div className="feat-mockup feat-mockup-keyword">
+            <div className="fm-kw-row">
+                <span className="fm-kw-label">강남 맛집</span>
+                <div className="fm-kw-bar"><div className="fm-kw-fill" style={{ width: '92%' }} /></div>
+                <span className="fm-kw-badge best">추천</span>
+            </div>
+            <div className="fm-kw-row">
+                <span className="fm-kw-label">강남역 라멘</span>
+                <div className="fm-kw-bar"><div className="fm-kw-fill" style={{ width: '78%' }} /></div>
+                <span className="fm-kw-badge">경쟁↓</span>
+            </div>
+            <div className="fm-kw-row">
+                <span className="fm-kw-label">데이트 코스</span>
+                <div className="fm-kw-bar"><div className="fm-kw-fill" style={{ width: '65%' }} /></div>
+                <span className="fm-kw-badge">롱테일</span>
+            </div>
+        </div>
+    );
+    if (id === 'generate') return (
+        <div className="feat-mockup feat-mockup-generate">
+            <div className="fm-editor-titlebar">
+                <span className="fm-dot red" /><span className="fm-dot yellow" /><span className="fm-dot green" />
+            </div>
+            <div className="fm-editor-body">
+                <div className="fm-editor-title-line" />
+                <div className="fm-editor-line w80" />
+                <div className="fm-editor-line w95" />
+                <div className="fm-editor-line w70" />
+                <div className="fm-bubble-menu">
+                    <span>다듬기</span><span>늘리기</span><span>톤 변경</span>
                 </div>
             </div>
-        </section>
+        </div>
     );
+    if (id === 'seo') return (
+        <div className="feat-mockup feat-mockup-seo">
+            <div className="fm-gauge">
+                <svg viewBox="0 0 120 80" className="fm-gauge-svg">
+                    <path d="M 15 75 A 50 50 0 0 1 105 75" fill="none" stroke="#E3E2E0" strokeWidth="10" strokeLinecap="round" />
+                    <path d="M 15 75 A 50 50 0 0 1 105 75" fill="none" stroke="#FF6B35" strokeWidth="10" strokeLinecap="round" strokeDasharray="145" strokeDashoffset="12" />
+                </svg>
+                <span className="fm-gauge-score">92</span>
+            </div>
+            <div className="fm-seo-checks">
+                <div className="fm-seo-check done"><Check size={12} /> 키워드 밀도 적정</div>
+                <div className="fm-seo-check done"><Check size={12} /> 소제목 3개 이상</div>
+                <div className="fm-seo-check done"><Check size={12} /> 본문 1,500자+</div>
+                <div className="fm-seo-check warn"><Target size={12} /> 이미지 ALT 추가 권장</div>
+            </div>
+        </div>
+    );
+    return null;
+};
+
+const FeatureShowcase = () => (
+    <section className="landing-features reveal-on-scroll" id="features">
+        <div className="landing-section-inner">
+            <span className="landing-section-badge">핵심 기능</span>
+            <h2 className="landing-section-title">사진 한 장이 상위 노출 글이 되기까지</h2>
+            <div className="features-grid">
+                {FEATURES.map((feat, i) => (
+                    <div className={`feature-card ${i % 2 === 1 ? 'reverse' : ''}`} key={feat.id}>
+                        <div className="feature-card-text">
+                            <div className="feature-card-icon">
+                                <feat.icon size={20} />
+                                <span>{feat.label}</span>
+                            </div>
+                            <h3>{feat.title}</h3>
+                            <p>{feat.desc}</p>
+                            <ul>
+                                {feat.bullets.map((b, j) => (
+                                    <li key={j}><Check size={14} /> {b}</li>
+                                ))}
+                            </ul>
+                        </div>
+                        <div className="feature-card-visual">
+                            <FeatureMockup id={feat.id} />
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    </section>
+);
+
+const StepMockup = ({ num }) => {
+    if (num === 1) return (
+        <div className="step-mockup step-mockup-upload">
+            <div className="sm-dropzone">
+                <Upload size={20} />
+                <span>사진을 드래그하세요</span>
+            </div>
+            <div className="sm-thumbs">
+                <div className="sm-thumb">🍜</div>
+                <div className="sm-thumb">☕</div>
+                <div className="sm-thumb">🏪</div>
+            </div>
+            <div className="sm-category-chips">
+                <span className="sm-chip active">☕ 카페</span>
+                <span className="sm-chip">🍳 레시피</span>
+                <span className="sm-chip">✈️ 여행</span>
+            </div>
+        </div>
+    );
+    if (num === 2) return (
+        <div className="step-mockup step-mockup-ai">
+            <div className="sm-pipeline">
+                <div className="sm-pipe-step done">
+                    <Check size={14} />
+                    <span>사진 분석</span>
+                </div>
+                <div className="sm-pipe-arrow"><ArrowRight size={12} /></div>
+                <div className="sm-pipe-step done">
+                    <Check size={14} />
+                    <span>키워드 분석</span>
+                </div>
+                <div className="sm-pipe-arrow"><ArrowRight size={12} /></div>
+                <div className="sm-pipe-step active">
+                    <Loader2 size={14} className="spin" />
+                    <span>본문 생성</span>
+                </div>
+                <div className="sm-pipe-arrow"><ArrowRight size={12} /></div>
+                <div className="sm-pipe-step pending">
+                    <span className="sm-pipe-dot" />
+                    <span>SEO 검증</span>
+                </div>
+            </div>
+        </div>
+    );
+    if (num === 3) return (
+        <div className="step-mockup step-mockup-publish">
+            <div className="sm-result-card">
+                <div className="sm-result-title">강남역 숨은 라멘 맛집 탐방기</div>
+                <div className="sm-result-meta">
+                    <span className="sm-seo-badge">SEO 94점</span>
+                    <span className="sm-word-count">2,450자</span>
+                </div>
+            </div>
+            <button className="sm-publish-btn">
+                <Rocket size={14} /> 클립보드 복사 → 네이버 발행
+            </button>
+        </div>
+    );
+    return null;
 };
 
 const StepsSection = () => (
@@ -543,18 +650,30 @@ const StepsSection = () => (
             </p>
             <div className="steps-list">
                 {STEPS.map((step, i) => (
-                    <div className={`step-row ${i % 2 === 1 ? 'reverse' : ''}`} key={i}>
-                        <div className="step-text">
-                            <div className="step-number">{step.num}</div>
-                            <h3>{step.title}</h3>
-                            <p>{step.desc}</p>
-                        </div>
-                        <div className="step-visual">
-                            <div className="step-icon-circle">
-                                <step.icon size={32} />
+                    <React.Fragment key={i}>
+                        <div className={`step-row ${i % 2 === 1 ? 'reverse' : ''}`}>
+                            <div className="step-text">
+                                <div className="step-number">{step.num}</div>
+                                <h3>{step.title}</h3>
+                                <p>{step.desc}</p>
+                                {step.substeps && (
+                                    <ul className="step-substeps">
+                                        {step.substeps.map((s, j) => (
+                                            <li key={j}><Check size={14} /> {s}</li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
+                            <div className="step-visual">
+                                <StepMockup num={step.num} />
                             </div>
                         </div>
-                    </div>
+                        {i < STEPS.length - 1 && (
+                            <div className="step-connector">
+                                <ArrowRight size={20} />
+                            </div>
+                        )}
+                    </React.Fragment>
                 ))}
             </div>
         </div>
@@ -646,6 +765,8 @@ const ComparisonTable = () => (
                         <tr>
                             <th>기능</th>
                             <th className="comp-highlight">피클릿</th>
+                            <th>가제트AI</th>
+                            <th>워들리</th>
                             <th>ChatGPT</th>
                             <th>뤼튼</th>
                         </tr>
@@ -655,6 +776,8 @@ const ComparisonTable = () => (
                             <tr key={i}>
                                 <td>{row.feature}</td>
                                 <td className="comp-highlight">{row.piklit ? <Check size={18} /> : <X size={18} />}</td>
+                                <td>{row.gadget ? <Check size={18} /> : <X size={18} />}</td>
+                                <td>{row.wordly ? <Check size={18} /> : <X size={18} />}</td>
                                 <td>{row.chatgpt ? <Check size={18} /> : <X size={18} />}</td>
                                 <td>{row.rytn ? <Check size={18} /> : <X size={18} />}</td>
                             </tr>
@@ -766,7 +889,7 @@ const Footer = () => (
                 <span className="landing-footer-brand">Piklit</span>
             </div>
             <p className="landing-footer-tagline">사진을 글로 절이다</p>
-            <p className="landing-footer-copy">&copy; 2025 Piklit. All rights reserved.</p>
+            <p className="landing-footer-copy">&copy; {new Date().getFullYear()} Piklit. All rights reserved.</p>
         </div>
     </footer>
 );

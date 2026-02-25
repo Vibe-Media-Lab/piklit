@@ -180,6 +180,28 @@
 - [ ] 기능 8: 내부 링크/시리즈 관리 (보류)
 - [ ] 도입부 글자수 140~160자 준수율 추가 모니터링
 
+## 완료된 작업 (2026-02-25) — 랜딩 리디자인 + 토큰 최적화 + 정렬 통일
+
+### 랜딩페이지 핵심기능 + 사용방법 리디자인
+- [x] `LandingPage.jsx` FEATURES 6개→4개 축소 (edit/history 제거, 텍스트 사용자 이익 시점)
+- [x] `LandingPage.jsx` STEPS substeps 3개씩 추가, Step 2/3 텍스트 구체화, Step 3 아이콘 Rocket
+- [x] `LandingPage.jsx` FeatureMockup 컴포넌트 신규 — 4가지 CSS 미니 목업 (사진 태그, 키워드 바차트, 에디터+버블메뉴, SEO 게이지)
+- [x] `LandingPage.jsx` FeatureShowcase 탭 UI→4카드 세로 나열, 홀수 번째 좌우 교대
+- [x] `LandingPage.jsx` StepMockup 컴포넌트 신규 — 3가지 CSS 미니 목업 (드롭존+카테고리, AI 파이프라인, 결과카드+발행)
+- [x] `LandingPage.jsx` StepsSection substeps 체크리스트 + 단계 간 화살표 커넥터
+- [x] `landing.css` 기능 섹션 CSS 교체 (탭→카드그리드), 목업 CSS 4종 + 스텝 목업 3종 추가
+- [x] `landing.css` 반응형 업데이트 (1024px, 768px)
+
+### 토큰 최적화
+- [x] `openai.js` `analyzeCompetitors` — `thinkingBudget: 0` 추가 (불필요 thinking 토큰 제거)
+
+### 정렬 통일 (CDO 감사)
+- [x] `PhotoUploader.css` `.photo-upload-note` — `justify-content: center` 제거 (왼쪽 정렬)
+- [x] `components.css` `.ai-progress-card` — `text-align: center` 추가 (경쟁 분석과 통일)
+- [x] `components.css` `.ai-progress-header` — `justify-content: center` 추가
+- [x] `components.css` `.ai-progress-steps` — `inline-flex` + `text-align: left` (가운데 카드 안 왼쪽 정렬)
+- [x] `components.css` `.skeleton-bar` — `margin: 0 auto` (스켈레톤 바 가운데 정렬)
+
 ## 완료된 작업 (2026-02-24) — 랜딩 페이지 전면 리뉴얼 + 전략 수립
 
 ### 랜딩 페이지 전면 리뉴얼 (LandingPage.jsx + landing.css)
@@ -301,6 +323,51 @@
 ### 기타
 - [x] `/commit` 스킬 신규 생성 (빌드 확인 → 변경 분석 → 커밋 메시지 제안 → 승인 → 커밋)
 - [x] Phase 2 task.md "사진 → 썸네일 자동 생성" 항목 완료 처리
+
+## 완료된 작업 (2026-02-25) — 로딩 UI 통일 + BOD 문서 + 랜딩 BOD 감사
+
+### 로딩 UI 디자인 통일 (4개 파일)
+- [x] `CompetitorAnalysis.jsx` — Loader2→Sparkles 36px, "~합니다"→"~있어요" 친근체, 부제목 추가
+- [x] `HumannessPanel.jsx` — 버튼에 Loader2 14px 스피너 추가 (텍스트만 → 아이콘+텍스트)
+- [x] `IntroOptimizer.jsx` — ⏳ 이모지→Loader2 14px 스피너 (아이콘 통일)
+- [x] `components.css` — `.btn-loading-spinner` 공통 클래스, 경쟁 분석 로딩 아이콘/텍스트 스타일
+
+### 문서
+- [x] `docs/bod-piklit.md` 신규 생성 — 범용 BOD 프롬프트를 피클릿 전용으로 커스텀
+  - CEO 비전→피클릿 비전, COO 지표→피클릿 KPI, CTO→React+Gemini 특화
+  - CRO→블로거 심리 4인 박사단, CMO→네이버 블로그 SEO 전문가단, CDO→Notion-style 디자인
+  - 상단에 피클릿 컨텍스트 내장 (매번 별도 설명 불필요)
+
+### docs 정리 (7개 삭제)
+- [x] `bod.md` 삭제 — `bod-piklit.md`로 대체 완료
+- [x] `GEMINI.md` 삭제 — "Antigravity" 구 브랜드, CLAUDE.md가 대체
+- [x] `always_be_on_the_same_page.md` 삭제 — "Vibe Media Lab" 구 브랜드, CLAUDE.md가 대체
+- [x] `start_work.md` 삭제 — 구 워크플로, CLAUDE.md 세션 규칙이 대체
+- [x] `end_work.md` 삭제 — 구 워크플로, 현재 미사용
+- [x] `session-manager.md` 삭제 — 다른 프로젝트 범용 에이전트 스펙, 피클릿 무관
+- [x] `Prompt Architect.md` 삭제 — 범용 프롬프트 엔지니어링 페르소나, 피클릿 무관
+
+### 랜딩페이지 BOD 감사 → 즉시 실행 3건
+- [x] "경쟁 블로그 상위 10개 분석" → "상위 노출 분석" (과장 카피 수정)
+- [x] 비교 테이블 3열→5열 확장 — 가제트AI, 워들리 추가 (CDO.md 경쟁 분석 반영)
+- [x] Footer `© 2025` 하드코딩 → `{new Date().getFullYear()}` 동적 처리
+
+### UX 플로우 BOD 감사 (CDO 중심) — 감사 완료, 실행 항목 도출
+- [x] 의장 판정: Pass
+- 발견된 핵심 이슈 5건:
+  1. Step 1 과밀 (카테고리+주제+키워드+시즌+경쟁+톤+글자수가 단일 스텝)
+  2. 위자드→에디터 전환 시 생성 완료 요약 피드백 부재
+  3. 사이드바 5+패널 수직 나열 (스크롤 부담)
+  4. Step 2 "사진 없이 진행하기" 명시적 버튼 부재
+  5. EditorPage/AIAnalysisDashboard 인라인 스타일 과다
+- 실행 항목:
+  - [x] 글 생성 완료 후 요약 피드백 추가 (Phase 1) ← 완료
+  - [x] Step 2 "사진 없이 진행하기" 명시적 버튼 (Phase 1) ← 완료
+  - [x] 사이드바 패널 아코디언 3그룹화 (SEO분석/AI도구/히스토리) (Phase 2) ← 완료
+  - [x] AIAnalysisDashboard 인라인 스타일 → CSS 클래스 전환 (Phase 2) ← 완료
+  - [x] EditorPage 위자드 인라인 스타일 → CSS 클래스 전환 (Phase 2) ← 완료
+  - [ ] Step 1 분리 (카테고리+주제 / 키워드+설정) (Phase 2, 별도 세션)
+  - [ ] 주제 입력 시 카테고리 자동 감지 (Phase 3)
 
 ## 이전 완료 작업 (2026-02-06)
 

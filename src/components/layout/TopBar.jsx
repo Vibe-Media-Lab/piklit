@@ -48,13 +48,13 @@ const TopBar = () => {
         }
     };
 
-    // 페이지 타이틀 결정
+    // 페이지 타이틀 결정 — URL params 기반 (currentPostId 설정 지연과 무관하게 즉시 표시)
     const getPageTitle = () => {
-        if (id && currentPostId) return title || '새 글';
+        if (id) return title || '새 글';
         return PAGE_TITLES[location.pathname] || '';
     };
 
-    const isEditor = !!currentPostId;
+    const isEditor = !!id;
 
     return (
         <div className="app-topbar">

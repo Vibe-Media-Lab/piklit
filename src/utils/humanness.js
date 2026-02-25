@@ -311,3 +311,137 @@ function measureInformalElements(text, maxScore) {
 
     return { score, label: '이모지/비격식', maxScore, totalInformal, suggestions };
 }
+
+// ──────────────────────────────────────────────
+// humanizeText() — AI 생성 HTML 후처리 (로컬, API 호출 없음)
+// ──────────────────────────────────────────────
+
+// AI 패턴 형용사 → 구체적 대체어 매핑
+const AI_REPLACEMENTS = [
+    { pattern: /다양한\s+(메뉴|음식|종류)/g, replace: '메뉴가 여러 가지' },
+    { pattern: /다양한\s+(맛|풍미)/g, replace: '여러 맛이 어우러진' },
+    { pattern: /다양한/g, replace: '여러' },
+    { pattern: /풍부한\s+(맛|풍미)/g, replace: '맛이 깊은' },
+    { pattern: /풍부한/g, replace: '넉넉한' },
+    { pattern: /완벽한/g, replace: '딱 맞는' },
+    { pattern: /특별한/g, replace: '색다른' },
+    { pattern: /놀라운/g, replace: '기대 이상인' },
+    { pattern: /인상적인/g, replace: '눈에 띄는' },
+    { pattern: /독특한/g, replace: '남다른' },
+    { pattern: /매력적인/g, replace: '끌리는' },
+    { pattern: /효과적인/g, replace: '쓸만한' },
+    { pattern: /효과적으로/g, replace: '제대로' },
+    { pattern: /핵심적인/g, replace: '중요한' },
+    { pattern: /필수적인/g, replace: '꼭 필요한' },
+    { pattern: /최적의/g, replace: '가장 알맞은' },
+    { pattern: /극대화/g, replace: '최대한 끌어올리기' },
+    { pattern: /살펴보겠습니다/g, replace: '볼게요' },
+    { pattern: /알아보겠습니다/g, replace: '알아볼게요' },
+    { pattern: /소개해 드리겠습니다/g, replace: '소개할게요' },
+    { pattern: /마무리하겠습니다/g, replace: '마무리할게요' },
+    { pattern: /정리해 보겠습니다/g, replace: '정리해볼게요' },
+    { pattern: /결론적으로/g, replace: '정리하면' },
+    { pattern: /종합적으로/g, replace: '전체적으로 보면' },
+    { pattern: /궁극적으로/g, replace: '결국' },
+    { pattern: /주목할 만한/g, replace: '눈여겨볼' },
+    { pattern: /추천드립니다/g, replace: '추천해요' },
+    { pattern: /추천해 드립니다/g, replace: '추천해요' },
+    { pattern: /도움이 되셨으면/g, replace: '참고가 됐으면' },
+    { pattern: /도움이 되었으면/g, replace: '참고가 됐으면' },
+    // 누락 패턴 10개 추가
+    { pattern: /활용하여/g, replace: '써서' },
+    { pattern: /활용할 수/g, replace: '쓸 수' },
+    { pattern: /그렇다면/g, replace: '그러면' },
+    { pattern: /따라서/g, replace: '그래서' },
+    { pattern: /이를 통해/g, replace: '이렇게 하면' },
+    { pattern: /이러한/g, replace: '이런' },
+    { pattern: /놓치지 마세요/g, replace: '꼭 가보세요' },
+    { pattern: /꼭 확인해 보세요/g, replace: '한번 보세요' },
+    { pattern: /에 대해 알아보/g, replace: '에 대해 얘기해 볼' },
+    { pattern: /장점과 단점/g, replace: '좋은 점과 아쉬운 점' },
+];
+
+// "~합니다/~됩니다" 종결어미 변환 풀
+const FORMAL_TO_CASUAL = [
+    { pattern: /합니다\./g, replacements: ['해요.', '하거든요.', '한답니다.'] },
+    { pattern: /됩니다\./g, replacements: ['돼요.', '되거든요.', '된답니다.', '되더라고요.'] },
+    { pattern: /있습니다\./g, replacements: ['있어요.', '있거든요.', '있답니다.'] },
+];
+
+// 동일 문장 시작어 변형 접속사
+const SENTENCE_STARTERS = ['그리고 ', '또 ', '게다가 ', '참고로 ', ''];
+
+// HTML 태그 내부 텍스트만 대상으로 패턴 교체 (태그 속성·소제목 보호)
+function replaceInTextNodes(html, pattern, replace) {
+    // HTML 태그와 텍스트를 분리하여 텍스트 부분에만 적용
+    return html.replace(/(<[^>]*>)|([^<]+)/g, (match, tag, text) => {
+        if (tag) return tag; // HTML 태그는 그대로
+        return text.replace(pattern, replace);
+    });
+}
+
+/**
+ * AI 생성 HTML에서 AI 패턴을 자동 교정하는 경량 후처리
+ * @param {string} html - AI가 생성한 HTML 문자열
+ * @param {string} tone - 톤앤무드 (friendly|professional|honest|emotional|guide)
+ * @returns {string} - 후처리된 HTML
+ */
+export const humanizeText = (html, tone = 'friendly') => {
+    if (!html) return html;
+
+    let result = html;
+
+    // 1. AI 패턴 형용사 → 구체적 대체어 (텍스트 노드에만 적용, HTML 태그 보호)
+    for (const { pattern, replace } of AI_REPLACEMENTS) {
+        result = replaceInTextNodes(result, pattern, replace);
+    }
+
+    // 2. "~합니다" 연속 → 일부를 캐주얼체로 변환
+    // professional, guide 톤은 합쇼체가 자연스러우므로 스킵
+    const skipCasual = tone === 'professional' || tone === 'guide';
+    if (!skipCasual) {
+        result = result.replace(/<p>([\s\S]*?)<\/p>/gi, (match, inner) => {
+            if (inner.includes('<img') || inner.includes('[[IMAGE')) return match;
+
+            let converted = inner;
+            for (const { pattern, replacements } of FORMAL_TO_CASUAL) {
+                let count = 0;
+                converted = converted.replace(pattern, (m) => {
+                    count++;
+                    // 3번째 이후 출현부터 캐주얼체로 변환 (첫 2개는 유지)
+                    if (count > 2) {
+                        return replacements[Math.floor(Math.random() * replacements.length)];
+                    }
+                    return m;
+                });
+            }
+            return `<p>${converted}</p>`;
+        });
+    }
+
+    // 3. 동일 문장 시작어 연속 방지
+    // 연속된 <p> 태그의 시작 단어가 같으면 접속사 변형 삽입
+    const pTags = [];
+    result = result.replace(/<p>([\s\S]*?)<\/p>/gi, (match, inner) => {
+        pTags.push({ match, inner: inner.trim() });
+        return `__P_PLACEHOLDER_${pTags.length - 1}__`;
+    });
+
+    for (let i = 1; i < pTags.length; i++) {
+        const prevFirst = pTags[i - 1].inner.replace(/<[^>]*>/g, '').trim().split(/\s/)[0];
+        const currFirst = pTags[i].inner.replace(/<[^>]*>/g, '').trim().split(/\s/)[0];
+
+        if (prevFirst && currFirst && prevFirst === currFirst && !pTags[i].inner.includes('<img') && !pTags[i].inner.includes('[[IMAGE')) {
+            const starter = SENTENCE_STARTERS[Math.floor(Math.random() * SENTENCE_STARTERS.length)];
+            if (starter) {
+                pTags[i].inner = starter + pTags[i].inner;
+            }
+        }
+    }
+
+    for (let i = 0; i < pTags.length; i++) {
+        result = result.replace(`__P_PLACEHOLDER_${i}__`, `<p>${pTags[i].inner}</p>`);
+    }
+
+    return result;
+};

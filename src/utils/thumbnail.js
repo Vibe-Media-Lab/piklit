@@ -1,20 +1,21 @@
 /**
  * 썸네일 Canvas 렌더링 엔진
- * 5가지 스타일 × 카테고리별 폰트 × 자동 대비
+ * 7가지 스타일 × 카테고리별 폰트 × 자동 대비
+ * 1:1 정사각형 (1080×1080) — 네이버 블로그 대표이미지 최적화
  */
 
-// 출력 사이즈
-const WIDTH = 1200;
-const HEIGHT = 675;
-const SAFE_X = (WIDTH - HEIGHT) / 2; // 262.5 — 세이프존 시작
-const SAFE_W = HEIGHT; // 675 — 세이프존 너비
+// 출력 사이즈 (1:1 정사각형)
+const WIDTH = 1080;
+const HEIGHT = 1080;
 
 export const THUMBNAIL_STYLES = [
     { id: 'A', label: '하단 그라데이션', desc: '하단 검정 그라데이션 + 흰 텍스트' },
-    { id: 'B', label: '중앙 박스', desc: '반투명 둥근 박스 + 텍스트' },
-    { id: 'C', label: '상단 띠', desc: '오렌지 배너 + 흰 텍스트' },
-    { id: 'D', label: '전면 블러', desc: '블러 오버레이 + 흰 텍스트' },
-    { id: 'E', label: '원본', desc: '텍스트 없는 원본 사진' },
+    { id: 'B', label: '하단 박스', desc: '사진 상단 65% + 하단 흰색 박스 35%' },
+    { id: 'C', label: '아웃라인 텍스트', desc: '사진 위 흰색 볼드 + 검정 테두리' },
+    { id: 'D', label: '중앙 박스', desc: '반투명 둥근 박스 + 텍스트' },
+    { id: 'E', label: '컬러 띠', desc: '위치/색상/두께 커스텀 컬러 띠' },
+    { id: 'F', label: '전면 블러', desc: '블러 오버레이 + 흰 텍스트' },
+    { id: 'G', label: '원본', desc: '텍스트 없는 원본 사진' },
 ];
 
 export const CATEGORY_FONT_MAP = {
@@ -26,13 +27,12 @@ export const CATEGORY_FONT_MAP = {
 };
 
 /**
- * 중앙 1:1 영역의 평균 밝기 계산 (0~255)
+ * 캔버스 전체 평균 밝기 계산 (0~255)
  */
 const detectBrightness = (ctx) => {
-    const sx = Math.round(SAFE_X);
-    const data = ctx.getImageData(sx, 0, SAFE_W, HEIGHT).data;
+    const data = ctx.getImageData(0, 0, WIDTH, HEIGHT).data;
     let sum = 0;
-    const sampleStep = 16; // 성능 위해 샘플링
+    const sampleStep = 16;
     let count = 0;
     for (let i = 0; i < data.length; i += 4 * sampleStep) {
         sum += data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
@@ -42,21 +42,18 @@ const detectBrightness = (ctx) => {
 };
 
 /**
- * 이미지를 16:9로 캔버스에 채움 (zoom + offset 지원)
- * @param {number} zoom - 1.0(기본) ~ 2.5
- * @param {number} offsetX - -1 ~ 1 (좌우 패닝, 0=중앙)
- * @param {number} offsetY - -1 ~ 1 (상하 패닝, 0=중앙)
+ * 이미지를 1:1로 캔버스에 채움 (zoom + offset 지원)
  */
 const fitImageToCanvas = (ctx, img, zoom = 1, offsetX = 0, offsetY = 0) => {
     const imgRatio = img.naturalWidth / img.naturalHeight;
-    const canvasRatio = WIDTH / HEIGHT;
     let sx = 0, sy = 0, sw = img.naturalWidth, sh = img.naturalHeight;
 
-    if (imgRatio > canvasRatio) {
-        sw = img.naturalHeight * canvasRatio;
+    // 1:1 crop — 넓으면 좌우 잘라내고, 높으면 상하 잘라냄
+    if (imgRatio > 1) {
+        sw = img.naturalHeight;
         sx = (img.naturalWidth - sw) / 2;
     } else {
-        sh = img.naturalWidth / canvasRatio;
+        sh = img.naturalWidth;
         sy = (img.naturalHeight - sh) / 2;
     }
 
@@ -88,13 +85,33 @@ const renderStyleA = (ctx, brightness) => {
 };
 
 /**
- * 스타일 B: 중앙 박스
+ * 스타일 B: 하단 박스 (사진 65% + 흰색 박스 35%)
  */
-const renderStyleB = (ctx, brightness) => {
+const renderStyleB_box = (ctx) => {
+    const boxTop = Math.round(HEIGHT * 0.65); // ~702px
+    const boxH = HEIGHT - boxTop;             // ~378px
+
+    // 흰색 박스
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, boxTop, WIDTH, boxH);
+
+    // 구분선 (미세)
+    ctx.strokeStyle = '#E3E2E0';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, boxTop);
+    ctx.lineTo(WIDTH, boxTop);
+    ctx.stroke();
+};
+
+/**
+ * 스타일 D: 중앙 박스 (기존 B)
+ */
+const renderStyleD_centerBox = (ctx, brightness) => {
     const isDark = brightness < 128;
     const boxColor = isDark ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.65)';
-    const boxW = SAFE_W * 0.82;
-    const boxH = 220;
+    const boxW = WIDTH * 0.78;
+    const boxH = 260;
     const boxX = (WIDTH - boxW) / 2;
     const boxY = (HEIGHT - boxH) / 2;
 
@@ -107,19 +124,28 @@ const renderStyleB = (ctx, brightness) => {
 };
 
 /**
- * 스타일 C: 상단 오렌지 띠
+ * 스타일 E: 컬러 띠 (위치/색상/두께 커스텀)
  */
-const renderStyleC = (ctx) => {
-    const bandH = 150;
-    ctx.fillStyle = '#FF6B35';
-    ctx.fillRect(0, 0, WIDTH, bandH);
+const renderStyleE_band = (ctx, bandPosition, bandColor, bandHeight) => {
+    const h = bandHeight || 150;
+    let y = 0;
+    if (bandPosition === 'center') {
+        y = (HEIGHT - h) / 2;
+    } else if (bandPosition === 'bottom') {
+        y = HEIGHT - h;
+    }
+    // else 'top': y = 0
+
+    ctx.fillStyle = bandColor || '#FF6B35';
+    ctx.fillRect(0, y, WIDTH, h);
+
+    return { bandY: y, bandH: h };
 };
 
 /**
- * 스타일 D: 전면 블러 + 어두운 오버레이
+ * 스타일 F: 전면 블러 + 어두운 오버레이 (기존 D)
  */
-const renderStyleD = (ctx, canvas) => {
-    // OffscreenCanvas로 블러 효과
+const renderStyleF_blur = (ctx, canvas) => {
     const blurCanvas = document.createElement('canvas');
     blurCanvas.width = WIDTH;
     blurCanvas.height = HEIGHT;
@@ -134,56 +160,92 @@ const renderStyleD = (ctx, canvas) => {
 
 /**
  * 텍스트 렌더링 (메인 + 서브)
+ * @param {string} position - 'bottom'|'center'|'bottomBox'|'outline'|'band'
+ * @param {number} mainFontSize - 메인 텍스트 크기 (기본 64)
+ * @param {number} subFontSize - 서브 텍스트 크기 (기본 36)
+ * @param {object} bandInfo - 컬러 띠 정보 { bandY, bandH } (스타일 E용)
  */
-const drawThumbnailText = (ctx, mainText, subText, fontFamily, position, textColor) => {
+const drawThumbnailText = (ctx, mainText, subText, fontFamily, position, textColor, mainFontSize = 64, subFontSize = 36, bandInfo = null) => {
     if (!mainText && !subText) return;
 
     const centerX = WIDTH / 2;
+    const maxW = WIDTH * 0.85;
     ctx.textAlign = 'center';
 
-    // 텍스트 그림자 (모바일 가독성 강화)
+    // 아웃라인 스타일은 별도 처리
+    if (position === 'outline') {
+        drawOutlineText(ctx, mainText, subText, fontFamily, mainFontSize, subFontSize, textColor);
+        return;
+    }
+
+    // 텍스트 그림자
     const isLight = textColor !== '#000';
     ctx.shadowColor = isLight ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.4)';
     ctx.shadowBlur = 10;
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 3;
 
-    if (position === 'top') {
-        // 스타일 C: 상단 오렌지 띠 (150px 높이)
-        if (mainText) {
-            ctx.font = `bold 60px "${fontFamily}", Pretendard, sans-serif`;
+    if (position === 'band' && bandInfo) {
+        // 스타일 E: 컬러 띠 안 중앙 정렬
+        const bandCenterY = bandInfo.bandY + bandInfo.bandH / 2;
+        if (mainText && subText) {
+            ctx.font = `bold ${mainFontSize}px "${fontFamily}", Pretendard, sans-serif`;
             ctx.fillStyle = textColor;
-            ctx.fillText(mainText, centerX, 78, SAFE_W * 0.9);
+            ctx.fillText(mainText, centerX, bandCenterY - subFontSize * 0.3, maxW);
+            ctx.font = `600 ${subFontSize}px Pretendard, sans-serif`;
+            ctx.fillStyle = textColor;
+            ctx.fillText(subText, centerX, bandCenterY + mainFontSize * 0.55, maxW);
+        } else if (mainText) {
+            ctx.font = `bold ${mainFontSize}px "${fontFamily}", Pretendard, sans-serif`;
+            ctx.fillStyle = textColor;
+            ctx.fillText(mainText, centerX, bandCenterY + mainFontSize * 0.35, maxW);
+        } else if (subText) {
+            ctx.font = `600 ${subFontSize}px Pretendard, sans-serif`;
+            ctx.fillStyle = textColor;
+            ctx.fillText(subText, centerX, bandCenterY + subFontSize * 0.35, maxW);
+        }
+    } else if (position === 'bottomBox') {
+        // 스타일 B: 하단 박스 영역
+        const boxTop = Math.round(HEIGHT * 0.65);
+        const boxCenterY = boxTop + (HEIGHT - boxTop) / 2;
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        const mainColor = textColor !== '#fff' ? textColor : '#37352F';
+        const subColor = textColor !== '#fff' ? textColor : '#787774';
+        if (mainText) {
+            ctx.font = `bold ${mainFontSize}px "${fontFamily}", Pretendard, sans-serif`;
+            ctx.fillStyle = mainColor;
+            ctx.fillText(mainText, centerX, boxCenterY - (subText ? subFontSize * 0.4 : -mainFontSize * 0.2), maxW);
         }
         if (subText) {
-            ctx.font = `600 34px Pretendard, sans-serif`;
-            ctx.fillStyle = textColor;
-            ctx.fillText(subText, centerX, 126, SAFE_W * 0.9);
+            ctx.font = `600 ${subFontSize}px Pretendard, sans-serif`;
+            ctx.fillStyle = subColor;
+            ctx.fillText(subText, centerX, boxCenterY + (mainText ? mainFontSize * 0.5 : subFontSize * 0.2), maxW);
         }
     } else if (position === 'center') {
-        // 스타일 B: 중앙 박스 (220px 높이)
+        // 스타일 D: 중앙 박스
         if (mainText) {
-            ctx.font = `bold 64px "${fontFamily}", Pretendard, sans-serif`;
+            ctx.font = `bold ${mainFontSize}px "${fontFamily}", Pretendard, sans-serif`;
             ctx.fillStyle = textColor;
-            ctx.fillText(mainText, centerX, HEIGHT / 2 - 10, SAFE_W * 0.7);
+            ctx.fillText(mainText, centerX, HEIGHT / 2 - (subText ? subFontSize * 0.3 : -mainFontSize * 0.2), maxW * 0.85);
         }
         if (subText) {
-            ctx.font = `600 36px Pretendard, sans-serif`;
+            ctx.font = `600 ${subFontSize}px Pretendard, sans-serif`;
             ctx.fillStyle = textColor;
-            ctx.fillText(subText, centerX, HEIGHT / 2 + 46, SAFE_W * 0.7);
+            ctx.fillText(subText, centerX, HEIGHT / 2 + (mainText ? mainFontSize * 0.55 : subFontSize * 0.2), maxW * 0.85);
         }
     } else {
-        // 하단 (스타일 A, D)
-        const baseY = HEIGHT - 100;
+        // 하단 (스타일 A, F)
+        const baseY = HEIGHT - 120;
         if (mainText) {
-            ctx.font = `bold 68px "${fontFamily}", Pretendard, sans-serif`;
+            ctx.font = `bold ${mainFontSize}px "${fontFamily}", Pretendard, sans-serif`;
             ctx.fillStyle = textColor;
-            ctx.fillText(mainText, centerX, baseY, SAFE_W * 0.9);
+            ctx.fillText(mainText, centerX, baseY, maxW);
         }
         if (subText) {
-            ctx.font = `600 38px Pretendard, sans-serif`;
+            ctx.font = `600 ${subFontSize}px Pretendard, sans-serif`;
             ctx.fillStyle = textColor;
-            ctx.fillText(subText, centerX, baseY + 56, SAFE_W * 0.9);
+            ctx.fillText(subText, centerX, baseY + mainFontSize * 0.85, maxW);
         }
     }
 
@@ -195,17 +257,79 @@ const drawThumbnailText = (ctx, mainText, subText, fontFamily, position, textCol
 };
 
 /**
+ * 색상이 밝은지 판단 (아웃라인 테두리 색 결정용)
+ */
+const isLightColor = (hex) => {
+    const c = hex.replace('#', '');
+    const r = parseInt(c.substring(0, 2), 16);
+    const g = parseInt(c.substring(2, 4), 16);
+    const b = parseInt(c.substring(4, 6), 16);
+    return (r * 0.299 + g * 0.587 + b * 0.114) > 150;
+};
+
+/**
+ * 아웃라인 텍스트 (스타일 C)
+ * 볼드 텍스트 + strokeText 대비 테두리
+ */
+const drawOutlineText = (ctx, mainText, subText, fontFamily, mainFontSize, subFontSize, fillColor = '#ffffff') => {
+    const centerX = WIDTH / 2;
+    const maxW = WIDTH * 0.85;
+    ctx.textAlign = 'center';
+
+    // 그림자 끄기
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+
+    const baseY = HEIGHT - 160;
+
+    if (mainText) {
+        ctx.font = `bold ${mainFontSize}px "${fontFamily}", Pretendard, sans-serif`;
+        ctx.lineJoin = 'round';
+        ctx.miterLimit = 2;
+
+        // 테두리 색 (채우기 색이 어두우면 흰 테두리, 밝으면 검정 테두리)
+        const isLightFill = isLightColor(fillColor);
+        const strokeColor = isLightFill ? 'rgba(0,0,0,0.85)' : 'rgba(255,255,255,0.85)';
+
+        ctx.lineWidth = 7;
+        ctx.strokeStyle = strokeColor;
+        ctx.strokeText(mainText, centerX, baseY, maxW);
+
+        ctx.fillStyle = fillColor;
+        ctx.fillText(mainText, centerX, baseY, maxW);
+    }
+
+    if (subText) {
+        const subY = baseY + mainFontSize * 0.85;
+        ctx.font = `600 ${subFontSize}px Pretendard, sans-serif`;
+        ctx.lineJoin = 'round';
+        ctx.miterLimit = 2;
+
+        const isLightFill = isLightColor(fillColor);
+        const strokeColor = isLightFill ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.7)';
+
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = strokeColor;
+        ctx.strokeText(subText, centerX, subY, maxW);
+
+        ctx.fillStyle = fillColor;
+        ctx.fillText(subText, centerX, subY, maxW);
+    }
+};
+
+/**
  * 메인 렌더링 함수
- * @param {string} imageUrl - 원본 이미지 URL (objectURL 또는 dataURL)
+ * @param {string} imageUrl - 원본 이미지 URL
  * @param {object} options
- * @param {string} options.style - 'A'|'B'|'C'|'D'|'E'
- * @param {string} options.mainText
- * @param {string} options.subText
- * @param {string} options.fontFamily
  * @returns {Promise<string>} dataURL (PNG)
  */
 export const generateThumbnail = (imageUrl, options = {}) => {
-    const { style = 'A', mainText = '', subText = '', fontFamily = 'Pretendard', zoom = 1, offsetX = 0, offsetY = 0 } = options;
+    const {
+        style = 'A', mainText = '', subText = '',
+        fontFamily = 'Pretendard', zoom = 1, offsetX = 0, offsetY = 0,
+        mainFontSize = 64, subFontSize = 36, fontColor = '',
+        bandPosition = 'top', bandColor = '#FF6B35', bandHeight = 150,
+    } = options;
 
     return new Promise((resolve, reject) => {
         const img = new Image();
@@ -219,8 +343,8 @@ export const generateThumbnail = (imageUrl, options = {}) => {
             // 1. 이미지 채우기
             fitImageToCanvas(ctx, img, zoom, offsetX, offsetY);
 
-            // E 스타일: 원본만
-            if (style === 'E') {
+            // G 스타일: 원본만
+            if (style === 'G') {
                 resolve(canvas.toDataURL('image/png'));
                 return;
             }
@@ -228,31 +352,38 @@ export const generateThumbnail = (imageUrl, options = {}) => {
             // 2. 밝기 감지
             const brightness = detectBrightness(ctx);
 
-            // 3. 스타일별 오버레이
+            // 3. 스타일별 오버레이 + 텍스트
             let textColor = '#fff';
             let textPosition = 'bottom';
+            let bandInfo = null;
 
             if (style === 'A') {
                 renderStyleA(ctx, brightness);
             } else if (style === 'B') {
-                const isDarkBg = renderStyleB(ctx, brightness);
+                renderStyleB_box(ctx);
+                textPosition = 'bottomBox';
+            } else if (style === 'C') {
+                // 아웃라인: 오버레이 없음
+                textPosition = 'outline';
+            } else if (style === 'D') {
+                const isDarkBg = renderStyleD_centerBox(ctx, brightness);
                 textColor = isDarkBg ? '#000' : '#fff';
                 textPosition = 'center';
-            } else if (style === 'C') {
-                renderStyleC(ctx);
-                textPosition = 'top';
-            } else if (style === 'D') {
-                // D는 블러를 위해 원본 위에 다시 그림
+            } else if (style === 'E') {
+                bandInfo = renderStyleE_band(ctx, bandPosition, bandColor, bandHeight);
+                textPosition = 'band';
+            } else if (style === 'F') {
                 const tempCanvas = document.createElement('canvas');
                 tempCanvas.width = WIDTH;
                 tempCanvas.height = HEIGHT;
                 const tempCtx = tempCanvas.getContext('2d');
                 fitImageToCanvas(tempCtx, img, zoom, offsetX, offsetY);
-                renderStyleD(ctx, tempCanvas);
+                renderStyleF_blur(ctx, tempCanvas);
             }
 
-            // 4. 텍스트
-            drawThumbnailText(ctx, mainText, subText, fontFamily, textPosition, textColor);
+            // 4. 텍스트 (fontColor가 있으면 스타일 기본색 오버라이드)
+            const finalTextColor = fontColor || textColor;
+            drawThumbnailText(ctx, mainText, subText, fontFamily, textPosition, finalTextColor, mainFontSize, subFontSize, bandInfo);
 
             resolve(canvas.toDataURL('image/png'));
         };

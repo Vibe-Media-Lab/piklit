@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Camera, Upload, Info } from 'lucide-react';
+import { Camera, Upload, Info, CheckCircle } from 'lucide-react';
 import { AIService } from '../../services/openai';
 import { generateSeoFilename } from './ImageSeoGuide';
+import { getRecommendedImages } from '../../data/categories';
 import ImageCropper from './ImageCropper';
 import { addAiWatermark } from '../../utils/watermark';
 import '../../styles/PhotoUploader.css';
@@ -391,12 +392,32 @@ const PhotoUploader = ({ keyword, onUpdate, categoryId }) => {
         closeAiModal();
     };
 
+    const recommendedCount = useMemo(() => getRecommendedImages(categoryId), [categoryId]);
+    const totalUploaded = useMemo(() => {
+        return Object.values(files).reduce((sum, arr) => sum + arr.length, 0);
+    }, [files]);
+    const isSufficient = totalUploaded >= recommendedCount;
+    const progressPercent = Math.min((totalUploaded / recommendedCount) * 100, 100);
+
     return (
         <div className="photo-uploader-container">
             <div className="photo-upload-banner">
                 <Camera size={18} />
                 <span>사진을 드래그하거나 클릭해서 넣어주세요</span>
                 <span className="photo-upload-banner-sub">· 자동 리사이징 · AI 이미지 생성 가능</span>
+            </div>
+
+            <div className={`photo-progress-guide ${isSufficient ? 'sufficient' : ''}`}>
+                <div className="photo-progress-text">
+                    {isSufficient ? (
+                        <><CheckCircle size={15} /> 권장 {recommendedCount}장 · 현재 {totalUploaded}장 — 충분해요!</>
+                    ) : (
+                        <>📸 권장 {recommendedCount}장 · 현재 {totalUploaded}장</>
+                    )}
+                </div>
+                <div className="photo-progress-bar">
+                    <div className="photo-progress-fill" style={{ width: `${progressPercent}%` }} />
+                </div>
             </div>
 
             <div className="photo-grid">

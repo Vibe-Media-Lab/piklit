@@ -86,16 +86,28 @@ export const formatParagraphs = (html) => {
             splitParts.push(...splitLongSentence(part));
         }
 
-        // 2문장씩 묶어서 <p> 생성
-        if (splitParts.length <= 2) {
+        // 1~3문장 가변 그룹핑으로 <p> 생성 (자연스러운 문단 길이 변주)
+        if (splitParts.length <= 3) {
             const joined = splitParts.join(' ').trim();
             return `<p>${joined}</p>`;
         }
 
         const chunks = [];
-        for (let i = 0; i < splitParts.length; i += 2) {
-            const chunk = splitParts.slice(i, i + 2).join(' ').trim();
-            if (chunk) chunks.push(`<p>${chunk}</p>`);
+        let i = 0;
+        while (i < splitParts.length) {
+            const remaining = splitParts.length - i;
+            // 남은 문장이 1개면 이전 문단에 합류
+            if (remaining === 1 && chunks.length > 0) {
+                const lastChunk = chunks.pop().replace(/<\/?p>/g, '');
+                chunks.push(`<p>${lastChunk} ${splitParts[i].trim()}</p>`);
+                i++;
+            } else {
+                // 1~3문장 랜덤 그룹핑
+                const groupSize = Math.min(remaining, Math.floor(Math.random() * 3) + 1);
+                const chunk = splitParts.slice(i, i + groupSize).join(' ').trim();
+                if (chunk) chunks.push(`<p>${chunk}</p>`);
+                i += groupSize;
+            }
         }
 
         return chunks.join('');

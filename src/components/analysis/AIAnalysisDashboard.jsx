@@ -1,11 +1,26 @@
 import React, { useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { useEditor } from '../../context/EditorContext';
 import { useToast } from '../common/Toast';
 import { AIService } from '../../services/openai';
+import { Loader2 } from 'lucide-react';
 import ReadabilityPanel from './ReadabilityPanel';
 import HumannessPanel from './HumannessPanel';
 import PostHistory from './PostHistory';
 import ThumbnailPanel from './ThumbnailPanel';
+
+const SidebarGroup = ({ title, defaultOpen = false, children }) => {
+    const [open, setOpen] = useState(defaultOpen);
+    return (
+        <div className="sidebar-group">
+            <button className={`sidebar-group-toggle ${open ? 'open' : ''}`} onClick={() => setOpen(prev => !prev)}>
+                <span>{title}</span>
+                <ChevronDown size={16} className={`sidebar-group-chevron ${open ? 'open' : ''}`} />
+            </button>
+            {open && <div className="sidebar-group-body">{children}</div>}
+        </div>
+    );
+};
 
 const AIAnalysisDashboard = () => {
     const { analysis, content, recordAiAction } = useEditor();
@@ -17,9 +32,9 @@ const AIAnalysisDashboard = () => {
 
     const [loading, setLoading] = useState(false);
     const [extractedTags, setExtractedTags] = useState([]);
-    const [copiedTag, setCopiedTag] = useState(null); // 개별 복사 피드백
-    const [copiedAll, setCopiedAll] = useState(false); // 전체 복사 피드백
-    const [activeMetric, setActiveMetric] = useState(null); // 메트릭 설명 토글
+    const [copiedTag, setCopiedTag] = useState(null);
+    const [copiedAll, setCopiedAll] = useState(false);
+    const [activeMetric, setActiveMetric] = useState(null);
 
     const handleExtractTags = async () => {
         if (content.length < 50) return showToast("본문 내용을 좀 더 작성해주세요.", "warning");
@@ -30,7 +45,6 @@ const AIAnalysisDashboard = () => {
             const parser = new DOMParser();
             const doc = parser.parseFromString(content, 'text/html');
             const text = doc.body.textContent || "";
-
             const tags = await AIService.extractTags(text);
             const cleanTags = (Array.isArray(tags) ? tags : []).map(t => t.replace('#', ''));
             setExtractedTags(cleanTags);
@@ -56,8 +70,8 @@ const AIAnalysisDashboard = () => {
 
     return (
         <div className="ai-dashboard">
-            {/* Score Gauge */}
-            <div style={{ textAlign: 'center', marginBottom: '24px', position: 'relative' }}>
+            {/* Score Gauge — 항상 표시 */}
+            <div className="dashboard-gauge">
                 <svg width="120" height="120" viewBox="0 0 120 120">
                     <circle cx="60" cy="60" r="54" fill="none" stroke="#e0e0e0" strokeWidth="12" />
                     <circle
@@ -68,144 +82,114 @@ const AIAnalysisDashboard = () => {
                         style={{ transition: 'stroke-dashoffset 0.5s ease' }}
                     />
                 </svg>
-                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>{percentage}점</div>
-                    <div style={{ fontSize: '0.7rem', color: '#888' }}>SEO 점수</div>
+                <div className="dashboard-gauge-text">
+                    <div className="dashboard-gauge-score">{percentage}점</div>
+                    <div className="dashboard-gauge-label">SEO 점수</div>
                 </div>
             </div>
 
-            {/* Metrics Cards */}
-            <div className="metrics-grid">
-                <div
-                    className={`metric-card metric-clickable ${activeMetric === 'density' ? 'active' : ''}`}
-                    onClick={() => setActiveMetric(prev => prev === 'density' ? null : 'density')}
-                >
-                    <div className="metric-value">{keywordDensity != null ? `${keywordDensity}%` : '-'}</div>
-                    <div className="metric-label">키워드 밀도</div>
-                </div>
-                <div
-                    className={`metric-card metric-clickable ${activeMetric === 'intro' ? 'active' : ''}`}
-                    onClick={() => setActiveMetric(prev => prev === 'intro' ? null : 'intro')}
-                >
-                    <div className="metric-value">{introLength != null ? `${introLength}자` : '-'}</div>
-                    <div className="metric-label">도입부 길이</div>
-                </div>
-                <div
-                    className={`metric-card metric-clickable ${activeMetric === 'heading' ? 'active' : ''}`}
-                    onClick={() => setActiveMetric(prev => prev === 'heading' ? null : 'heading')}
-                >
-                    <div className="metric-value">{headingCount != null ? headingCount : '-'}</div>
-                    <div className="metric-label">소제목 수</div>
-                </div>
-            </div>
-            {activeMetric && (
-                <div className="metric-info-bar">
-                    {activeMetric === 'density' && '(출현 횟수 × 키워드 글자수) ÷ 전체 글자수 × 100 — 적정: 1~3%'}
-                    {activeMetric === 'intro' && '첫 번째 문단의 글자수 — 권장: 140~160자'}
-                    {activeMetric === 'heading' && 'H2, H3 태그 합산 개수 — 1,500자당 3~5개 권장'}
-                </div>
-            )}
-
-            {/* AI Actions - 태그 추출만 */}
-            <div style={{ marginBottom: '24px' }}>
-                <button
-                    onClick={handleExtractTags}
-                    disabled={loading}
-                    style={{
-                        width: '100%', padding: '10px', background: '#FF6B35', color: 'white',
-                        border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem'
-                    }}
-                >
-                    {loading ? '분석 중...' : '# 블로그 태그 추출'}
-                </button>
-            </div>
-
-            {/* 추출된 태그 결과 */}
-            {extractedTags.length > 0 && (
-                <div style={{ marginBottom: '24px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                        <h4 style={{ fontSize: '0.85rem', margin: 0 }}>추출된 태그</h4>
-                        <button
-                            onClick={handleCopyTags}
-                            style={{
-                                background: copiedAll ? '#FF6B35' : 'none',
-                                border: '1px solid #ddd',
-                                borderRadius: '4px',
-                                padding: '2px 8px',
-                                fontSize: '0.75rem',
-                                cursor: 'pointer',
-                                color: copiedAll ? 'white' : '#666',
-                                transition: 'all 0.2s'
-                            }}
-                        >
-                            {copiedAll ? '복사됨!' : '전체 복사'}
-                        </button>
+            {/* 그룹 1: SEO 분석 (기본 펼침) */}
+            <SidebarGroup title="SEO 분석" defaultOpen={true}>
+                {/* Metrics Cards */}
+                <div className="metrics-grid">
+                    <div
+                        className={`metric-card metric-clickable ${activeMetric === 'density' ? 'active' : ''}`}
+                        onClick={() => setActiveMetric(prev => prev === 'density' ? null : 'density')}
+                    >
+                        <div className="metric-value">{keywordDensity != null ? `${keywordDensity}%` : '-'}</div>
+                        <div className="metric-label">키워드 밀도</div>
                     </div>
-                    <p style={{ fontSize: '0.7rem', color: '#999', margin: '0 0 6px 0' }}>
-                        클릭하면 개별 복사됩니다
-                    </p>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                        {extractedTags.map((tag, i) => (
-                            <span
-                                key={i}
-                                onClick={() => handleCopySingleTag(tag)}
-                                style={{
-                                    padding: '4px 10px',
-                                    background: copiedTag === tag ? '#FF6B35' : '#FFF3ED',
-                                    color: copiedTag === tag ? 'white' : '#FF6B35',
-                                    borderRadius: '12px',
-                                    fontSize: '0.8rem',
-                                    fontWeight: '500',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s'
-                                }}
-                            >
-                                {copiedTag === tag ? '복사됨!' : `#${tag}`}
-                            </span>
-                        ))}
+                    <div
+                        className={`metric-card metric-clickable ${activeMetric === 'intro' ? 'active' : ''}`}
+                        onClick={() => setActiveMetric(prev => prev === 'intro' ? null : 'intro')}
+                    >
+                        <div className="metric-value">{introLength != null ? `${introLength}자` : '-'}</div>
+                        <div className="metric-label">도입부 길이</div>
+                    </div>
+                    <div
+                        className={`metric-card metric-clickable ${activeMetric === 'heading' ? 'active' : ''}`}
+                        onClick={() => setActiveMetric(prev => prev === 'heading' ? null : 'heading')}
+                    >
+                        <div className="metric-value">{headingCount != null ? headingCount : '-'}</div>
+                        <div className="metric-label">소제목 수</div>
                     </div>
                 </div>
-            )}
-
-            {/* Issues List */}
-            <div style={{ marginBottom: '16px' }}>
-                <h4 style={{ fontSize: '0.9rem', marginBottom: '12px' }}>최적화 체크리스트</h4>
-
-                {issues.length === 0 ? (
-                    <div style={{ padding: '12px', background: '#d4edda', color: '#155724', borderRadius: '8px', fontSize: '0.85rem' }}>
-                        완벽합니다!
+                {activeMetric && (
+                    <div className="metric-info-bar">
+                        {activeMetric === 'density' && '(출현 횟수 × 키워드 글자수) ÷ 전체 글자수 × 100 — 적정: 1~3%'}
+                        {activeMetric === 'intro' && '첫 번째 문단의 글자수 — 권장: 140~160자'}
+                        {activeMetric === 'heading' && 'H2, H3 태그 합산 개수 — 1,500자당 3~5개 권장'}
                     </div>
-                ) : (
-                    <ul style={{ paddingLeft: '0', listStyle: 'none' }}>
-                        {issues.map((issue, idx) => (
-                            <li key={idx} style={{
-                                padding: '10px',
-                                marginBottom: '8px',
-                                background: issue.type === 'error' ? '#f8d7da' : '#fff3cd',
-                                color: issue.type === 'error' ? '#721c24' : '#856404',
-                                borderRadius: '6px',
-                                fontSize: '0.85rem',
-                                display: 'flex', alignItems: 'start', gap: '8px'
-                            }}>
-                                <span>{issue.type === 'error' ? '❌' : issue.type === 'warning' ? '⚠️' : 'ℹ️'}</span>
-                                {issue.text}
-                            </li>
-                        ))}
-                    </ul>
                 )}
-            </div>
 
-            {/* Readability Panel */}
-            <ReadabilityPanel />
+                {/* 체크리스트 */}
+                <div className="dashboard-checklist">
+                    <h4 className="dashboard-section-title">최적화 체크리스트</h4>
+                    {issues.length === 0 ? (
+                        <div className="dashboard-perfect">완벽합니다!</div>
+                    ) : (
+                        <ul className="dashboard-issues">
+                            {issues.map((issue, idx) => (
+                                <li key={idx} className={`dashboard-issue dashboard-issue-${issue.type}`}>
+                                    <span>{issue.type === 'error' ? '❌' : issue.type === 'warning' ? '⚠️' : 'ℹ️'}</span>
+                                    {issue.text}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
 
-            {/* Humanness Detection Panel */}
-            <HumannessPanel />
+                {/* 가독성 */}
+                <ReadabilityPanel />
+            </SidebarGroup>
 
-            {/* Post History Timeline */}
-            <PostHistory />
+            {/* 그룹 2: AI 도구 */}
+            <SidebarGroup title="AI 도구" defaultOpen={false}>
+                {/* 태그 추출 */}
+                <div className="dashboard-tag-section">
+                    <button
+                        onClick={handleExtractTags}
+                        disabled={loading}
+                        className="dashboard-tag-btn"
+                    >
+                        {loading ? <span className="btn-loading-spinner"><Loader2 size={14} className="spin" /> 분석 중...</span> : '# 블로그 태그 추출'}
+                    </button>
+                </div>
 
-            {/* Thumbnail Generator */}
-            <ThumbnailPanel />
+                {extractedTags.length > 0 && (
+                    <div className="dashboard-tag-result">
+                        <div className="dashboard-tag-header">
+                            <h4 className="dashboard-section-title">추출된 태그</h4>
+                            <button onClick={handleCopyTags} className={`dashboard-copy-btn ${copiedAll ? 'copied' : ''}`}>
+                                {copiedAll ? '복사됨!' : '전체 복사'}
+                            </button>
+                        </div>
+                        <p className="dashboard-tag-hint">클릭하면 개별 복사됩니다</p>
+                        <div className="dashboard-tag-chips">
+                            {extractedTags.map((tag, i) => (
+                                <span
+                                    key={i}
+                                    onClick={() => handleCopySingleTag(tag)}
+                                    className={`dashboard-tag-chip ${copiedTag === tag ? 'copied' : ''}`}
+                                >
+                                    {copiedTag === tag ? '복사됨!' : `#${tag}`}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* AI 감지 분석 */}
+                <HumannessPanel />
+
+                {/* 썸네일 생성 */}
+                <ThumbnailPanel />
+            </SidebarGroup>
+
+            {/* 그룹 3: 히스토리 */}
+            <SidebarGroup title="작성 히스토리" defaultOpen={false}>
+                <PostHistory />
+            </SidebarGroup>
         </div>
     );
 };

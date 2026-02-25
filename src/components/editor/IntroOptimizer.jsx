@@ -1,7 +1,29 @@
 import React, { useState, useMemo } from 'react';
+import { Loader2 } from 'lucide-react';
 import { useEditor } from '../../context/EditorContext';
 import { useToast } from '../common/Toast';
 import { AIService } from '../../services/openai';
+import { humanizeText } from '../../utils/humanness';
+
+// 정보카드 감지: <h3>로 시작하고 📍 또는 🏷️ 이모지 포함
+const INFO_CARD_START = /<h3[^>]*>\s*(?:📍|🏷️)/i;
+
+/**
+ * 정보카드가 콘텐츠 상단에 있는지 감지하고,
+ * 있으면 { hasInfoCard: true, afterCardIndex: <hr> 뒤 위치 } 반환
+ */
+function detectInfoCard(html) {
+    if (!html) return { hasInfoCard: false, afterCardIndex: -1 };
+    const trimmed = html.trimStart();
+    if (!INFO_CARD_START.test(trimmed.substring(0, 200))) {
+        return { hasInfoCard: false, afterCardIndex: -1 };
+    }
+    // <hr> 또는 <hr/> 또는 <hr /> 찾기
+    const hrMatch = html.match(/<hr\s*\/?>/i);
+    if (!hrMatch) return { hasInfoCard: false, afterCardIndex: -1 };
+    const afterCardIndex = hrMatch.index + hrMatch[0].length;
+    return { hasInfoCard: true, afterCardIndex };
+}
 
 const IntroOptimizer = () => {
     const { title, content, setContent, keywords, suggestedTone } = useEditor();
@@ -12,27 +34,35 @@ const IntroOptimizer = () => {
 
     const mainKeyword = keywords.main?.trim() || '';
 
-    // 현재 본문에서 첫 번째 <p> 텍스트 추출
+    const infoCardState = useMemo(() => detectInfoCard(content), [content]);
+
+    // 현재 본문에서 도입부 텍스트 추출 (정보카드 감지 반영)
     const currentIntro = useMemo(() => {
         if (!content) return '';
-        const match = content.match(/<p[^>]*>([\s\S]*?)<\/p>/i);
+        let searchArea = content;
+        if (infoCardState.hasInfoCard && infoCardState.afterCardIndex > 0) {
+            // 정보카드 뒤 영역에서 첫 <p> 찾기
+            searchArea = content.substring(infoCardState.afterCardIndex);
+        }
+        const match = searchArea.match(/<p[^>]*>([\s\S]*?)<\/p>/i);
         if (!match) return '';
-        // HTML 태그 제거하여 순수 텍스트 추출
         const temp = document.createElement('div');
         temp.innerHTML = match[1];
         return temp.textContent?.trim() || '';
-    }, [content]);
+    }, [content, infoCardState]);
 
-    // 검색 미리보기용 텍스트 (첫 2~3문장, ~160자)
+    // 검색 미리보기용 텍스트 — 정보카드 뒤에서 추출
     const previewText = useMemo(() => {
         if (!content) return '';
+        let searchArea = content;
+        if (infoCardState.hasInfoCard && infoCardState.afterCardIndex > 0) {
+            searchArea = content.substring(infoCardState.afterCardIndex);
+        }
         const temp = document.createElement('div');
-        temp.innerHTML = content;
+        temp.innerHTML = searchArea;
         const text = temp.textContent || '';
         return text.substring(0, 160).trim() + (text.length > 160 ? '...' : '');
-    }, [content]);
-
-    const hasKeywordInIntro = mainKeyword && currentIntro.includes(mainKeyword);
+    }, [content, infoCardState]);
 
     const handleGenerate = async () => {
         if (!currentIntro) return showToast('본문에 도입부가 없습니다. 먼저 글을 작성해주세요.', 'warning');
@@ -42,21 +72,11 @@ const IntroOptimizer = () => {
         setAlternatives([]);
         try {
             const subKws = (keywords.sub || []).filter(k => k && k.trim());
-            // 본문 텍스트를 전달하여 실제 톤앤무드를 분석하게 함
             const parser = new DOMParser();
             const doc = parser.parseFromString(content, 'text/html');
             const bodyText = (doc.body.textContent || '').substring(0, 800);
-            let result = await AIService.generateIntroAlternatives(currentIntro, mainKeyword, subKws, title, suggestedTone, bodyText);
+            const result = await AIService.generateIntroAlternatives(currentIntro, mainKeyword, subKws, title, suggestedTone, bodyText);
             if (result?.alternatives && Array.isArray(result.alternatives)) {
-                // 140자 미만인 항목이 있으면 1회 재생성 시도
-                const tooShort = result.alternatives.some(a => a.text && a.text.length < 130);
-                if (tooShort) {
-                    console.log('[도입부] 글자수 부족 — 재생성 시도');
-                    const retry = await AIService.generateIntroAlternatives(currentIntro, mainKeyword, subKws, title, suggestedTone, bodyText);
-                    if (retry?.alternatives && Array.isArray(retry.alternatives)) {
-                        result = retry;
-                    }
-                }
                 setAlternatives(result.alternatives);
             }
         } catch (e) {
@@ -68,9 +88,16 @@ const IntroOptimizer = () => {
     };
 
     const handleApply = (newIntroText) => {
-        // 맨 상단에 새 <p> 태그로 삽입 (정보카드 위에 배치)
-        const newContent = `<p>${newIntroText}</p>` + content;
-        setContent(newContent);
+        const processed = humanizeText(`<p>${newIntroText}</p>`, suggestedTone || 'friendly');
+        if (infoCardState.hasInfoCard && infoCardState.afterCardIndex > 0) {
+            // 정보카드 뒤에 삽입
+            const before = content.substring(0, infoCardState.afterCardIndex);
+            const after = content.substring(infoCardState.afterCardIndex);
+            setContent(before + processed + after);
+        } else {
+            // 기존대로 맨 앞에 prepend
+            setContent(processed + content);
+        }
         setAlternatives([]);
     };
 
@@ -99,28 +126,13 @@ const IntroOptimizer = () => {
                         </div>
                     </div>
 
-                    {/* 도입부 분석 */}
-                    <div className="intro-analysis">
-                        <div className="intro-analysis-header">현재 도입부 분석</div>
-                        <p className="intro-analysis-text">"{currentIntro}"</p>
-                        <div className="intro-analysis-badges">
-                            <span className={`intro-badge ${hasKeywordInIntro ? 'intro-badge-good' : 'intro-badge-warn'}`}>
-                                {hasKeywordInIntro ? '✅ 키워드 포함' : '⚠️ 키워드 미포함'}
-                            </span>
-                            <span className={`intro-badge ${currentIntro.length >= 40 && currentIntro.length <= 160 ? 'intro-badge-good' : 'intro-badge-warn'}`}>
-                                {currentIntro.length}자
-                                {currentIntro.length < 40 ? ' (너무 짧음)' : currentIntro.length > 160 ? ' (너무 긺)' : ' (적정)'}
-                            </span>
-                        </div>
-                    </div>
-
                     {/* 생성 버튼 */}
                     <button
                         className="intro-generate-btn"
                         onClick={handleGenerate}
                         disabled={loading}
                     >
-                        {loading ? '⏳ AI 도입부 생성 중...' : '✨ 클릭률 높은 도입부 3개 제안받기'}
+                        {loading ? <span className="btn-loading-spinner"><Loader2 size={14} className="spin" /> AI 도입부 생성 중...</span> : '✨ 클릭률 높은 도입부 3개 제안받기'}
                     </button>
 
                     {/* 대안 도입부 목록 */}
