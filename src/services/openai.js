@@ -1250,6 +1250,41 @@ ${styleDesc}
      * @param {string} mainKeyword - 메인 키워드 (맥락 제공용)
      * @returns {Promise<{suggestions: Array<{original: string, revised: string, reason: string}>, overallTip: string}>}
      */
+    /**
+     * 썸네일용 메인/서브 텍스트 추출
+     * @param {string} title - 블로그 제목
+     * @param {string} mainKeyword - 메인 키워드
+     * @returns {Promise<{mainText: string, subText: string}>}
+     */
+    async generateThumbnailText(title, mainKeyword = '') {
+        const prompt = `너는 블로그 썸네일 카피라이터야.
+아래 제목에서 썸네일에 들어갈 메인 텍스트와 서브 텍스트를 추출해.
+
+[제목] ${title}
+[메인 키워드] ${mainKeyword || '없음'}
+
+[규칙]
+1. 메인 텍스트: 10자 이내, 임팩트 있는 핵심 문구. 키워드 포함 권장.
+2. 서브 텍스트: 15자 이내, 메인을 보충하는 짧은 설명.
+3. 제목을 그대로 복사하지 말고 썸네일에 어울리게 압축·변환.
+
+Output strictly a valid JSON: {"mainText":"메인","subText":"서브"}`;
+
+        const result = await this.generateContent([{ text: prompt }], {
+            thinkingBudget: 0,
+            generationConfig: { responseMimeType: 'application/json' }
+        }, '썸네일 텍스트');
+
+        // 10자/15자 초과 시 트렁케이션
+        if (result?.mainText && result.mainText.length > 10) {
+            result.mainText = result.mainText.slice(0, 10);
+        }
+        if (result?.subText && result.subText.length > 15) {
+            result.subText = result.subText.slice(0, 15);
+        }
+        return result || { mainText: '', subText: '' };
+    },
+
     async analyzeHumanness(content, mainKeyword = '') {
         const prompt = `너는 네이버 블로그 AI 감지 회피 전문가야.
 아래 블로그 본문에서 "AI가 쓴 것 같은" 부분을 찾아 사람처럼 고쳐줘.

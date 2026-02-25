@@ -5,6 +5,7 @@ import { AIService } from '../../services/openai';
 import ReadabilityPanel from './ReadabilityPanel';
 import HumannessPanel from './HumannessPanel';
 import PostHistory from './PostHistory';
+import ThumbnailPanel from './ThumbnailPanel';
 
 const AIAnalysisDashboard = () => {
     const { analysis, content, recordAiAction } = useEditor();
@@ -202,6 +203,9 @@ const AIAnalysisDashboard = () => {
 
             {/* Post History Timeline */}
             <PostHistory />
+
+            {/* Thumbnail Generator */}
+            <ThumbnailPanel />
         </div>
     );
 };

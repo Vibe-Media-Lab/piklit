@@ -23,6 +23,7 @@ export const EditorProvider = ({ children }) => {
     const [analysis, setAnalysis] = useState({ checks: {}, issues: [], totalChars: 0, imageCount: 0, hasVideo: false, keywordDensity: 0, introLength: 0, headingCount: 0 });
     const [suggestedTone, setSuggestedTone] = useState('friendly');
     const [targetLength, setTargetLength] = useState(1500);
+    const [photoPreviewUrls, setPhotoPreviewUrls] = useState([]);
     const editorRef = React.useRef(null);
     const lastCursorPosRef = React.useRef(null);
 
@@ -295,7 +296,11 @@ export const EditorProvider = ({ children }) => {
         closeSession,
         recordAiAction,
         updatePostMeta,
-    }), [posts, currentPostId, createPost, openPostStable, savePost, deletePost, keywords, updateMainKeyword, updateSubKeyword, updateSubKeywords, title, content, analysis, suggestedTone, targetLength, closeSession, recordAiAction, updatePostMeta]);
+
+        // Photo previews (for ThumbnailPanel)
+        photoPreviewUrls,
+        setPhotoPreviewUrls,
+    }), [posts, currentPostId, createPost, openPostStable, savePost, deletePost, keywords, updateMainKeyword, updateSubKeyword, updateSubKeywords, title, content, analysis, suggestedTone, targetLength, closeSession, recordAiAction, updatePostMeta, photoPreviewUrls]);
 
     return (
         <EditorContext.Provider value={value}>

@@ -25,7 +25,7 @@ const EditorPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const location = useLocation();
-    const { openPost, posts, currentPostId, updateMainKeyword, updateSubKeywords, setSuggestedTone, setContent, content, setTargetLength, editorRef, lastCursorPosRef, closeSession, recordAiAction, updatePostMeta } = useEditor();
+    const { openPost, posts, currentPostId, updateMainKeyword, updateSubKeywords, setSuggestedTone, setContent, content, setTargetLength, editorRef, lastCursorPosRef, closeSession, recordAiAction, updatePostMeta, setPhotoPreviewUrls } = useEditor();
     const { showToast } = useToast();
 
     const loadedRef = useRef(null);
@@ -79,6 +79,18 @@ const EditorPage = () => {
     const [imageCaptions, setImageCaptions] = useState({});
     const [cachedPhotoAssets, setCachedPhotoAssets] = useState([]);
     const imageAltsRef = useRef({});
+
+    // photoData.files → Context photoPreviewUrls 동기화 (모든 파일의 ObjectURL 생성)
+    useEffect(() => {
+        const urls = [];
+        for (const slotFiles of Object.values(photoData.files || {})) {
+            for (const file of (slotFiles || [])) {
+                urls.push(URL.createObjectURL(file));
+            }
+        }
+        setPhotoPreviewUrls(urls);
+        return () => urls.forEach(url => URL.revokeObjectURL(url));
+    }, [photoData.files, setPhotoPreviewUrls]);
 
     // Step 3: 본문 설정 상태
     const [selectedLength, setSelectedLengthLocal] = useState(null);
