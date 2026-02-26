@@ -2,16 +2,20 @@ import { SignJWT, importPKCS8 } from 'jose';
 
 // Firebase Custom Token 생성 (jose RS256)
 async function createFirebaseCustomToken(uid, claims = {}) {
-    const serviceAccount = JSON.parse(
-        Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_KEY, 'base64').toString()
-    );
-    const privateKey = await importPKCS8(serviceAccount.private_key, 'RS256');
+    const clientEmail = process.env.FIREBASE_SA_CLIENT_EMAIL;
+    const rawKey = process.env.FIREBASE_SA_PRIVATE_KEY;
+    if (!clientEmail || !rawKey) {
+        throw new Error('Missing FIREBASE_SA_CLIENT_EMAIL or FIREBASE_SA_PRIVATE_KEY');
+    }
+    // Vercel은 환경변수에서 \n을 리터럴 문자열로 저장하므로 실제 줄바꿈으로 변환
+    const privateKeyPem = rawKey.replace(/\\n/g, '\n');
+    const privateKey = await importPKCS8(privateKeyPem, 'RS256');
 
     const now = Math.floor(Date.now() / 1000);
     const token = await new SignJWT({ uid, claims })
         .setProtectedHeader({ alg: 'RS256', typ: 'JWT' })
-        .setIssuer(serviceAccount.client_email)
-        .setSubject(serviceAccount.client_email)
+        .setIssuer(clientEmail)
+        .setSubject(clientEmail)
         .setAudience('https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit')
         .setIssuedAt(now)
         .setExpirationTime(now + 3600)
