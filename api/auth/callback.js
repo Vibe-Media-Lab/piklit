@@ -2,7 +2,8 @@ import { SignJWT, importPKCS8 } from 'jose';
 
 // Firebase Custom Token 생성 (jose RS256)
 async function createFirebaseCustomToken(uid, claims = {}) {
-    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+    const raw = process.env.FIREBASE_SERVICE_ACCOUNT_KEY.replace(/\n/g, '\\n');
+    const serviceAccount = JSON.parse(raw);
     const privateKey = await importPKCS8(serviceAccount.private_key, 'RS256');
 
     const now = Math.floor(Date.now() / 1000);
