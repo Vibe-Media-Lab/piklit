@@ -4,20 +4,21 @@
 네이버 블로그 SEO 최적화 AI 작성기 (React 19 + Vite 7 + TipTap + Google Gemini 2.5 Flash API)
 
 ## 이번 세션 요약
-무료 체험 제한(3회/월) + API 키 숨김 + 가입 첫 달 무료 프로모션 구현. CDO 가격 구조 확정 (BYOK ₩4,900 / Pro ₩18,900).
+톤 프리셋 샘플 미리보기 추가 + 사이드바·상단바·히스토리·글목록 UI 개선 + CDO.md 로드맵 전면 업데이트
 
 ## 수정 파일
 
 | 파일 | 변경 사항 |
 |------|----------|
-| `api/lib/auth.js` | (신규) 공유 인증 헬퍼 — verifyFirebaseToken 추출 |
-| `api/lib/firestore.js` | (신규) Firestore REST API 헬퍼 — jose 기반 access token, getDoc/setDoc |
-| `api/gemini.js` | 글 생성 3회/월 quota 체크 + 첫 달 프로모션 + createdAt 자동 기록 |
-| `api/gemini-image.js` | BYOK 전용 차단 + 첫 달 프로모션 허용 |
-| `api/usage.js` | stub → 실제 Firestore 사용량 조회 (isPromo, promoDaysLeft 포함) |
-| `src/services/openai.js` | action 라벨 전달 + 429/403 에러 핸들링 |
-| `src/services/firebase.js` | callVercelFunction 에러에 status/code 속성 첨부 |
-| `docs/CDO.md` | 가격 구조 확정 (BYOK ₩4,900, Pro ₩18,900, 첫 달 무료) |
+| `src/pages/EditorPage.jsx` | TONES 배열에 sample 필드 추가 + 톤 카드에 미리보기 JSX |
+| `src/styles/components.css` | 톤 미리보기 스타일 3클래스 + 768px 모바일 반응형 |
+| `src/App.jsx` | 라우팅 변경 |
+| `src/components/layout/Sidebar.jsx` | 사이드바 UI 개선 |
+| `src/components/layout/TopBar.jsx` | 상단바 UI 개선 |
+| `src/pages/HistoryPage.jsx` | 히스토리 페이지 UI 개선 |
+| `src/pages/PostListPage.jsx` | 글 목록 페이지 UI 개선 |
+| `src/styles/history.css` | 히스토리 스타일 수정 |
+| `docs/CDO.md` | Phase 2~3 로드맵 재구성 + 체험단/협찬 모드 기획 추가 |
 
 ## 현재 릴리즈 상태
 - 빌드: 정상
