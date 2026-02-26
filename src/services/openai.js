@@ -111,6 +111,7 @@ export const AIService = {
                     body,
                     model: 'gemini-2.5-flash',
                     userApiKey,
+                    action: label || undefined,
                 });
 
                 const data = result.data;
@@ -145,7 +146,15 @@ export const AIService = {
                 return { html: cleanText, text: cleanText };
 
             } catch (error) {
-                // Firebase Functions의 resource-exhausted 에러 (무료 체험 소진)
+                // 무료 체험 소진 (429 QUOTA_EXCEEDED) — 재시도 안 함
+                if (error.status === 429 && error.code === 'QUOTA_EXCEEDED') {
+                    throw error;
+                }
+                // BYOK 필요 (403) — 재시도 안 함
+                if (error.status === 403 && error.code === 'BYOK_REQUIRED') {
+                    throw error;
+                }
+                // Firebase Functions의 resource-exhausted 에러 (레거시 호환)
                 if (error.code === 'functions/resource-exhausted') {
                     throw new Error(error.message);
                 }
@@ -1253,6 +1262,10 @@ ${styleDesc}
                     mimeType: imagePart.inlineData.mimeType || 'image/png'
                 };
             } catch (error) {
+                // BYOK 필요 (403) — 재시도 안 함
+                if (error.status === 403 && error.code === 'BYOK_REQUIRED') {
+                    throw error;
+                }
                 if (error.code === 'functions/resource-exhausted') {
                     throw new Error(error.message);
                 }

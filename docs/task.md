@@ -394,7 +394,20 @@
 - [x] 서비스 계정 환경변수 분리 (JSON 파싱→개별 변수: FIREBASE_SA_CLIENT_EMAIL + FIREBASE_SA_PRIVATE_KEY)
 - [x] 카카오 로그인 동작 확인
 
+### 무료 체험 제한 + 가입 첫 달 프로모션
+- [x] 공유 인증 헬퍼 추출 (api/lib/auth.js)
+- [x] Firestore REST API 헬퍼 (api/lib/firestore.js — jose 기반 access token + getDoc/setDoc)
+- [x] 글 생성 3회/월 quota 체크 (api/gemini.js — action 기반, 서버 키 사용자만)
+- [x] AI 이미지 BYOK 전용 차단 (api/gemini-image.js — 403 반환)
+- [x] 사용량 API 실제 Firestore 연동 (api/usage.js — isPromo/promoDaysLeft 포함)
+- [x] 클라이언트 action 라벨 전달 + 429/403 에러 핸들링 (openai.js, firebase.js)
+- [x] 가입 첫 달 무료 프로모션 (30일간 무제한 — gemini.js, gemini-image.js, usage.js)
+- [x] CDO.md 가격 구조 업데이트 (BYOK ₩4,900 / Pro ₩18,900 / 첫 달 무료)
+
 ### 남은 작업
+- [ ] **Firebase Firestore 데이터베이스 생성** (Console에서 수동 — asia-northeast3, 프로덕션 모드)
+- [ ] Vercel 환경변수 확인 (FIREBASE_SA_CLIENT_EMAIL, FIREBASE_SA_PRIVATE_KEY)
+- [ ] 배포 후 프로모션 플로우 테스트 (글 생성 무제한 → 30일 후 3회 제한)
 - [ ] 카카오 동의항목 설정 (닉네임/프로필사진/이메일)
 - [ ] 네이버 테스터 등록 후 로그인 테스트
 - [ ] Google 로그인 프로덕션 테스트

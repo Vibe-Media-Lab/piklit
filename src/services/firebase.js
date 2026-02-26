@@ -31,7 +31,10 @@ async function callVercelFunction(path, payload) {
 
     const data = await response.json();
     if (!response.ok) {
-        throw new Error(data.error || `서버 오류 (${response.status})`);
+        const error = new Error(data.error || `서버 오류 (${response.status})`);
+        error.status = response.status;
+        error.code = data.code;
+        throw error;
     }
 
     // httpsCallable 호환: { data: ... } 구조 유지

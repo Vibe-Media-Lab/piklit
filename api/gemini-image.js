@@ -1,22 +1,12 @@
-import { createRemoteJWKSet, jwtVerify } from 'jose';
+import { verifyFirebaseToken } from './lib/auth.js';
+import { getDoc, setDoc } from './lib/firestore.js';
 
-const JWKS = createRemoteJWKSet(
-    new URL('https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com')
-);
+const PROMO_DAYS = 30;
 
-async function verifyFirebaseToken(req) {
-    const authHeader = req.headers['authorization'];
-    if (!authHeader?.startsWith('Bearer ')) {
-        throw new Error('Missing or invalid Authorization header');
-    }
-    const token = authHeader.slice(7);
-    const projectId = process.env.FIREBASE_PROJECT_ID;
-
-    const { payload } = await jwtVerify(token, JWKS, {
-        issuer: `https://securetoken.google.com/${projectId}`,
-        audience: projectId,
-    });
-    return payload;
+function isWithinPromo(createdAt) {
+    if (!createdAt) return false;
+    const diffDays = (Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24);
+    return diffDays <= PROMO_DAYS;
 }
 
 export default async function handler(req, res) {
@@ -27,19 +17,46 @@ export default async function handler(req, res) {
     if (req.method === 'OPTIONS') return res.status(200).end();
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
+    let uid;
     try {
-        await verifyFirebaseToken(req);
+        const payload = await verifyFirebaseToken(req);
+        uid = payload.sub;
     } catch (err) {
         return res.status(401).json({ error: '인증 실패: ' + err.message });
     }
 
     try {
         const { body, userApiKey } = req.body;
-        const apiKey = userApiKey || process.env.GEMINI_API_KEY;
-        if (!apiKey) {
-            return res.status(500).json({ error: 'API key not configured' });
+
+        // AI 이미지 생성: BYOK 또는 첫 달 프로모션
+        if (!userApiKey) {
+            let userData = await getDoc('users', uid);
+
+            // 첫 방문: createdAt 기록
+            if (!userData) {
+                const now = new Date();
+                const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                const newUser = {
+                    draftCount: 0,
+                    lastDraftMonth: currentMonth,
+                    createdAt: now.toISOString(),
+                };
+                await setDoc('users', uid, newUser);
+                userData = newUser;
+            } else if (!userData.createdAt) {
+                await setDoc('users', uid, { createdAt: new Date().toISOString() });
+                userData.createdAt = new Date().toISOString();
+            }
+
+            if (!isWithinPromo(userData.createdAt)) {
+                return res.status(403).json({
+                    error: 'AI 이미지 생성은 API 키 등록 후 사용 가능합니다. 설정에서 API 키를 등록해주세요.',
+                    code: 'BYOK_REQUIRED',
+                });
+            }
         }
 
+        const apiKey = userApiKey || process.env.GEMINI_API_KEY;
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-04-17:generateContent?key=${apiKey}`;
 
         const response = await fetch(url, {
