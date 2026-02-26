@@ -54,14 +54,14 @@ const Sidebar = () => {
                         className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}
                     >
                         <FileText size={18} />
-                        {!collapsed && <span>글 목록</span>}
+                        {!collapsed && <span>내 글</span>}
                     </NavLink>
                     <NavLink
-                        to="/history"
+                        to="/dashboard"
                         className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}
                     >
                         <BarChart3 size={18} />
-                        {!collapsed && <span>히스토리</span>}
+                        {!collapsed && <span>성장 리포트</span>}
                     </NavLink>
                 </nav>
 

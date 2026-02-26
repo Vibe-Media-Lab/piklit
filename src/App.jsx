@@ -43,7 +43,7 @@ function AppRoutes() {
                     <PostListPage />
                 </ProtectedRoute>
             } />
-            <Route path="/history" element={
+            <Route path="/dashboard" element={
                 <ProtectedRoute>
                     <HistoryPage />
                 </ProtectedRoute>

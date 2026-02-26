@@ -5,8 +5,8 @@ import { copyToClipboard, exportAsMarkdown, exportAsHtml, exportAsText } from '.
 import { Save, Copy, Download, Check, ChevronDown } from 'lucide-react';
 
 const PAGE_TITLES = {
-    '/posts': '글 목록',
-    '/history': '히스토리',
+    '/posts': '내 글',
+    '/dashboard': '성장 리포트',
 };
 
 const TopBar = () => {
