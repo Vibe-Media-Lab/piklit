@@ -339,18 +339,19 @@ Output strictly a valid JSON:
         }
 
         const prompt = `너는 네이버 블로그 SEO 분석 전문가야.
-구글 검색으로 "${keyword}" 관련 상위 네이버 블로그 글 5개를 찾아 분석해줘.
+"${keyword} site:blog.naver.com"을 검색하여 상위 네이버 블로그 글을 찾아 분석해줘.
 
 [분석 항목]
 각 글의 추정 글자수(charCount)와 소제목수(headingCount)만 분석.
-글자수는 100단위 반올림. average는 5개 블로그의 평균값.
+글자수는 100단위 반올림. average는 분석한 블로그들의 평균값.
 이미지수는 검색으로 확인 불가하므로 분석하지 마.
 
 [중요]
-- 반드시 5개 블로그를 분석하여 평균값을 산출할 것
+- 최소 1개~최대 3개 블로그를 분석해. 3개 미만이면 찾은 것만 분석.
 - 실제 검색 결과를 바탕으로 현실적인 수치를 넣을 것
 - 예시의 숫자를 그대로 복사하지 말 것
-- 반드시 JSON만 출력할 것. 설명이나 부가 텍스트 금지.
+- 검색 결과가 전혀 없어도 반드시 아래 JSON 형식만 출력할 것
+- 설명이나 부가 텍스트 절대 금지. JSON만 출력.
 
 Output strictly a valid JSON:
 {"average":{"charCount":1980,"headingCount":6}}`;
