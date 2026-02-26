@@ -366,8 +366,38 @@
   - [x] 사이드바 패널 아코디언 3그룹화 (SEO분석/AI도구/히스토리) (Phase 2) ← 완료
   - [x] AIAnalysisDashboard 인라인 스타일 → CSS 클래스 전환 (Phase 2) ← 완료
   - [x] EditorPage 위자드 인라인 스타일 → CSS 클래스 전환 (Phase 2) ← 완료
-  - [ ] Step 1 분리 (카테고리+주제 / 키워드+설정) (Phase 2, 별도 세션)
+  - [x] Step 1 분리 (카테고리+주제 / 키워드+설정) (Phase 2) ← 2026-02-26 완료
   - [ ] 주제 입력 시 카테고리 자동 감지 (Phase 3)
+
+## 완료된 작업 (2026-02-26) — 위자드 UX 개선 + 소셜 로그인 완성
+
+### 위자드 3→4단계 분리
+- [x] Step 1 (주제+키워드+설정) → Step 1 (주제 선택) + Step 2 (키워드+설정) 분리
+- [x] STEP_LABELS 4개로 확장, 기존 Step 2/3 → Step 3/4 번호 이동
+
+### 위자드 UX/디자인 전면 개선 (CDO 리뷰)
+- [x] h1 "AI 본문 자동 작성" 제거, 헤더 구조 재설계 (StepIndicator→heading→desc→meta→content)
+- [x] StepIndicator 리디자인 — 40px 원형, 라벨 하단 배치, 3px 커넥터
+- [x] wizard-step-meta 카드 신규 — 주제+카테고리 정보 표시 (카테고리 bold)
+- [x] 3티어 버튼 시스템 — primary(네비게이션), accent(AI 분석 6개), secondary(보조)
+- [x] wizard-info-box 통일 — dashed 보더(정보), green 배경(성공), 오렌지 혼재 해소
+- [x] photo-upload-banner 오렌지→회색 dashed 변경
+- [x] 디자인 시스템 적용 — 12px radius(카드), hover shadow, font-weight 600
+- [x] 사진 분석 AI junk 텍스트 필터 추가
+
+### Firebase 프로젝트 전환
+- [x] piklit-vml → piklit-vml-a4620 전체 전환 (.env + Vercel 환경변수)
+
+### 네이버/카카오 소셜 로그인
+- [x] Vercel Serverless Functions 설정 (api/auth/naver.js, kakao.js, callback.js)
+- [x] Firebase Custom Token 생성 (jose RS256)
+- [x] 서비스 계정 환경변수 분리 (JSON 파싱→개별 변수: FIREBASE_SA_CLIENT_EMAIL + FIREBASE_SA_PRIVATE_KEY)
+- [x] 카카오 로그인 동작 확인
+
+### 남은 작업
+- [ ] 카카오 동의항목 설정 (닉네임/프로필사진/이메일)
+- [ ] 네이버 테스터 등록 후 로그인 테스트
+- [ ] Google 로그인 프로덕션 테스트
 
 ## 이전 완료 작업 (2026-02-06)
 
