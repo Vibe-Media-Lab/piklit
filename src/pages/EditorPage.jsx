@@ -46,8 +46,8 @@ const EditorPage = () => {
     const [topicInput, setTopicInput] = useState('');
     const [showSettings, setShowSettings] = useState(true); // 세부 설정 토글 (기본 펼침)
 
-    // AI 모드 3단계 스텝
-    const [aiStep, setAiStep] = useState(1); // 1: 주제+키워드+설정, 2: 이미지, 3: 아웃라인+생성
+    // AI 모드 4단계 스텝
+    const [aiStep, setAiStep] = useState(1); // 1: 주제, 2: 키워드+설정, 3: 이미지, 4: 아웃라인+생성
 
     // Step 1: 키워드 상태 (제안형 + 선택형)
     const [mainKeyword, setMainKeyword] = useState('');
@@ -398,7 +398,8 @@ const EditorPage = () => {
     const getDifficulty = (item) => item?.difficulty || 'medium';
 
     // Step 1 → 2 이동 가능 여부 (카테고리 선택 + 주제 입력 + 최소 3개 키워드)
-    const canProceedToStep2 = (isNewPost ? (selectedCategory && topicInput.trim()) : true) && mainKeyword.trim() && selectedKeywords.length >= 3;
+    const canProceedToStep1 = isNewPost ? (selectedCategory && topicInput.trim()) : mainKeyword.trim();
+    const canProceedToStep2 = mainKeyword.trim() && selectedKeywords.length >= 3;
 
     // 사진 AI 분석
     const handleAnalyzePhotos = async () => {
@@ -824,7 +825,7 @@ const EditorPage = () => {
         });
     };
 
-    const STEP_LABELS = ['주제 + 키워드', '이미지 업로드', '아웃라인 + 생성'];
+    const STEP_LABELS = ['주제 선택', '키워드 + 설정', '이미지 업로드', '아웃라인 + 생성'];
 
     // 카테고리별 placeholder
     const CATEGORY_PLACEHOLDERS = {
@@ -866,7 +867,7 @@ const EditorPage = () => {
     // Progress Indicator 컴포넌트
     const StepIndicator = () => (
         <div className="wizard-step-indicator">
-            {[1, 2, 3].map(s => (
+            {[1, 2, 3, 4].map(s => (
                 <React.Fragment key={s}>
                     <div className="wizard-step-item">
                         <div className={`wizard-step-circle ${s === aiStep ? 'active' : s < aiStep ? 'completed' : 'pending'}`}>
@@ -876,7 +877,7 @@ const EditorPage = () => {
                             {STEP_LABELS[s - 1]}
                         </span>
                     </div>
-                    {s < 3 && <div className={`wizard-step-connector ${s < aiStep ? 'completed' : ''}`} />}
+                    {s < 4 && <div className={`wizard-step-connector ${s < aiStep ? 'completed' : ''}`} />}
                 </React.Fragment>
             ))}
         </div>
@@ -888,24 +889,24 @@ const EditorPage = () => {
             <div>
                 <div className="wizard-page">
                     <div className="wizard-page-inner">
-                        {/* STEP 1: 주제 설정 + 키워드 분석 + 세부 설정 */}
+                        {/* STEP 1: 주제 선택 (카테고리 + 주제) */}
                         {aiStep === 1 && (
                             <div className="wizard-card-wrap">
                                 <h1 className="wizard-page-title">AI 본문 자동 작성</h1>
                                 <p className="wizard-page-subtitle">
                                     {mainKeyword
                                         ? <>주제: <strong>{mainKeyword}</strong></>
-                                        : '주제를 입력하고 키워드를 분석해보세요'
+                                        : '카테고리를 선택하고 주제를 입력하세요'
                                     }
                                 </p>
 
                                 <StepIndicator />
 
                                 <h2 className="wizard-step-heading">
-                                    <Search size={20} /> Step 1: 주제 설정 + 키워드 분석
+                                    <FolderOpen size={20} /> Step 1: 주제 선택
                                 </h2>
                                 <p className="wizard-step-desc">
-                                    카테고리와 주제를 선택하고, AI가 SEO 최적화 키워드를 제안합니다.
+                                    카테고리와 주제를 선택하세요. 다음 단계에서 키워드를 분석합니다.
                                 </p>
 
                                 {/* 카테고리 그리드 */}
@@ -971,6 +972,47 @@ const EditorPage = () => {
                                         />
                                     </div>
                                 )}
+
+                                <div className="wizard-nav">
+                                    <button
+                                        onClick={isNewPost ? handleSwitchToDirect : () => setEditorMode('direct')}
+                                        className="wizard-btn-ghost"
+                                    >
+                                        <ArrowLeft size={16} /> 직접 작성으로 전환
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            if (isNewPost && !mainKeyword.trim() && topicInput.trim()) {
+                                                setMainKeyword(topicInput.trim());
+                                                updateMainKeyword(topicInput.trim());
+                                            }
+                                            setAiStep(2);
+                                        }}
+                                        disabled={!canProceedToStep1}
+                                        className="wizard-btn-primary"
+                                    >
+                                        다음: 키워드 + 설정 <ArrowRight size={16} />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* STEP 2: 키워드 분석 + 세부 설정 */}
+                        {aiStep === 2 && (
+                            <div className="wizard-card-wrap">
+                                <h1 className="wizard-page-title">AI 본문 자동 작성</h1>
+                                <p className="wizard-page-subtitle">
+                                    주제: <strong>{mainKeyword || '미설정'}</strong>
+                                </p>
+
+                                <StepIndicator />
+
+                                <h2 className="wizard-step-heading">
+                                    <Search size={20} /> Step 2: 키워드 분석 + 설정
+                                </h2>
+                                <p className="wizard-step-desc">
+                                    AI가 SEO 최적화 키워드를 제안합니다. 키워드를 선택하고 세부 설정을 조정하세요.
+                                </p>
 
                                 {/* 선택된 키워드 */}
                                 <div className="wizard-selected-keywords">
@@ -1261,13 +1303,13 @@ const EditorPage = () => {
 
                                 <div className="wizard-nav">
                                     <button
-                                        onClick={isNewPost ? handleSwitchToDirect : () => setEditorMode('direct')}
+                                        onClick={() => setAiStep(1)}
                                         className="wizard-btn-ghost"
                                     >
-                                        <ArrowLeft size={16} /> 직접 작성으로 전환
+                                        <ArrowLeft size={16} /> 이전: 주제 선택
                                     </button>
                                     <button
-                                        onClick={() => setAiStep(2)}
+                                        onClick={() => setAiStep(3)}
                                         disabled={!canProceedToStep2}
                                         className="wizard-btn-primary"
                                     >
@@ -1277,8 +1319,8 @@ const EditorPage = () => {
                             </div>
                         )}
 
-                        {/* STEP 2: 이미지 업로드 & 분석 */}
-                        {aiStep === 2 && (
+                        {/* STEP 3: 이미지 업로드 & 분석 */}
+                        {aiStep === 3 && (
                             <div className="wizard-card-wrap">
                                 <h1 className="wizard-page-title">AI 본문 자동 작성</h1>
                                 <p className="wizard-page-subtitle">
@@ -1288,7 +1330,7 @@ const EditorPage = () => {
                                 <StepIndicator />
 
                                 <h2 className="wizard-step-heading">
-                                    <Camera size={20} /> Step 2: 이미지 업로드 & AI 분석
+                                    <Camera size={20} /> Step 3: 이미지 업로드 & AI 분석
                                 </h2>
                                 <p className="wizard-step-desc">
                                     주제에 맞는 이미지를 업로드하면 AI가 분석하여 본문 작성에 활용합니다.
@@ -1418,22 +1460,22 @@ const EditorPage = () => {
 
                                 <div className="wizard-nav">
                                     <button
-                                        onClick={() => setAiStep(1)}
+                                        onClick={() => setAiStep(2)}
                                         className="wizard-btn-ghost"
                                     >
-                                        <ArrowLeft size={16} /> 이전: 주제 + 키워드
+                                        <ArrowLeft size={16} /> 이전: 키워드 + 설정
                                     </button>
                                     <div className="wizard-nav-flex">
                                         {!hasAnyPhotos && (
                                             <button
-                                                onClick={() => setAiStep(3)}
+                                                onClick={() => setAiStep(4)}
                                                 className="wizard-btn-secondary"
                                             >
                                                 사진 없이 진행하기 <ArrowRight size={16} />
                                             </button>
                                         )}
                                         <button
-                                            onClick={() => setAiStep(3)}
+                                            onClick={() => setAiStep(4)}
                                             disabled={!canProceedToStep3}
                                             className="wizard-btn-primary"
                                         >
@@ -1444,8 +1486,8 @@ const EditorPage = () => {
                             </div>
                         )}
 
-                        {/* STEP 3: 아웃라인 + 생성 */}
-                        {aiStep === 3 && (
+                        {/* STEP 4: 아웃라인 + 생성 */}
+                        {aiStep === 4 && (
                             <div className="wizard-card-wrap">
                                 <h1 className="wizard-page-title">AI 본문 자동 작성</h1>
                                 <p className="wizard-page-subtitle">
@@ -1455,7 +1497,7 @@ const EditorPage = () => {
                                 <StepIndicator />
 
                                 <h2 className="wizard-step-heading">
-                                    <Wand2 size={20} /> Step 3: 아웃라인 + 생성
+                                    <Wand2 size={20} /> Step 4: 아웃라인 + 생성
                                 </h2>
                                 <p className="wizard-step-desc">
                                     AI가 소제목 구조를 먼저 생성합니다. 순서 변경, 추가/삭제, 수정 후 본문을 생성하세요.
@@ -1604,7 +1646,7 @@ const EditorPage = () => {
 
                                 <div className="wizard-nav">
                                     <button
-                                        onClick={() => setAiStep(2)}
+                                        onClick={() => setAiStep(3)}
                                         className="wizard-btn-ghost"
                                     >
                                         <ArrowLeft size={16} /> 이전: 이미지 업로드
