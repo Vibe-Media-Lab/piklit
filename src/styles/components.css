@@ -1739,6 +1739,41 @@
     margin-top: 4px;
 }
 
+.wizard-tone-sample {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--color-border);
+}
+
+.wizard-tone-sample-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--color-brand);
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+}
+
+.wizard-tone-sample-text {
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--color-text-main);
+    margin: 0;
+    font-style: italic;
+    padding: 10px 12px;
+    background: rgba(255, 107, 53, 0.04);
+    border-radius: var(--radius-md);
+    border-left: 3px solid var(--color-brand);
+}
+
+@media (max-width: 768px) {
+    .wizard-tone-grid {
+        grid-template-columns: 1fr;
+    }
+    .wizard-tone-sample-text {
+        font-size: 0.8rem;
+    }
+}
+
 /* Wizard Nav Flex */
 .wizard-nav-flex {
     display: flex;
