@@ -1,6 +1,5 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
-import { getFunctions, httpsCallable, connectFunctionsEmulator } from 'firebase/functions';
 
 const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -14,16 +13,34 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
-export const functions = getFunctions(app, 'asia-northeast3');
 
-// 로컬 개발 시 에뮬레이터 연결
-if (import.meta.env.DEV && import.meta.env.VITE_USE_EMULATOR === 'true') {
-    connectFunctionsEmulator(functions, 'localhost', 5001);
+// Vercel Serverless Functions 호출 헬퍼
+async function callVercelFunction(path, payload) {
+    const user = auth.currentUser;
+    if (!user) throw new Error('로그인이 필요합니다.');
+
+    const token = await user.getIdToken();
+    const response = await fetch(path, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+        throw new Error(data.error || `서버 오류 (${response.status})`);
+    }
+
+    // httpsCallable 호환: { data: ... } 구조 유지
+    return { data };
 }
 
-// Cloud Functions callable 래퍼
-export const callGeminiProxy = httpsCallable(functions, 'geminiProxy', { timeout: 120000 });
-export const callGeminiImageProxy = httpsCallable(functions, 'geminiImageProxy', { timeout: 120000 });
-export const callGetUsageInfo = httpsCallable(functions, 'getUsageInfo');
+// Vercel Serverless Functions 래퍼 (openai.js 인터페이스 동일)
+export const callGeminiProxy = (payload) => callVercelFunction('/api/gemini', payload);
+export const callGeminiImageProxy = (payload) => callVercelFunction('/api/gemini-image', payload);
+export const callGetUsageInfo = () => callVercelFunction('/api/usage', {});
 
 export default app;
