@@ -309,7 +309,7 @@
 .hero-anim-typing {
     display: inline-block;
     clip-path: inset(0 100% 0 0);
-    animation: typingReveal 0.8s ease forwards 0.5s;
+    animation: typingReveal 1.2s ease forwards 0.5s;
 }
 
 @keyframes typingReveal {
@@ -804,7 +804,8 @@
     gap: 8px;
     color: var(--color-text-sub);
     font-size: var(--font-size-sm);
-    text-decoration: line-through;
+    font-style: italic;
+    opacity: 0.75;
     flex: 1;
 }
 
@@ -1101,23 +1102,34 @@
 
 .fm-gauge {
     position: relative;
-    width: 120px;
+    width: 160px;
+    height: 100px;
     margin: 0 auto 16px;
 }
 
 .fm-gauge-svg {
-    width: 120px;
-    height: 80px;
+    width: 160px;
+    height: 100px;
 }
 
 .fm-gauge-score {
     position: absolute;
-    bottom: 4px;
+    bottom: 6px;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 1.75rem;
+    font-size: 2rem;
     font-weight: 800;
     color: var(--color-brand);
+    line-height: 1;
+}
+
+.fm-gauge-suffix {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-sub);
+    display: block;
+    text-align: center;
+    margin-top: 2px;
 }
 
 .fm-seo-checks {
@@ -1193,7 +1205,7 @@
 }
 
 .step-text p {
-    font-size: var(--font-size-base);
+    font-size: var(--font-size-sm);
     color: var(--color-text-sub);
     line-height: 1.7;
 }
@@ -2234,6 +2246,17 @@
         display: none;
     }
 
+    .landing-cta-group {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .landing-cta-hint {
+        border-left: none;
+        padding-left: 0;
+        text-align: center;
+    }
+
     .landing-trust-inner {
         grid-template-columns: repeat(2, 1fr);
         gap: var(--spacing-md);
@@ -2322,12 +2345,18 @@
     .landing-cta-primary {
         padding: 12px 24px;
         font-size: var(--font-size-sm);
+        white-space: normal;
+        text-align: center;
     }
 
-
     .landing-cta-large {
-        padding: 14px 32px;
-        font-size: var(--font-size-base);
+        padding: 14px 24px;
+        font-size: var(--font-size-sm);
+        white-space: normal;
+    }
+
+    .landing-bottom-cta h2 {
+        font-size: 1.25rem;
     }
 
     .trust-value {

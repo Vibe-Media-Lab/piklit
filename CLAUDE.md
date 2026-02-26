@@ -1,7 +1,7 @@
-# 피클릿 (Piklit) — AI 코딩 매뉴얼
+# 피클잇 (Piklit) — AI 코딩 매뉴얼
 
 ## 서비스 정체성
-- **이름**: 피클릿 (Piklit) — piklit.pro
+- **이름**: 피클잇 (Piklit) — piklit.pro
 - **콘셉트**: Pickle + Lit — "사진을 글로 절이다"
 - **핵심**: 사진 업로드 → SEO 최적화 네이버 블로그 글 자동 생성
 - **타겟**: 개인 블로거 (네이버 블로그 중심)
@@ -104,7 +104,7 @@ src/
 - openai.js 파일명 변경 금지 (import 전체 깨짐)
 - h1 태그 사용 금지 (네이버 블로그 SEO 규칙)
 - `google_search` + `responseMimeType` 동시 사용 금지 (비호환)
-- 서비스명으로 "Antigravity", "바이브 미디어 랩" 사용 금지 → "피클릿 (Piklit)"
+- 서비스명으로 "Antigravity", "바이브 미디어 랩" 사용 금지 → "피클잇 (Piklit)"
 - 불필요한 파일 생성 금지 (기존 파일 수정 우선)
 
 ## 테스트 & 검증

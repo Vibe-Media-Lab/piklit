@@ -333,10 +333,10 @@
 - [x] `components.css` — `.btn-loading-spinner` 공통 클래스, 경쟁 분석 로딩 아이콘/텍스트 스타일
 
 ### 문서
-- [x] `docs/bod-piklit.md` 신규 생성 — 범용 BOD 프롬프트를 피클릿 전용으로 커스텀
-  - CEO 비전→피클릿 비전, COO 지표→피클릿 KPI, CTO→React+Gemini 특화
+- [x] `docs/bod-piklit.md` 신규 생성 — 범용 BOD 프롬프트를 피클잇 전용으로 커스텀
+  - CEO 비전→피클잇 비전, COO 지표→피클잇 KPI, CTO→React+Gemini 특화
   - CRO→블로거 심리 4인 박사단, CMO→네이버 블로그 SEO 전문가단, CDO→Notion-style 디자인
-  - 상단에 피클릿 컨텍스트 내장 (매번 별도 설명 불필요)
+  - 상단에 피클잇 컨텍스트 내장 (매번 별도 설명 불필요)
 
 ### docs 정리 (7개 삭제)
 - [x] `bod.md` 삭제 — `bod-piklit.md`로 대체 완료
@@ -344,8 +344,8 @@
 - [x] `always_be_on_the_same_page.md` 삭제 — "Vibe Media Lab" 구 브랜드, CLAUDE.md가 대체
 - [x] `start_work.md` 삭제 — 구 워크플로, CLAUDE.md 세션 규칙이 대체
 - [x] `end_work.md` 삭제 — 구 워크플로, 현재 미사용
-- [x] `session-manager.md` 삭제 — 다른 프로젝트 범용 에이전트 스펙, 피클릿 무관
-- [x] `Prompt Architect.md` 삭제 — 범용 프롬프트 엔지니어링 페르소나, 피클릿 무관
+- [x] `session-manager.md` 삭제 — 다른 프로젝트 범용 에이전트 스펙, 피클잇 무관
+- [x] `Prompt Architect.md` 삭제 — 범용 프롬프트 엔지니어링 페르소나, 피클잇 무관
 
 ### 랜딩페이지 BOD 감사 → 즉시 실행 3건
 - [x] "경쟁 블로그 상위 10개 분석" → "상위 노출 분석" (과장 카피 수정)
@@ -410,7 +410,7 @@
 - [ ] 배포 후 프로모션 플로우 테스트 (글 생성 무제한 → 30일 후 3회 제한)
 - [ ] 카카오 동의항목 설정 (닉네임/프로필사진/이메일)
 - [ ] 네이버 테스터 등록 후 로그인 테스트
-- [ ] Google 로그인 프로덕션 테스트
+- [x] Google 로그인 프로덕션 테스트
 
 ## 이전 완료 작업 (2026-02-06)
 

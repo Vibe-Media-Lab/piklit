@@ -1,4 +1,4 @@
-# 피클릿 (Piklit) - 세션 워크스루 (2026-02-26)
+# 피클잇 (Piklit) - 세션 워크스루 (2026-02-26)
 
 ## 프로젝트 개요
 네이버 블로그 SEO 최적화 AI 작성기 (React 19 + Vite 7 + TipTap + Google Gemini 2.5 Flash API)

@@ -16,62 +16,62 @@ const FEATURES = [
         id: 'photo',
         icon: Camera,
         label: '사진 분석',
-        title: '사진만 올리면 글감이 완성됩니다',
-        desc: '업로드한 사진의 장소, 음식, 분위기를 AI가 자동 인식합니다. 최대 10장까지 한 번에 분석하여 본문에 자연스럽게 녹여냅니다.',
+        title: '사진 한 장이 2,000자 블로그 글이 됩니다',
+        desc: '장소, 메뉴, 분위기를 AI가 자동 인식하고 SEO에 맞는 본문으로 바꿔줍니다.',
         bullets: ['장소·음식·분위기 자동 인식', '사진별 SEO 설명 자동 생성', '본문 내 자연스러운 배치'],
     },
     {
         id: 'keyword',
         icon: Search,
         label: '키워드 분석',
-        title: '상위 노출 키워드를 30초 만에 찾아줍니다',
-        desc: '네이버 실시간 검색 트렌드와 경쟁 블로그를 분석하여 상위 노출 확률이 높은 키워드를 추천합니다.',
+        title: '감춰진 골든 키워드, 30초 만에 발굴',
+        desc: '네이버 상위 10개 블로그를 실시간 분석하여 검색량은 높고 경쟁은 낮은 키워드를 자동 추천합니다.',
         bullets: ['실시간 검색 트렌드 분석', '경쟁 블로그 상위 노출 분석', '롱테일 키워드 자동 추천'],
     },
     {
         id: 'generate',
         icon: Sparkles,
         label: 'AI 글 생성',
-        title: '10분이면 발행 가능한 글이 나옵니다',
-        desc: '키워드 분석 결과를 바탕으로 SEO 최적화 본문을 생성합니다. AI 버블 메뉴로 문장 다듬기, 늘리기, 톤 변경까지 한 번에.',
+        title: '5분이면 발행 가능한 글이 완성됩니다',
+        desc: '키워드, 사진, 경쟁 분석을 반영한 SEO 최적화 글을 자동 생성합니다.',
         bullets: ['카테고리별 맞춤 톤·구조 적용', '소제목·문단 자동 구성', 'AI 버블 메뉴로 실시간 편집'],
     },
     {
         id: 'seo',
         icon: BarChart3,
         label: 'SEO 코칭',
-        title: '글을 쓰는 동안 SEO 점수가 올라갑니다',
-        desc: '12개 SEO 항목을 실시간으로 분석하여 점수와 개선 포인트를 안내합니다. 수정할 때마다 점수가 업데이트됩니다.',
+        title: '발행 전 SEO 90점 이상을 보장합니다',
+        desc: '키워드 밀도, 소제목 구조, 본문 길이 등 12개 항목을 실시간 체크하고 개선점을 안내합니다.',
         bullets: ['12개 항목 실시간 분석', '개선 포인트 즉시 안내', '경쟁 글 대비 점수 비교'],
     },
 ];
 
 const PAIN_POINTS = [
-    { before: '키워드 조사에 1시간 이상', after: 'AI가 30초 만에 분석 완료' },
-    { before: '블로그 글 쓰는 데 반나절', after: '10분이면 SEO 최적화 글 완성' },
-    { before: '상위 노출 방법을 모르겠다', after: '12개 항목 실시간 SEO 코칭' },
-    { before: '매번 비슷한 글만 반복', after: '카테고리별 맞춤 톤·구조 적용' },
+    { before: '"상위 노출 키워드 어떻게 찾지?"', after: '30초 만에 골든 키워드 발굴' },
+    { before: '글 한 편 쓰는 데 반나절', after: '5분이면 발행 가능한 글 완성' },
+    { before: '"SEO? 그게 뭔가요?"', after: 'AI가 SEO 90점 이상 자동 달성' },
+    { before: '맨날 같은 톤, 같은 구조', after: '카테고리별 맞춤 톤 자동 적용' },
 ];
 
 const PERSONAS = [
     {
         icon: Store,
         title: '소상공인 / 자영업자',
-        desc: '매장 사진만 올리면 블로그 홍보 글이 완성됩니다. 대행사 비용 없이 직접 블로그 마케팅을 시작하세요.',
+        desc: '대행사에 월 30만원 쓰시나요? 매장 사진만 올리면 5분 만에 홍보 포스팅이 완성됩니다.',
         tag: '마케팅 비용 절감',
-        scenario: '"카페 사진 3장 → 10분 만에 홍보 포스팅 완성"',
+        scenario: '"카페 사진 3장 → 5분 만에 홍보 포스팅 완성"',
     },
     {
         icon: Users,
         title: '초보 블로거',
-        desc: '키워드 조사, 글 구조, SEO 최적화를 AI가 모두 처리합니다. 사진만 있으면 첫 글부터 상위 노출을 노릴 수 있습니다.',
+        desc: '처음이라도 괜찮아요. 사진만 올리면 AI가 키워드부터 SEO까지 전부 처리합니다.',
         tag: '진입 장벽 제로',
         scenario: '"첫 글인데 SEO 92점, 이웃 신청이 계속 와요"',
     },
     {
         icon: TrendingUp,
         title: '파워 블로거 / N잡러',
-        desc: '경쟁 분석과 실시간 SEO 코칭으로 상위 노출 확률을 높이고, AI 편집 도구로 포스팅 속도를 2배 이상 올릴 수 있습니다.',
+        desc: '하루에 글 3개 이상 쓰시나요? 경쟁 분석 + AI 편집으로 포스팅 속도를 3배 올려드립니다.',
         tag: '생산성 극대화',
         scenario: '"하루 3개 포스팅도 거뜬, 작성 시간 90% 절약"',
     },
@@ -85,35 +85,35 @@ const COMPARISON = [
     { feature: '경쟁 블로그 분석', piklit: true, gadget: false, wordly: false, chatgpt: false, rytn: false },
     { feature: '12개 SEO 항목 코칭', piklit: true, gadget: false, wordly: false, chatgpt: false, rytn: false },
     { feature: '카테고리별 맞춤 톤', piklit: true, gadget: true, wordly: true, chatgpt: false, rytn: true },
-    { feature: '무료 무제한 (BYOK)', piklit: true, gadget: false, wordly: false, chatgpt: false, rytn: false },
+    { feature: '최저가 BYOK', piklit: true, gadget: false, wordly: false, chatgpt: false, rytn: false },
 ];
 
 const PRICING = [
     {
-        name: '무료',
+        name: '무료 체험',
         price: '₩0',
         period: '월',
-        desc: '피클릿을 체험해보세요',
-        features: ['월 10회 글 생성', 'SEO 분석 리포트', 'AI 편집 도구', '15개 카테고리 템플릿'],
+        desc: '부담 없이 먼저 써보세요',
+        features: ['월 3회 글 생성', 'SEO 분석 리포트', 'AI 편집 도구', '15개 카테고리 템플릿', '네이버 블로그 최적화'],
         cta: '무료로 시작하기',
         highlighted: false,
     },
     {
-        name: '무제한 (내 키 연결)',
-        price: '₩0',
+        name: 'BYOK (내 키 연결)',
+        price: '₩4,900',
         period: '월',
-        desc: '내 AI 키를 연결하면 무제한 무료',
-        features: ['무제한 글 생성', 'Google AI 키 무료 발급 → 연결', '모든 무료 기능 포함', '우선 고객 지원'],
-        cta: '추천 — 무료로 무제한 시작',
+        desc: '커피 한 잔 값으로 무제한 포스팅',
+        features: ['무제한 글 생성', 'AI 이미지 생성', 'Google AI 키 간편 연결', '모든 무료 기능 포함', '우선 고객 지원'],
+        cta: '첫 달 무료로 시작',
         highlighted: true,
-        badge: '추천',
+        badge: '첫 달 무료',
     },
     {
         name: 'Pro',
-        price: '₩9,900',
+        price: '₩18,900',
         period: '월',
-        desc: 'API 키 없이 무제한 사용',
-        features: ['무제한 글 생성', 'API 키 불필요', '모든 기능 포함', '우선 고객 지원'],
+        desc: '키 설정 없이 올인원으로',
+        features: ['무제한 글 생성', 'API 키 불필요', '클라우드 저장', '예약 발행', '팀 기능'],
         cta: '준비 중',
         highlighted: false,
         disabled: true,
@@ -124,7 +124,7 @@ const PRICING = [
 const FAQS = [
     {
         q: '무료로 사용할 수 있나요?',
-        a: '네, 회원가입 후 월 10회까지 무료로 글을 생성할 수 있습니다. 신용카드 등록 없이 네이버, 카카오, Google 계정으로 바로 시작하세요.',
+        a: '네, 가입 첫 달은 모든 기능을 무료로 사용할 수 있습니다. 이후에는 월 3회까지 무료 체험이 가능하며, BYOK 요금제(₩4,900/월)로 업그레이드하면 무제한으로 사용할 수 있습니다. 신용카드 등록 없이 네이버, 카카오, Google 계정으로 바로 시작하세요.',
     },
     {
         q: '네이버 블로그 외에 다른 플랫폼도 지원하나요?',
@@ -132,15 +132,15 @@ const FAQS = [
     },
     {
         q: 'AI로 쓴 글이 네이버에서 페널티를 받지 않나요?',
-        a: '피클릿은 AI가 초안을 작성하고 사용자가 직접 수정·보완하는 방식입니다. 실시간 SEO 코칭으로 자연스러운 글을 완성할 수 있습니다.',
+        a: '피클잇은 AI가 초안을 작성하고 사용자가 직접 수정·보완하는 방식입니다. 실시간 SEO 코칭으로 자연스러운 글을 완성할 수 있습니다.',
     },
     {
         q: 'AI가 쓴 글의 품질이 괜찮은가요?',
-        a: '피클릿은 실제 네이버 상위 노출 글의 구조와 패턴을 분석하여 본문을 생성합니다. 카테고리별 맞춤 톤, 소제목 구성, 키워드 밀도까지 자동 최적화되며, 내장 에디터에서 원하는 대로 수정할 수 있습니다.',
+        a: '피클잇은 실제 네이버 상위 노출 글의 구조와 패턴을 분석하여 본문을 생성합니다. 카테고리별 맞춤 톤, 소제목 구성, 키워드 밀도까지 자동 최적화되며, 내장 에디터에서 원하는 대로 수정할 수 있습니다.',
     },
     {
         q: '"내 키 연결"은 어떻게 하나요?',
-        a: 'Google AI Studio에서 무료로 AI 키를 발급받아 설정에 붙여넣기 하면 끝입니다. 1분이면 완료되고, 서비스 내 가이드에서 단계별로 안내합니다.',
+        a: 'Google AI Studio에서 무료로 AI 키를 발급받아 설정에 붙여넣기 하면 끝입니다. 1분이면 완료되고, 서비스 내 가이드에서 단계별로 안내합니다. BYOK 요금제(₩4,900/월, 첫 달 무료)를 선택하면 무제한으로 글을 생성할 수 있습니다.',
     },
     {
         q: '내 데이터는 안전한가요?',
@@ -177,7 +177,7 @@ const REVIEWS = [
         name: '정OO님',
         role: '여행 블로거',
         period: '사용 4개월',
-        text: '여행 다녀와서 사진 정리하고 글 쓰는 게 제일 귀찮았는데, 피클릿 덕에 사진만 올리면 여행기가 완성돼요. 퀄리티도 만족합니다.',
+        text: '여행 다녀와서 사진 정리하고 글 쓰는 게 제일 귀찮았는데, 피클잇 덕에 사진만 올리면 여행기가 완성돼요. 퀄리티도 만족합니다.',
         metric: '월 포스팅 3배 증가',
         badge: 'BEST',
     },
@@ -202,32 +202,32 @@ const REVIEWS = [
 const STEPS = [
     {
         num: 1,
-        title: '사진을 올리고 카테고리를 선택하세요',
-        desc: '사진만 있으면 준비 끝. AI가 장소, 음식, 분위기를 자동으로 파악합니다.',
+        title: '사진을 올리세요. 나머지는 피클잇이 합니다',
+        desc: '드래그 앤 드롭으로 사진만 올리면 AI가 장소, 메뉴, 분위기를 알아서 파악합니다.',
         icon: Upload,
         substeps: ['사진 최대 10장 드래그 & 드롭', '16개 카테고리 중 선택', 'AI가 사진 속 정보 자동 인식'],
     },
     {
         num: 2,
-        title: 'AI가 키워드 분석 → 경쟁 조사 → 본문 생성을 한 번에',
-        desc: '버튼 한 번이면 전체 파이프라인이 자동으로 실행됩니다.',
+        title: '키워드 분석부터 본문 완성까지, 자동으로',
+        desc: '버튼 하나로 키워드 분석, 경쟁 조사, SEO 최적화 본문까지 한 번에 완성됩니다.',
         icon: Bot,
         substeps: ['실시간 키워드 트렌드 분석', '경쟁 블로그 상위 10개 조사', 'SEO 최적화 본문 자동 생성'],
     },
     {
         num: 3,
-        title: 'SEO 92점 이상의 글을 네이버에 발행하세요',
-        desc: '실시간 SEO 코칭으로 점수를 높이고, 복사 한 번으로 발행 완료.',
+        title: '복사 → 붙여넣기, 바로 네이버에 발행',
+        desc: 'SEO 점수를 확인하고, 복사 버튼 하나로 네이버 블로그에 바로 발행하세요.',
         icon: Rocket,
         substeps: ['12개 SEO 항목 실시간 체크', 'AI 편집 도구로 문장 다듬기', '클립보드 복사 → 네이버 발행'],
     },
 ];
 
 const TRUST_NUMBERS = [
-    { num: 90, suffix: '%', label: '작성 시간 절약' },
+    { num: 5, suffix: '분', label: '평균 작성 시간' },
     { num: 12, suffix: '개', label: 'SEO 분석 항목' },
     { num: 16, suffix: '개', label: '카테고리 지원' },
-    { num: 0, prefix: '₩', suffix: '', label: '시작 비용' },
+    { num: 90, suffix: '%', label: '작성 시간 절약' },
 ];
 
 const SAMPLES = [
@@ -270,7 +270,7 @@ const LoginModal = ({ onClose, onLogin, loginLoading, loginProvider }) => (
             </button>
             <div className="login-modal-header">
                 <img src="/logo.png" alt="Piklit" className="login-modal-logo" />
-                <h3>피클릿 시작하기</h3>
+                <h3>피클잇 시작하기</h3>
                 <p>간편 로그인으로 바로 시작하세요</p>
             </div>
             <div className="login-modal-buttons">
@@ -355,15 +355,15 @@ const StickyHeader = ({ handleStart, loginLoading }) => {
 const HeroSection = ({ handleStart, loginLoading }) => (
     <section className="landing-hero">
         <div className="landing-hero-content">
-            <span className="landing-badge hero-anim" style={{ '--delay': '0s' }}>AI 블로그 작성기</span>
+            <span className="landing-badge hero-anim" style={{ '--delay': '0s' }}>네이버 블로그 전문 AI</span>
             <h2 className="landing-hero-title">
                 <span className="hero-anim" style={{ '--delay': '0.1s' }}>사진만 올리면</span><br />
-                <span className="hero-anim" style={{ '--delay': '0.25s' }}>네이버 상위 노출 글이</span><br />
-                <span className="highlight hero-anim-typing">완성됩니다</span>
+                <span className="hero-anim" style={{ '--delay': '0.25s' }}>상위 노출 블로그 글이</span><br />
+                <span className="highlight hero-anim-typing">5분 만에 완성됩니다</span>
             </h2>
             <p className="landing-hero-desc hero-anim" style={{ '--delay': '0.7s' }}>
-                키워드 분석부터 SEO 최적화 본문 작성까지.<br />
-                AI가 10분 만에 블로그 포스팅을 완성합니다.
+                피클잇이 키워드 분석, 경쟁 조사, SEO 최적화까지 한 번에 처리합니다.<br />
+                당신은 사진만 올리세요.
             </p>
             <div className="hero-tags hero-anim" style={{ '--delay': '0.8s' }}>
                 <span>#사진_AI_분석</span>
@@ -379,11 +379,11 @@ const HeroSection = ({ handleStart, loginLoading }) => (
                 >
                     {loginLoading
                         ? <><Loader2 size={18} className="spin" /> 로그인 중...</>
-                        : '무료로 시작하기'
+                        : '30초 만에 시작하기 — 첫 달 무료'
                     }
                 </button>
                 <span className="landing-cta-hint">
-                    ← 네이버 · 카카오 · Google 계정으로 바로 시작
+                    카드 등록 없음 · 가입 첫 달 모든 기능 무료
                 </span>
             </div>
         </div>
@@ -496,7 +496,7 @@ const SampleCarousel = () => (
     <section className="landing-samples reveal-on-scroll">
         <div className="landing-section-inner">
             <span className="landing-section-badge">AI 생성 예시</span>
-            <h2 className="landing-section-title">이런 글이 자동으로 만들어집니다</h2>
+            <h2 className="landing-section-title">실제로 이런 글이 5분 만에 나옵니다</h2>
         </div>
         <div className="samples-track-wrap">
             <div className="samples-track">
@@ -520,7 +520,7 @@ const PainSection = () => (
     <section className="landing-pain reveal-on-scroll">
         <div className="landing-section-inner">
             <span className="landing-section-badge">문제 해결</span>
-            <h2 className="landing-section-title">이런 고민, 피클릿이 해결합니다</h2>
+            <h2 className="landing-section-title">블로그 글쓰기, 이렇게 고민하셨죠?</h2>
             <div className="pain-grid">
                 {PAIN_POINTS.map((p, i) => (
                     <div className="pain-card" key={i}>
@@ -593,11 +593,11 @@ const FeatureMockup = ({ id }) => {
     if (id === 'seo') return (
         <div className="feat-mockup feat-mockup-seo">
             <div className="fm-gauge">
-                <svg viewBox="0 0 120 80" className="fm-gauge-svg">
-                    <path d="M 15 75 A 50 50 0 0 1 105 75" fill="none" stroke="#E3E2E0" strokeWidth="10" strokeLinecap="round" />
-                    <path d="M 15 75 A 50 50 0 0 1 105 75" fill="none" stroke="#FF6B35" strokeWidth="10" strokeLinecap="round" strokeDasharray="145" strokeDashoffset="12" />
+                <svg viewBox="0 0 160 100" className="fm-gauge-svg">
+                    <path d="M 20 90 A 60 60 0 0 1 140 90" fill="none" stroke="#E3E2E0" strokeWidth="7" strokeLinecap="round" />
+                    <path d="M 20 90 A 60 60 0 0 1 140 90" fill="none" stroke="#FF6B35" strokeWidth="7" strokeLinecap="round" strokeDasharray="189" strokeDashoffset="15" />
                 </svg>
-                <span className="fm-gauge-score">92</span>
+                <span className="fm-gauge-score">92<span className="fm-gauge-suffix">/ 100</span></span>
             </div>
             <div className="fm-seo-checks">
                 <div className="fm-seo-check done"><Check size={12} /> 키워드 밀도 적정</div>
@@ -613,8 +613,8 @@ const FeatureMockup = ({ id }) => {
 const FeatureShowcase = () => (
     <section className="landing-features reveal-on-scroll" id="features">
         <div className="landing-section-inner">
-            <span className="landing-section-badge">핵심 기능</span>
-            <h2 className="landing-section-title">사진 한 장이 상위 노출 글이 되기까지</h2>
+            <span className="landing-section-badge">왜 피클잇인가</span>
+            <h2 className="landing-section-title">사진 한 장에서 상위 노출까지, 5분</h2>
             <div className="features-grid">
                 {FEATURES.map((feat, i) => (
                     <div className={`feature-card ${i % 2 === 1 ? 'reverse' : ''}`} key={feat.id}>
@@ -706,9 +706,9 @@ const StepsSection = () => (
     <section className="landing-steps reveal-on-scroll">
         <div className="landing-section-inner">
             <span className="landing-section-badge">사용 방법</span>
-            <h2 className="landing-section-title">3단계로 블로그 글 완성</h2>
+            <h2 className="landing-section-title">딱 3단계, 5분이면 끝</h2>
             <p className="landing-section-desc">
-                복잡한 과정 없이, 사진만 올리면 AI가 나머지를 처리합니다.
+                복잡한 건 피클잇이 다 합니다. 당신은 사진만 올리세요.
             </p>
             <div className="steps-list">
                 {STEPS.map((step, i) => (
@@ -746,9 +746,9 @@ const CategoryGrid = () => (
     <section className="landing-categories reveal-on-scroll">
         <div className="landing-section-inner">
             <span className="landing-section-badge">카테고리</span>
-            <h2 className="landing-section-title">어떤 주제든 맞춤 글을 생성합니다</h2>
+            <h2 className="landing-section-title">어떤 주제든 전문가처럼 써 줍니다</h2>
             <p className="landing-section-desc">
-                16개 카테고리별 톤·구조·키워드 전략이 자동 적용됩니다.
+                맛집, 여행, 육아, 테크… 카테고리별 톤과 키워드 전략이 자동 적용됩니다.
             </p>
             <div className="category-pills">
                 {CATEGORIES.map((cat) => (
@@ -766,7 +766,7 @@ const PersonaCards = () => (
     <section className="landing-personas reveal-on-scroll">
         <div className="landing-section-inner">
             <span className="landing-section-badge">누구를 위한 서비스?</span>
-            <h2 className="landing-section-title">이런 분들에게 추천합니다</h2>
+            <h2 className="landing-section-title">누가 쓰면 가장 효과적일까요?</h2>
             <div className="persona-grid">
                 {PERSONAS.map((p, i) => (
                     <div className="persona-card" key={i}>
@@ -786,7 +786,7 @@ const ReviewsSection = () => (
     <section className="landing-reviews reveal-on-scroll">
         <div className="landing-section-inner">
             <span className="landing-section-badge">사용자 후기</span>
-            <h2 className="landing-section-title">피클릿 사용자들의 이야기</h2>
+            <h2 className="landing-section-title">실제 사용자들의 솔직 후기</h2>
             <div className="reviews-score">
                 <span className="reviews-star">&#9733; 4.9</span>
                 <span className="reviews-score-label">/ 5.0 사용자 만족도</span>
@@ -820,13 +820,13 @@ const ComparisonTable = () => (
     <section className="landing-comparison reveal-on-scroll">
         <div className="landing-section-inner">
             <span className="landing-section-badge">비교</span>
-            <h2 className="landing-section-title">왜 피클릿인가요?</h2>
+            <h2 className="landing-section-title">다른 AI 도구와 비교해보세요</h2>
             <div className="comparison-table-wrap">
                 <table className="comparison-table">
                     <thead>
                         <tr>
                             <th>기능</th>
-                            <th className="comp-highlight">피클릿</th>
+                            <th className="comp-highlight">피클잇</th>
                             <th>가제트AI</th>
                             <th>워들리</th>
                             <th>ChatGPT</th>
@@ -855,8 +855,8 @@ const PricingSection = ({ handleStart, loginLoading }) => (
     <section className="landing-pricing reveal-on-scroll" id="pricing">
         <div className="landing-section-inner">
             <span className="landing-section-badge">요금제</span>
-            <h2 className="landing-section-title">심플한 요금, 숨겨진 비용 없음</h2>
-            <p className="pricing-anchor">블로그 대행 월 30~50만원 vs 피클릿은 커피 한 잔 값도 안 듭니다</p>
+            <h2 className="landing-section-title">블로그 대행 비용의 1/60</h2>
+            <p className="pricing-anchor">블로그 대행 월 30~50만원 vs 피클잇은 커피 한 잔 값도 안 듭니다</p>
             <div className="pricing-grid">
                 {PRICING.map((plan, i) => (
                     <div className={`pricing-card ${plan.highlighted ? 'highlighted' : ''}`} key={i}>
@@ -924,9 +924,9 @@ const FAQSection = () => {
 const BottomCTA = ({ handleStart, loginLoading }) => (
     <section className="landing-bottom-cta">
         <div className="landing-section-inner">
-            <h2>지금 바로 시작하세요</h2>
+            <h2>오늘, 첫 번째 상위 노출 글을 만들어보세요</h2>
             <p className="bottom-cta-desc">
-                사진만 올리면, AI가 네이버 상위 노출 글을 완성합니다.
+                가입 첫 달 모든 기능 무료. 5분이면 SEO 90점 이상의 블로그 글이 완성됩니다.
             </p>
             <button
                 className="landing-cta-primary landing-cta-large"
@@ -935,10 +935,10 @@ const BottomCTA = ({ handleStart, loginLoading }) => (
             >
                 {loginLoading
                     ? <><Loader2 size={20} className="spin" /> 로그인 중...</>
-                    : <><Rocket size={20} /> 무료로 시작하기</>
+                    : <><Rocket size={20} /> 30초 만에 시작하기 — 첫 달 무료</>
                 }
             </button>
-            <span className="bottom-cta-note">네이버 · 카카오 · Google 계정으로 바로 시작</span>
+            <span className="bottom-cta-note">카드 등록 없음 · 네이버 · 카카오 · Google 계정으로 바로 시작</span>
         </div>
     </section>
 );
