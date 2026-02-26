@@ -124,7 +124,7 @@ const PRICING = [
 const FAQS = [
     {
         q: '무료로 사용할 수 있나요?',
-        a: '네, 회원가입 후 월 10회까지 무료로 글을 생성할 수 있습니다. 신용카드 등록 없이 Google 계정으로 바로 시작하세요.',
+        a: '네, 회원가입 후 월 10회까지 무료로 글을 생성할 수 있습니다. 신용카드 등록 없이 네이버, 카카오, Google 계정으로 바로 시작하세요.',
     },
     {
         q: '네이버 블로그 외에 다른 플랫폼도 지원하나요?',
@@ -250,6 +250,68 @@ const GoogleIcon = () => (
     </svg>
 );
 
+const NaverIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" style={{ flexShrink: 0 }}>
+        <path d="M13.56 10.7L6.17 0H0v20h6.44V9.3L13.83 20H20V0h-6.44v10.7z" fill="#fff"/>
+    </svg>
+);
+
+const KakaoIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+        <path d="M12 3C6.48 3 2 6.58 2 10.94c0 2.8 1.86 5.27 4.66 6.67-.15.53-.96 3.4-.99 3.62 0 0-.02.17.09.23.1.06.23.01.23.01.31-.04 3.56-2.33 4.12-2.73.6.08 1.22.13 1.89.13 5.52 0 10-3.58 10-7.93S17.52 3 12 3z" fill="#3C1E1E"/>
+    </svg>
+);
+
+const LoginModal = ({ onClose, onLogin, loginLoading, loginProvider }) => (
+    <div className="login-modal-overlay" onClick={onClose}>
+        <div className="login-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="login-modal-close" onClick={onClose}>
+                <X size={20} />
+            </button>
+            <div className="login-modal-header">
+                <img src="/logo.png" alt="Piklit" className="login-modal-logo" />
+                <h3>피클릿 시작하기</h3>
+                <p>간편 로그인으로 바로 시작하세요</p>
+            </div>
+            <div className="login-modal-buttons">
+                <button
+                    className="login-btn login-btn-naver"
+                    onClick={() => onLogin('naver')}
+                    disabled={loginLoading}
+                >
+                    {loginLoading && loginProvider === 'naver'
+                        ? <Loader2 size={16} className="spin" />
+                        : <NaverIcon />
+                    }
+                    <span>네이버로 시작하기</span>
+                </button>
+                <button
+                    className="login-btn login-btn-kakao"
+                    onClick={() => onLogin('kakao')}
+                    disabled={loginLoading}
+                >
+                    {loginLoading && loginProvider === 'kakao'
+                        ? <Loader2 size={16} className="spin" />
+                        : <KakaoIcon />
+                    }
+                    <span>카카오로 시작하기</span>
+                </button>
+                <button
+                    className="login-btn login-btn-google"
+                    onClick={() => onLogin('google')}
+                    disabled={loginLoading}
+                >
+                    {loginLoading && loginProvider === 'google'
+                        ? <Loader2 size={16} className="spin" />
+                        : <GoogleIcon />
+                    }
+                    <span>Google로 시작하기</span>
+                </button>
+            </div>
+        </div>
+    </div>
+);
+
 const StickyHeader = ({ handleStart, loginLoading }) => {
     const [scrolled, setScrolled] = useState(false);
 
@@ -282,7 +344,7 @@ const StickyHeader = ({ handleStart, loginLoading }) => {
                 >
                     {loginLoading
                         ? <><Loader2 size={16} className="spin" /> 로그인 중...</>
-                        : <><GoogleIcon /> Google로 시작하기</>
+                        : '시작하기'
                     }
                 </button>
             </div>
@@ -321,7 +383,7 @@ const HeroSection = ({ handleStart, loginLoading }) => (
                     }
                 </button>
                 <span className="landing-cta-hint">
-                    ← Google 계정으로 바로 시작 · 회원가입 불필요
+                    ← 네이버 · 카카오 · Google 계정으로 바로 시작
                 </span>
             </div>
         </div>
@@ -876,7 +938,7 @@ const BottomCTA = ({ handleStart, loginLoading }) => (
                     : <><Rocket size={20} /> 무료로 시작하기</>
                 }
             </button>
-            <span className="bottom-cta-note">회원가입 없이 Google 계정으로 바로 시작</span>
+            <span className="bottom-cta-note">네이버 · 카카오 · Google 계정으로 바로 시작</span>
         </div>
     </section>
 );
@@ -898,8 +960,10 @@ const Footer = () => (
 
 const LandingPage = () => {
     const navigate = useNavigate();
-    const { isLoggedIn, loginWithGoogle } = useAuth();
+    const { isLoggedIn, loginWithGoogle, loginWithNaver, loginWithKakao } = useAuth();
     const [loginLoading, setLoginLoading] = useState(false);
+    const [loginProvider, setLoginProvider] = useState(null);
+    const [showLoginModal, setShowLoginModal] = useState(false);
 
     // 이미 로그인된 사용자는 글 목록으로 이동
     useEffect(() => {
@@ -928,19 +992,32 @@ const LandingPage = () => {
         return () => observer.disconnect();
     }, []);
 
-    const handleStart = async () => {
+    const handleStart = () => {
         if (isLoggedIn) {
             navigate('/posts');
             return;
         }
+        setShowLoginModal(true);
+    };
+
+    const handleProviderLogin = async (provider) => {
         setLoginLoading(true);
+        setLoginProvider(provider);
         try {
-            await loginWithGoogle();
+            if (provider === 'google') {
+                await loginWithGoogle();
+            } else if (provider === 'naver') {
+                await loginWithNaver();
+            } else if (provider === 'kakao') {
+                await loginWithKakao();
+            }
+            setShowLoginModal(false);
             navigate('/posts');
         } catch (error) {
-            console.error('로그인 실패:', error);
+            console.error(`${provider} 로그인 실패:`, error);
         } finally {
             setLoginLoading(false);
+            setLoginProvider(null);
         }
     };
 
@@ -961,6 +1038,14 @@ const LandingPage = () => {
             <FAQSection />
             <BottomCTA handleStart={handleStart} loginLoading={loginLoading} />
             <Footer />
+            {showLoginModal && (
+                <LoginModal
+                    onClose={() => setShowLoginModal(false)}
+                    onLogin={handleProviderLogin}
+                    loginLoading={loginLoading}
+                    loginProvider={loginProvider}
+                />
+            )}
         </div>
     );
 };

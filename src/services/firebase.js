@@ -38,9 +38,55 @@ async function callVercelFunction(path, payload) {
     return { data };
 }
 
-// Vercel Serverless Functions 래퍼 (openai.js 인터페이스 동일)
-export const callGeminiProxy = (payload) => callVercelFunction('/api/gemini', payload);
-export const callGeminiImageProxy = (payload) => callVercelFunction('/api/gemini-image', payload);
+// 로컬 개발용: Gemini API 직접 호출 (Vercel 프록시 우회)
+async function callGeminiDirect(payload) {
+    const apiKey = payload.userApiKey || import.meta.env.VITE_GEMINI_API_KEY;
+    if (!apiKey) throw new Error('VITE_GEMINI_API_KEY가 .env에 설정되지 않았습니다.');
+
+    const modelId = payload.model || 'gemini-2.5-flash';
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`;
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload.body),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+        throw new Error(data.error?.message || `Gemini API 오류 (${response.status})`);
+    }
+    return { data };
+}
+
+async function callGeminiImageDirect(payload) {
+    const apiKey = payload.userApiKey || import.meta.env.VITE_GEMINI_API_KEY;
+    if (!apiKey) throw new Error('VITE_GEMINI_API_KEY가 .env에 설정되지 않았습니다.');
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-04-17:generateContent?key=${apiKey}`;
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload.body),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+        throw new Error(data.error?.message || `Gemini Image API 오류 (${response.status})`);
+    }
+    return { data };
+}
+
+// 개발 모드: Gemini 직접 호출, 프로덕션: Vercel 프록시
+export const callGeminiProxy = import.meta.env.DEV
+    ? (payload) => callGeminiDirect(payload)
+    : (payload) => callVercelFunction('/api/gemini', payload);
+
+export const callGeminiImageProxy = import.meta.env.DEV
+    ? (payload) => callGeminiImageDirect(payload)
+    : (payload) => callVercelFunction('/api/gemini-image', payload);
+
 export const callGetUsageInfo = () => callVercelFunction('/api/usage', {});
 
 export default app;

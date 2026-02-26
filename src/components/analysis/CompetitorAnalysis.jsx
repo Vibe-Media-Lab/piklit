@@ -1,41 +1,39 @@
 import React from 'react';
-import { BarChart3, Search, Sparkles, CheckCircle } from 'lucide-react';
+import { BarChart3, Search, CheckCircle, Loader2 } from 'lucide-react';
 
 const CompetitorAnalysis = ({ data, loading, onAnalyze }) => {
     if (!data && !loading) {
         return (
-            <div className="competitor-cta">
-                <div className="competitor-cta-icon">
-                    <BarChart3 size={32} />
-                </div>
-                <p className="competitor-cta-title">경쟁 블로그 분석</p>
-                <p className="competitor-cta-desc">
-                    같은 키워드 상위 블로그의 글자수, 이미지 수, 구조를 분석합니다
-                </p>
-                <button onClick={onAnalyze} className="wizard-btn-primary">
-                    <Search size={16} /> 경쟁 블로그 분석하기
-                </button>
-            </div>
+            <button onClick={onAnalyze} className="wizard-btn-accent">
+                <BarChart3 size={16} /> 경쟁 블로그 분석하기
+            </button>
         );
     }
 
     if (loading) {
         return (
-            <div className="competitor-loading">
-                <div className="competitor-loading-icon">
-                    <Sparkles size={36} />
+            <div className="ai-progress-card">
+                <div className="ai-progress-header">
+                    <Loader2 size={16} className="spin" />
+                    경쟁 블로그를 분석하고 있습니다
+                    <div className="ai-progress-dots"><span /><span /><span /></div>
                 </div>
-                <p className="competitor-loading-text">경쟁 블로그를 분석하고 있어요</p>
-                <p className="competitor-loading-sub">잠시만 기다려주세요.</p>
-                <div className="ai-progress-bar-track" style={{ marginTop: '16px', maxWidth: '280px', marginInline: 'auto' }}>
+                <div className="ai-progress-bar-track">
                     <div className="ai-progress-bar-fill" />
                 </div>
-                <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    <div className="skeleton-bar long" />
-                    <div className="skeleton-bar medium" />
-                    <div className="skeleton-bar short" />
-                    <div className="skeleton-bar long" />
-                    <div className="skeleton-bar medium" />
+                <div className="ai-progress-steps">
+                    <div className="ai-progress-step done">
+                        <div className="ai-progress-step-icon"><CheckCircle size={14} /></div>
+                        검색 요청 전달 완료
+                    </div>
+                    <div className="ai-progress-step active">
+                        <div className="ai-progress-step-icon"><Loader2 size={14} /></div>
+                        상위 블로그 데이터 수집 중
+                    </div>
+                    <div className="ai-progress-step">
+                        <div className="ai-progress-step-icon"><BarChart3 size={14} /></div>
+                        평균 데이터 추출
+                    </div>
                 </div>
             </div>
         );

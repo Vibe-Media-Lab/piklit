@@ -176,10 +176,10 @@
 .wizard-btn-primary {
     background: var(--color-brand, #FF6B35);
     color: white;
-    padding: 12px 32px;
+    padding: 14px 32px;
     border-radius: var(--radius-md, 6px);
     font-size: var(--font-size-sm, 0.875rem);
-    font-weight: 500;
+    font-weight: 600;
     transition: opacity 0.2s;
     display: inline-flex;
     align-items: center;
@@ -198,10 +198,28 @@
     opacity: 0.6;
 }
 
+.wizard-btn-full {
+    width: 100%;
+    justify-content: center;
+}
+
+/* Wizard Section Card — 관련 요소 그룹핑 */
+.wizard-section-card {
+    margin-top: 24px;
+    padding: 24px;
+    background: var(--color-surface-hover, #F7F6F3);
+    border: 1px solid var(--color-border, #E3E2E0);
+    border-radius: 12px;
+}
+
+.wizard-section-card > *:last-child {
+    margin-bottom: 0;
+}
+
 .wizard-btn-secondary {
     background: white;
     color: var(--color-text-main);
-    padding: 12px 24px;
+    padding: 14px 24px;
     border-radius: var(--radius-md, 6px);
     font-size: var(--font-size-sm, 0.875rem);
     font-weight: 500;
@@ -218,6 +236,33 @@
 }
 
 .wizard-btn-secondary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.wizard-btn-accent {
+    background: #FFF3ED;
+    color: #D4520E;
+    padding: 14px 24px;
+    border-radius: var(--radius-md, 6px);
+    font-size: var(--font-size-sm, 0.875rem);
+    font-weight: 600;
+    border: 1px solid #FFCAB0;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.wizard-btn-accent:hover {
+    background: #FFE8DB;
+    border-color: #FF6B35;
+}
+
+.wizard-btn-accent:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
@@ -365,27 +410,29 @@
 /* StepIndicator Connector */
 .wizard-step-indicator {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 0;
     margin-bottom: 40px;
+    padding: 24px 0 8px;
 }
 
 .wizard-step-item {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     flex-shrink: 0;
 }
 
 .wizard-step-circle {
-    width: 28px;
-    height: 28px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 600;
-    font-size: 0.85rem;
+    font-size: 0.95rem;
     flex-shrink: 0;
     transition: all 0.2s;
 }
@@ -393,6 +440,7 @@
 .wizard-step-circle.active {
     background: var(--color-brand, #FF6B35);
     color: white;
+    box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
 }
 
 .wizard-step-circle.completed {
@@ -406,7 +454,7 @@
 }
 
 .wizard-step-label {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-weight: 500;
     white-space: nowrap;
 }
@@ -426,10 +474,12 @@
 
 .wizard-step-connector {
     flex: 1;
-    height: 2px;
+    height: 3px;
     background: var(--color-border, #E3E2E0);
     min-width: 40px;
-    margin: 0 16px;
+    margin: 0;
+    margin-top: 20px; /* 원(40px)의 중심에 정렬 */
+    border-radius: 2px;
 }
 
 .wizard-step-connector.completed {
@@ -467,14 +517,13 @@
     background: var(--color-brand-light, #FFF3ED);
     border: 1px solid var(--color-brand, #FF6B35);
     border-radius: var(--radius-lg, 8px);
-    text-align: center;
+    text-align: left;
     animation: progress-pulse 2s ease-in-out infinite;
 }
 
 .ai-progress-header {
     display: flex;
     align-items: center;
-    justify-content: center;
     gap: 10px;
     margin-bottom: 14px;
     color: var(--color-brand-dark, #E55A2B);
@@ -501,10 +550,9 @@
 }
 
 .ai-progress-steps {
-    display: inline-flex;
+    display: flex;
     flex-direction: column;
     gap: 8px;
-    text-align: left;
 }
 
 .ai-progress-step {
@@ -555,20 +603,6 @@
 .ai-progress-dots span:nth-child(2) { animation: bounce-dots 1.2s ease-in-out infinite 0.15s; }
 .ai-progress-dots span:nth-child(3) { animation: bounce-dots 1.2s ease-in-out infinite 0.3s; }
 
-/* ── Skeleton Shimmer (Competitor Analysis) ── */
-.skeleton-bar {
-    height: 14px;
-    border-radius: 4px;
-    background: linear-gradient(90deg, #f0eeeb 25%, #e8e6e3 50%, #f0eeeb 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s ease-in-out infinite;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.skeleton-bar.short { width: 40%; }
-.skeleton-bar.medium { width: 65%; }
-.skeleton-bar.long { width: 85%; }
 
 /* SEO Metrics Cards */
 .metrics-grid {
@@ -812,63 +846,6 @@
 }
 
 /* ===== Competitor Analysis ===== */
-.competitor-cta {
-    padding: 24px;
-    background: var(--color-brand-light);
-    border-radius: var(--radius-lg);
-    text-align: center;
-    border: 1px dashed var(--color-brand);
-}
-
-.competitor-cta-icon {
-    color: var(--color-brand);
-    margin-bottom: 8px;
-    display: flex;
-    justify-content: center;
-}
-
-.competitor-cta-title {
-    color: var(--color-brand-dark);
-    font-weight: 600;
-    margin-bottom: 4px;
-}
-
-.competitor-cta-desc {
-    color: var(--color-brand);
-    font-size: var(--font-size-sm);
-    margin-bottom: 16px;
-}
-
-.competitor-loading {
-    padding: 32px;
-    background: var(--color-surface-hover);
-    border-radius: var(--radius-lg);
-    text-align: center;
-}
-
-.competitor-loading-icon {
-    color: var(--color-brand);
-    margin-bottom: 12px;
-    display: flex;
-    justify-content: center;
-}
-
-.competitor-loading-text {
-    color: var(--color-text-main);
-    font-weight: 600;
-    font-size: 1rem;
-    margin-bottom: 4px;
-}
-
-.competitor-loading-sub {
-    color: var(--color-text-sub);
-    font-size: var(--font-size-sm);
-    margin-bottom: 0;
-}
-
-.competitor-loading-icon svg {
-    animation: pulse 2s ease-in-out infinite;
-}
 
 .competitor-panel {
     background: var(--color-surface);
@@ -1313,17 +1290,8 @@
     margin: 0 auto;
 }
 
-.wizard-page-title {
-    margin-bottom: 8px;
-}
-
-.wizard-page-subtitle {
-    color: var(--color-text-sub);
-    margin-bottom: 32px;
-}
-
 .wizard-step-heading {
-    margin-bottom: 24px;
+    margin-bottom: 8px;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -1335,8 +1303,45 @@
 
 .wizard-step-desc {
     color: var(--color-text-sub);
-    margin-bottom: 32px;
+    margin-bottom: 12px;
+    line-height: 1.5;
 }
+
+.wizard-step-meta {
+    display: flex;
+    gap: 16px;
+    color: var(--color-text-sub);
+    font-size: 0.875rem;
+    margin-bottom: 28px;
+    padding: 10px 14px;
+    background: var(--color-bg-hover);
+    border-radius: 12px;
+}
+
+.wizard-step-meta strong {
+    color: var(--color-text-primary);
+}
+
+.wizard-info-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 14px 18px;
+    border-radius: 12px;
+    font-size: var(--font-size-sm, 0.875rem);
+    line-height: 1.5;
+    border: 1px dashed var(--color-border, #E3E2E0);
+    background: var(--color-surface-hover, #F7F6F3);
+    color: var(--color-text-sub, #787774);
+}
+
+.wizard-info-box.success {
+    background: #F0FDF4;
+    border-color: #BBF7D0;
+    color: #166534;
+}
+
 
 .wizard-form-group {
     margin-bottom: 28px;
@@ -1355,13 +1360,17 @@
 
 .wizard-category-card {
     padding: 14px 12px;
-    border-radius: var(--radius-lg);
+    border-radius: 12px;
     border: 1px solid var(--color-border);
     background: white;
     cursor: pointer;
     text-align: center;
     transition: all 0.2s;
     font-size: var(--font-size-sm);
+}
+
+.wizard-category-card:hover {
+    box-shadow: var(--shadow-sm);
 }
 
 .wizard-category-card.selected {
@@ -1535,10 +1544,6 @@
     margin-top: 8px;
 }
 
-.wizard-season-btn-full {
-    width: 100%;
-    justify-content: center;
-}
 
 .wizard-season-panel {
     margin-top: 12px;
@@ -1605,33 +1610,8 @@
 }
 
 /* Wizard Status Bar */
-.wizard-status-bar {
-    padding: 16px;
-    border-radius: 12px;
-    margin-top: 24px;
-    font-size: 0.9rem;
-}
-
-.wizard-status-bar.ready {
-    background: #FFF3ED;
-    border: 1px solid #FFCAB0;
-    color: #D4520E;
-}
-
-.wizard-status-bar.pending {
-    background: #FEF3C7;
-    border: 1px solid #FCD34D;
-    color: #92400E;
-}
-
-.wizard-status-bar p {
+.wizard-info-box p {
     margin: 0;
-}
-
-.wizard-status-inline {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
 }
 
 /* Wizard Section Spacing */
@@ -1733,10 +1713,14 @@
 
 .wizard-tone-option {
     padding: 16px;
-    border-radius: var(--radius-lg);
+    border-radius: 12px;
     border: 1px solid var(--color-border);
     background: white;
     cursor: pointer;
+}
+
+.wizard-tone-option:hover {
+    box-shadow: var(--shadow-sm);
 }
 
 .wizard-tone-option.selected {
@@ -1762,6 +1746,10 @@
 }
 
 /* Wizard misc */
+.wizard-mt-8 {
+    margin-top: 8px;
+}
+
 .wizard-mt-16 {
     margin-top: 16px;
 }
