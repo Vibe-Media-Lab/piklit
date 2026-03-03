@@ -16,9 +16,19 @@ export const CATEGORIES = [
     { id: 'daily', label: '일상', icon: '📝', tone: '친근한 이웃형', templateId: 'A', recommendedImages: 10 }
 ];
 
+// 한국어 톤 라벨 → 영문 톤 id 매핑
+const TONE_LABEL_TO_ID = {
+    '친근한 이웃형': 'friendly',
+    '전문 정보형': 'professional',
+    '내돈내산 솔직형': 'honest',
+    '감성 에세이형': 'emotional',
+    '단계별 가이드형': 'guide',
+};
+
 export const getToneForCategory = (categoryId) => {
     const category = CATEGORIES.find(c => c.id === categoryId);
-    return category ? category.tone : '친근한 이웃형';
+    const label = category ? category.tone : '친근한 이웃형';
+    return TONE_LABEL_TO_ID[label] || 'friendly';
 };
 
 export const getRecommendedImages = (categoryId) => {

@@ -92,8 +92,11 @@ export const formatParagraphs = (html) => {
             return `<p>${joined}</p>`;
         }
 
+        // 결정적 패턴: 자연스러운 리듬을 유지하면서 재생성 시 일관된 문단 구조
+        const GROUP_PATTERN = [2, 3, 1, 2, 3, 2, 1, 3];
         const chunks = [];
         let i = 0;
+        let patternIdx = 0;
         while (i < splitParts.length) {
             const remaining = splitParts.length - i;
             // 남은 문장이 1개면 이전 문단에 합류
@@ -102,8 +105,8 @@ export const formatParagraphs = (html) => {
                 chunks.push(`<p>${lastChunk} ${splitParts[i].trim()}</p>`);
                 i++;
             } else {
-                // 1~3문장 랜덤 그룹핑
-                const groupSize = Math.min(remaining, Math.floor(Math.random() * 3) + 1);
+                const groupSize = Math.min(remaining, GROUP_PATTERN[patternIdx % GROUP_PATTERN.length]);
+                patternIdx++;
                 const chunk = splitParts.slice(i, i + groupSize).join(' ').trim();
                 if (chunk) chunks.push(`<p>${chunk}</p>`);
                 i += groupSize;

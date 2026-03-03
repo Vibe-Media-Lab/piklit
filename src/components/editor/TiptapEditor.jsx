@@ -246,7 +246,8 @@ const TiptapEditor = () => {
                 selectedText,
                 surroundingContext,
                 keywords?.main || '',
-                mode
+                mode,
+                suggestedTone || 'friendly'
             );
 
             const rawText = result?.text || '';
