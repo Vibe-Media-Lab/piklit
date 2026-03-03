@@ -4,18 +4,15 @@
 네이버 블로그 SEO 최적화 AI 작성기 (React 19 + Vite 7 + TipTap + Google Gemini 2.5 Flash API)
 
 ## 이번 세션 요약
-카테고리별 도입부 SEO 최적화 프롬프트 개선 + 맛집 정보카드 하단 이동 + 경쟁 분석 데이터 부족 UI + SEO 체크리스트 카테고리별 도입부 글자수 적용
+xlsx 보안 취약점 해결 — read-excel-file로 교체 (npm audit 0건 달성)
 
 ## 수정 파일
 
 | 파일 | 변경 사항 |
 |------|----------|
-| `src/services/openai.js` | `_introPromptByCategory()` 헬퍼 추가, 맛집 정보카드 글 하단 이동, 카테고리별 도입부 프롬프트 적용 (5개 카테고리), `generateIntroAlternatives`에 category 파라미터+전략 분기 |
-| `src/utils/analysis.js` | `INTRO_LENGTH_BY_CATEGORY` 상수 추가, `analyzePost`에 categoryId 파라미터 추가 |
-| `src/context/EditorContext.jsx` | `analyzePost` 호출 시 현재 포스트의 categoryId 전달 |
-| `src/components/editor/IntroOptimizer.jsx` | `generateIntroAlternatives` 호출 시 category 전달, 정보카드 감지 h2/h3 대응 |
-| `src/components/analysis/CompetitorAnalysis.jsx` | charCount+headingCount 모두 0일 때 "분석 데이터 부족" 안내 UI |
-| `src/styles/components.css` | `.competitor-insufficient` 스타일 추가 |
+| `package.json` | `xlsx` 제거, `read-excel-file` 추가 |
+| `package-lock.json` | 의존성 트리 갱신 |
+| `src/utils/excelParser.js` | `read-excel-file/browser` 기반으로 재작성 (반환 형태 동일) |
 
 ## 현재 릴리즈 상태
 - 빌드: 정상

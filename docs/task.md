@@ -482,6 +482,13 @@
 - [x] `CompetitorAnalysis.jsx` — charCount+headingCount 모두 0일 때 "분석 데이터 부족" 안내 표시
 - [x] 주황색 dashed 박스 스타일 추가 (`.competitor-insufficient`)
 
+## 완료된 작업 (2026-03-03) — 보안 취약점 해결
+
+### 의존성 보안
+- [x] `xlsx` (SheetJS) 제거 — high 취약점 2건 (Prototype Pollution, ReDoS), 패치 불가
+- [x] `read-excel-file` 교체 — `excelParser.js`를 `read-excel-file/browser` 기반으로 재작성
+- [x] `npm audit` 취약점 0건 달성
+
 ## 아이디어 보관함 (Icebox)
 
 > 당장 구현하지 않지만 나중에 재검토할 수 있는 아이디어
