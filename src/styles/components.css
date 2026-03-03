@@ -2001,3 +2001,414 @@
     background: var(--color-brand);
     color: white;
 }
+
+
+/* ===== 다음 글 추천 섹션 ===== */
+
+/* 접힌 배너 */
+.recommend-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    margin: 12px 0;
+    background: var(--color-brand-light);
+    border: 1px solid rgba(255, 107, 53, 0.15);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.recommend-banner:hover {
+    background: rgba(255, 107, 53, 0.12);
+    border-color: rgba(255, 107, 53, 0.25);
+}
+
+.recommend-banner-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--color-brand);
+    min-width: 0;
+}
+
+.recommend-banner-text {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--color-text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.recommend-banner-arrow {
+    color: var(--color-text-sub);
+    flex-shrink: 0;
+}
+
+/* 펼쳐진 섹션 */
+.recommend-section {
+    margin: 12px 0;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--color-surface);
+}
+
+.recommend-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    background: var(--color-brand-light);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.recommend-header:hover {
+    background: rgba(255, 107, 53, 0.12);
+}
+
+.recommend-header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--color-brand);
+}
+
+/* 업로드 영역 */
+.recommend-body {
+    padding: 20px 16px;
+}
+
+.recommend-dropzone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 16px;
+    border: 2px dashed var(--color-border);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+.recommend-dropzone:hover,
+.recommend-dropzone.drag-over {
+    border-color: var(--color-brand);
+    background: var(--color-brand-light);
+}
+
+.recommend-dropzone-icon {
+    color: var(--color-text-sub);
+    margin-bottom: 12px;
+}
+
+.recommend-dropzone.drag-over .recommend-dropzone-icon {
+    color: var(--color-brand);
+}
+
+.recommend-dropzone-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--color-text-main);
+    margin: 0 0 6px;
+}
+
+.recommend-dropzone-desc {
+    font-size: 0.85rem;
+    color: var(--color-text-sub);
+    margin: 0 0 8px;
+}
+
+.recommend-dropzone-hint {
+    font-size: 0.78rem;
+    color: var(--color-text-sub);
+    opacity: 0.7;
+    margin: 0;
+}
+
+/* 구분선 */
+.recommend-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 16px 0;
+    color: var(--color-text-sub);
+    font-size: 0.8rem;
+}
+
+.recommend-divider::before,
+.recommend-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--color-border);
+}
+
+/* 히스토리 기반 분석 버튼 */
+.recommend-history-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    color: var(--color-text-main);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.recommend-history-btn:hover:not(:disabled) {
+    background: var(--color-surface-hover);
+    border-color: var(--color-border-hover);
+}
+
+.recommend-history-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.recommend-history-hint {
+    font-size: 0.8rem;
+    color: var(--color-text-sub);
+}
+
+.recommend-error {
+    margin-top: 12px;
+    padding: 10px 12px;
+    background: rgba(235, 87, 87, 0.08);
+    border-radius: var(--radius-sm);
+    color: var(--color-error);
+    font-size: 0.85rem;
+}
+
+/* 로딩 */
+.recommend-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 16px;
+    gap: 12px;
+    text-align: center;
+}
+
+.recommend-loading p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--color-text-sub);
+}
+
+.recommend-loading-icon {
+    color: var(--color-brand);
+    animation: recommend-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes recommend-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.1); }
+}
+
+.recommend-loading-file {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem !important;
+    color: var(--color-text-sub) !important;
+    opacity: 0.7;
+}
+
+/* 결과 */
+.recommend-results {
+    padding: 16px;
+}
+
+.recommend-insight {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 12px 14px;
+    background: var(--color-brand-light);
+    border-radius: var(--radius-md);
+    margin-bottom: 16px;
+    font-size: 0.85rem;
+    color: var(--color-text-main);
+    line-height: 1.5;
+}
+
+.recommend-insight svg {
+    flex-shrink: 0;
+    color: var(--color-brand);
+    margin-top: 2px;
+}
+
+/* 추천 카드 */
+.recommend-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.recommend-card {
+    padding: 16px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    transition: all 0.2s;
+}
+
+.recommend-card:hover {
+    border-color: var(--color-border-hover);
+    box-shadow: var(--shadow-sm);
+}
+
+.recommend-card-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.recommend-card-num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--color-brand);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.recommend-card-category {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--color-text-sub);
+    background: var(--color-surface-hover);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.recommend-card-diff {
+    font-size: 0.75rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 500;
+    margin-left: auto;
+}
+
+.recommend-diff-easy {
+    background: rgba(39, 174, 96, 0.1);
+    color: #27AE60;
+}
+
+.recommend-diff-medium {
+    background: rgba(255, 107, 53, 0.1);
+    color: var(--color-brand);
+}
+
+.recommend-diff-hard {
+    background: rgba(235, 87, 87, 0.1);
+    color: var(--color-error);
+}
+
+.recommend-card-topic {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text-main);
+    margin: 0 0 8px;
+    line-height: 1.4;
+}
+
+.recommend-card-reason {
+    font-size: 0.85rem;
+    color: var(--color-text-sub);
+    margin: 0 0 10px;
+    line-height: 1.5;
+}
+
+.recommend-card-keywords {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.recommend-card-keyword {
+    font-size: 0.78rem;
+    color: var(--color-brand);
+    background: var(--color-brand-light);
+    padding: 3px 8px;
+    border-radius: 4px;
+}
+
+.recommend-card-cta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 10px;
+    background: var(--color-brand);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.recommend-card-cta:hover {
+    background: var(--color-brand-dark);
+}
+
+/* 하단 액션 */
+.recommend-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 16px;
+}
+
+.recommend-refresh {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: none;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: 0.8rem;
+    color: var(--color-text-sub);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.recommend-refresh:hover {
+    background: var(--color-surface-hover);
+    border-color: var(--color-border-hover);
+}
+
+/* 반응형 */
+@media (max-width: 640px) {
+    .recommend-dropzone {
+        padding: 24px 12px;
+    }
+
+    .recommend-card {
+        padding: 14px;
+    }
+
+    .recommend-card-topic {
+        font-size: 0.95rem;
+    }
+}

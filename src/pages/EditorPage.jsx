@@ -161,6 +161,19 @@ const EditorPage = () => {
         if (location.state?.initialTone) {
             setToneState(location.state.initialTone);
         }
+        // 추천 기능에서 넘어온 프리필
+        if (location.state?.prefillTopic && !topicInput) {
+            setTopicInput(location.state.prefillTopic);
+        }
+        if (location.state?.prefillCategory) {
+            const catLabel = location.state.prefillCategory;
+            const matched = CATEGORIES.find(c =>
+                c.label === catLabel || c.label.includes(catLabel) || catLabel.includes(c.label)
+            );
+            if (matched && !selectedCategory) {
+                setSelectedCategory(matched);
+            }
+        }
     }, [location.state]);
 
     // mainKeyword 변경 시 Context와 동기화 (분석 체크리스트 연동)

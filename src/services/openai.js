@@ -1365,6 +1365,91 @@ suggestions는 최대 5개, 가장 효과적인 수정부터 정렬.`;
             { thinkingBudget: 2048 },
             'AI 휴먼라이징'
         );
+    },
+
+    /**
+     * 다음 글 주제 추천 — 블로그 통계(엑셀) + 작성 기록 기반
+     * @param {Object|null} blogStats - 엑셀 파싱 결과 { period, unit, data: [{rank, title, views, publishDate}] }
+     * @param {Array} posts - localStorage의 기존 글 목록
+     * @returns {Promise<{recommendations: Array}>}
+     */
+    async recommendNextTopics(blogStats = null, posts = []) {
+        const existingTitles = posts.map(p => p.title).filter(Boolean);
+        const existingKeywords = posts
+            .map(p => [p.keywords?.main, ...(p.keywords?.sub || [])])
+            .flat()
+            .filter(Boolean);
+        const uniqueKeywords = [...new Set(existingKeywords)];
+
+        let statsSection = '';
+        if (blogStats && blogStats.data?.length > 0) {
+            const top20 = blogStats.data
+                .sort((a, b) => b.views - a.views)
+                .slice(0, 20);
+            const statsList = top20
+                .map((d, i) => `${i + 1}. "${d.title}" — 조회수 ${d.views.toLocaleString()}`)
+                .join('\n');
+            statsSection = `
+[블로그 통계 데이터 (${blogStats.unit}, ${blogStats.period || '기간 불명'})]
+조회수 상위 글:
+${statsList}
+`;
+        }
+
+        let historySection = '';
+        if (existingTitles.length > 0) {
+            historySection = `
+[이미 작성한 글 목록 (${existingTitles.length}편)]
+${existingTitles.slice(0, 30).map(t => `- ${t}`).join('\n')}
+
+[사용한 키워드]
+${uniqueKeywords.slice(0, 30).join(', ')}
+`;
+        }
+
+        const hasStats = !!statsSection;
+
+        const prompt = `너는 네이버 블로그 성장 전략 컨설턴트야.
+${hasStats ? '블로그 통계 데이터와 작성 기록을 분석하여' : '블로그 작성 기록을 분석하여'} 다음에 쓰면 좋을 주제를 추천해줘.
+${statsSection}${historySection}
+
+[분석 기준]
+${hasStats ? '1. 조회수 높은 글의 패턴 (카테고리, 키워드, 시기)' : '1. 작성한 글의 카테고리/키워드 패턴'}
+2. 이미 쓴 주제와 중복되지 않는 새로운 주제
+3. 현재 시즌/트렌드에 맞는 주제 (검색으로 확인)
+4. 네이버 블로그 SEO에 유리한 주제
+${hasStats ? '5. 조회수가 낮았던 글의 교훈 (피해야 할 유형)' : ''}
+
+[추천 조건]
+- 구체적이고 실행 가능한 주제 (너무 광범위하지 않게)
+- 각 추천마다 추천 이유를 명확히 설명
+- 예상 핵심 키워드 3~5개 포함
+- 난이도 표시 (쉬움/보통/어려움)
+- 카테고리는 한국어 (예: 맛집, 여행, 리뷰, 일상, 정보, 뷰티, 육아 등)
+
+Output strictly a valid JSON:
+{
+  "recommendations": [
+    {
+      "topic": "추천 주제 제목",
+      "category": "카테고리",
+      "keywords": ["키워드1", "키워드2", "키워드3"],
+      "reason": "왜 이 주제를 추천하는지 2~3문장",
+      "difficulty": "쉬움|보통|어려움"
+    }
+  ],
+  "insight": "전반적인 블로그 운영 인사이트 1~2문장"
+}
+recommendations는 ${hasStats ? '5' : '3'}개.`;
+
+        return this.generateContent(
+            [{ text: prompt }],
+            {
+                tools: [{ google_search: {} }],
+                thinkingBudget: 2048,
+            },
+            '다음 글 추천'
+        );
     }
 };
 

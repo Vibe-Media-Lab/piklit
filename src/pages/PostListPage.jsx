@@ -4,6 +4,7 @@ import { useEditor } from '../context/EditorContext';
 import { useAuth } from '../context/AuthContext';
 import { callGetUsageInfo } from '../services/firebase';
 import { FileText, Trash2, Plus } from 'lucide-react';
+import RecommendSection from '../components/common/RecommendSection';
 import '../styles/components.css';
 import '../styles/history.css';
 
@@ -114,6 +115,9 @@ const PostListPage = () => {
                             <span className="posts-cta-desc">사진만 올리면 5분이면 완성</span>
                         </div>
                     </div>
+
+                    {/* 다음 글 추천 */}
+                    <RecommendSection />
 
                     {/* 최근 글 */}
                     <h3 className="post-list-section-title">최근 글</h3>
