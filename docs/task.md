@@ -403,11 +403,11 @@
 - [x] CDO.md 가격 구조 업데이트 (BYOK ₩4,900 / Pro ₩18,900 / 첫 달 무료)
 
 ### 남은 작업
-- [ ] **Firebase Firestore 데이터베이스 생성** (Console에서 수동 — asia-northeast3, 프로덕션 모드)
-- [ ] Vercel 환경변수 확인 (FIREBASE_SA_CLIENT_EMAIL, FIREBASE_SA_PRIVATE_KEY)
-- [ ] 배포 후 프로모션 플로우 테스트 (글 생성 무제한 → 30일 후 3회 제한)
-- [ ] 카카오 동의항목 설정 (닉네임/프로필사진/이메일)
-- [ ] 네이버 테스터 등록 후 로그인 테스트
+- [x] **Firebase Firestore 데이터베이스 생성** (Console에서 수동 — asia-northeast3, 프로덕션 모드)
+- [x] Vercel 환경변수 확인 (FIREBASE_SA_CLIENT_EMAIL, FIREBASE_SA_PRIVATE_KEY)
+- [x] 배포 후 프로모션 플로우 테스트 (글 생성 무제한 → 30일 후 3회 제한)
+- [x] 카카오 동의항목 설정 (닉네임/프로필사진/이메일)
+- [x] 네이버 테스터 등록 후 로그인 테스트
 - [x] Google 로그인 프로덕션 테스트
 
 ## 완료된 작업 (2026-02-26) — 톤 미리보기 + UI 개선 + 로드맵 업데이트
