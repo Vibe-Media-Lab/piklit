@@ -61,14 +61,20 @@ const SettingsModal = ({ isOpen, onClose }) => {
                     <div style={{
                         marginBottom: '20px',
                         padding: '16px',
-                        background: '#FFF8F5',
+                        background: usage?.isPromo ? '#F0FFF4' : '#FFF8F5',
                         borderRadius: 'var(--radius-md)',
-                        border: '1px solid #FFE0D0'
+                        border: `1px solid ${usage?.isPromo ? '#C6F6D5' : '#FFE0D0'}`
                     }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                            <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>무료 체험</span>
+                            <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>
+                                {usage?.isPromo ? '첫 달 무료 체험 중' : '무료 체험'}
+                            </span>
                             {usageLoading ? (
                                 <span style={{ fontSize: '0.85rem', color: 'var(--color-text-sub)' }}>조회 중...</span>
+                            ) : usage?.isPromo ? (
+                                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#27AE60' }}>
+                                    D-{usage.promoDaysLeft ?? '?'}
+                                </span>
                             ) : usage ? (
                                 <span style={{ fontSize: '0.85rem', fontWeight: 600, color: usagePercent >= 80 ? '#EB5757' : 'var(--color-brand)' }}>
                                     {usage.used} / {usage.limit}회 사용
@@ -84,14 +90,19 @@ const SettingsModal = ({ isOpen, onClose }) => {
                             }}>
                                 <div style={{
                                     height: '100%',
-                                    width: `${Math.min(usagePercent, 100)}%`,
-                                    background: usagePercent >= 80 ? '#EB5757' : 'var(--color-brand)',
+                                    width: usage.isPromo ? '100%' : `${Math.min(usagePercent, 100)}%`,
+                                    background: usage.isPromo ? '#27AE60' : (usagePercent >= 80 ? '#EB5757' : 'var(--color-brand)'),
                                     borderRadius: '3px',
                                     transition: 'width 0.3s'
                                 }} />
                             </div>
                         )}
-                        {usage && usage.used >= usage.limit && (
+                        {usage?.isPromo && (
+                            <p style={{ fontSize: '0.8rem', color: '#27AE60', marginTop: '8px', marginBottom: 0 }}>
+                                무제한 글 생성 가능
+                            </p>
+                        )}
+                        {usage && !usage.isPromo && usage.used >= usage.limit && (
                             <p style={{ fontSize: '0.8rem', color: '#EB5757', marginTop: '8px', marginBottom: 0 }}>
                                 무료 체험이 소진되었습니다. 아래에서 직접 API 키를 등록하면 무제한 사용 가능합니다.
                             </p>

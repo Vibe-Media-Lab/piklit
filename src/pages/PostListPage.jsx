@@ -35,6 +35,27 @@ const UsageBar = () => {
     if (loading) return <div className="usage-bar"><span className="usage-bar-text">사용량 확인 중...</span></div>;
     if (!usage) return null;
 
+    // 프로모션 모드
+    if (usage.isPromo) {
+        return (
+            <div className="usage-bar promo">
+                <div className="usage-bar-info">
+                    <span className="usage-bar-text">
+                        <strong>첫 달 무료 체험 중</strong> (D-{usage.promoDaysLeft ?? '?'})
+                    </span>
+                    <span className="usage-bar-promo-badge">무제한</span>
+                </div>
+                <div className="usage-bar-track">
+                    <div className="usage-bar-fill promo" style={{ width: '100%' }} />
+                </div>
+                <span className="usage-bar-text" style={{ marginTop: '4px', display: 'block' }}>
+                    무제한 글 생성 가능
+                </span>
+            </div>
+        );
+    }
+
+    // 일반 모드
     const percent = Math.round((usage.used / usage.limit) * 100);
 
     return (

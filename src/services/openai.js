@@ -663,7 +663,7 @@ Output strictly a valid JSON: {"html": "..."}`;
 
         return this.generateContent(parts, {
             tools: [{ google_search: {} }]
-        }, '본문 생성 (일반)');
+        }, '본문 생성');
     },
 
     /**
@@ -751,7 +751,7 @@ Output strictly a valid JSON: {"html": "..."}`;
 
         return this.generateContent(parts, {
             tools: [{ google_search: {} }]
-        }, '본문 생성 (맛집)');
+        }, '맛집 본문 생성');
     },
 
     /**

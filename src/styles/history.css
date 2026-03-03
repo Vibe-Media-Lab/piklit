@@ -883,6 +883,25 @@
     transition: width 0.4s ease;
 }
 
+/* Promo (첫 달 무료) */
+.usage-bar.promo {
+    background: #F0FFF4;
+    border-color: #C6F6D5;
+}
+
+.usage-bar-fill.promo {
+    background: linear-gradient(90deg, #27AE60, #2ECC71);
+}
+
+.usage-bar-promo-badge {
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    color: #27AE60;
+    background: #E6F9ED;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
 /* ===== Posts CTA ===== */
 .posts-cta {
     display: flex;
