@@ -501,6 +501,46 @@ Output strictly a valid JSON:
 [AI 패턴 표현 — 절대 금지!!!] "다양한", "풍부한", "완벽한", "특별한", "놀라운", "인상적인", "독특한", "매력적인", "효과적인", "핵심적인", "필수적인", "최적의" 사용 금지. "살펴보겠습니다", "알아보겠습니다", "소개해 드리겠습니다", "결론적으로", "종합적으로" 금지. 대신 구체적으로 묘사해: "다양한 메뉴" → "메뉴가 5가지", "풍부한 맛" → "간장 맛이 진하게 배어든".`;
     },
 
+    // 카테고리별 도입부 SEO 프롬프트 (네이버 검색 스니펫 최적화)
+    _introPromptByCategory(category, keyword) {
+        const intros = {
+            food: `1. 도입부 <p>: 150~200자, 2~4문장.
+   구조: [방문 계기/상황] → [가게명 "${keyword}" + 지역명] → [대표 메뉴·분위기 한 줄 요약]
+   첫 문장에 지역명+가게명 필수 포함. 주소/영업시간/주차 등 상세 정보는 넣지 않음.
+   "직접 가봤다"는 경험 신호를 담되, 감성적 경험 문장이어야 함.
+   이것이 네이버 검색 스니펫(80~160자)으로 노출됨.`,
+            cafe: `1. 도입부 <p>: 150~200자, 2~4문장.
+   구조: [방문 계기/상황] → [카페명 "${keyword}" + 지역명] → [분위기·시그니처 메뉴 한 줄 요약]
+   첫 문장에 지역명+카페명 필수 포함. 주소/영업시간/주차 등 상세 정보는 넣지 않음.
+   "직접 가봤다"는 경험 신호를 담되, 감성적 경험 문장이어야 함.
+   이것이 네이버 검색 스니펫(80~160자)으로 노출됨.`,
+            travel: `1. 도입부 <p>: 150~200자, 2~4문장.
+   구조: [여행 동기/계절 배경] → [여행지명 "${keyword}" + 여행 기간] → [하이라이트 1개 예고]
+   첫 문장에 여행지명 필수 포함. "이 글에서 다룰 내용"을 암시하여 체류시간 유도.
+   일정표 나열이 아닌, 설렘/기대감을 전하는 개인 서사로 작성.
+   이것이 네이버 검색 스니펫(80~160자)으로 노출됨.`,
+            daily: `1. 도입부 <p>: 100~150자, 2~3문장.
+   구조: [공감 유도 질문 또는 상황 묘사] → [주제 키워드 "${keyword}" 제시] → [해결책/정보 예고]
+   짧고 임팩트 있게. 롱테일 키워드를 자연스럽게 녹이기.
+   "~에 대해 알아보겠습니다" 식 빈 문장 금지. 독자 상황에 공감하며 시작.
+   이것이 네이버 검색 스니펫(80~160자)으로 노출됨.`,
+            pet: `1. 도입부 <p>: 150~200자, 2~4문장.
+   구조: [반려동물 에피소드/고민] → ["${keyword}" 핵심 키워드 포함 주제 제시] → [경험 기반 해결 예고]
+   반려동물 이름/종류 + 상황 묘사로 감정적 연결. 제품 스펙 나열로 시작하지 말 것.
+   애정이 담긴 일상적 문체와 정보성의 균형.
+   이것이 네이버 검색 스니펫(80~160자)으로 노출됨.`,
+            shopping: `1. 도입부 <p>: 150~200자, 2~4문장.
+   구조: [문제/고민 제시] → [제품명 "${keyword}" + 카테고리 언급] → [사용 기간·한줄 결론 미리보기]
+   "3개월간 사용해본 결과..." 같은 구체적 수치가 신뢰도를 높임.
+   가격/스펙 나열이 아닌, 구매 동기와 첫인상 문장이어야 함.
+   이것이 네이버 검색 스니펫(80~160자)으로 노출됨.`,
+        };
+        // 카테고리 매핑 (한글 → 키)
+        const aliasMap = { '카페&맛집': 'food', '맛집': 'food', '쇼핑': 'shopping', '여행': 'travel', '일상': 'daily', '반려동물': 'pet' };
+        const key = aliasMap[category] || category;
+        return intros[key] || intros.daily;
+    },
+
     // 카테고리별 슬롯 순서
     _categorySlots: {
         food: ['entrance', 'parking', 'menu', 'interior', 'food', 'extra'],
@@ -651,7 +691,9 @@ ${imageInstructions}
 예시: <p>[[IMAGE:${exampleSlot}]]</p>
 이미지 태그를 빠뜨리면 안 됨! 텍스트→이미지→텍스트 패턴으로 배치.
 
-[작업] 구글 검색으로 '${mainKeyword}' 실제 정보를 찾아 HTML 블로그 글 작성. 서브 키워드는 문맥에 맞게 자연스럽게 녹여넣기. [[VIDEO]] 1개 배치.
+[구조 — 반드시 이 순서!!!]
+${this._introPromptByCategory(category, mainKeyword)}
+2. 본문: h2/h3 사용. 구글 검색으로 '${mainKeyword}' 실제 정보를 찾아 작성. 서브 키워드는 문맥에 맞게 자연스럽게 녹여넣기. [[VIDEO]] 1개 배치.
 Output strictly a valid JSON: {"html": "..."}`;
 
         const parts = [{ text: prompt }];
@@ -717,7 +759,7 @@ Output strictly a valid JSON:
             console.warn('[업장 정보 검색] 실패, 기본값 사용:', e.message);
         }
 
-        const infoCard = `<h3>📍 ${keyword}</h3><p><b>주소:</b> ${placeInfo.address}</p><p><b>영업시간:</b> ${placeInfo.hours}</p><p><b>인기메뉴:</b> ${placeInfo.menu}</p><p><b>주차:</b> ${placeInfo.parking}</p><p><b>예약:</b> ${placeInfo.reservation}</p><hr>`;
+        const infoCard = `<h2>📍 찾아가는 길</h2><p><b>가게명:</b> ${keyword}</p><p><b>주소:</b> ${placeInfo.address}</p><p><b>영업시간:</b> ${placeInfo.hours}</p><p><b>인기메뉴:</b> ${placeInfo.menu}</p><p><b>주차:</b> ${placeInfo.parking}</p><p><b>예약:</b> ${placeInfo.reservation}</p>`;
 
         const prompt = `너는 네이버 블로그 맛집 전문 블로거야.
 ${this._htmlRules(keyword)}
@@ -736,10 +778,11 @@ ${imageInstructions}
 이미지 태그를 빠뜨리면 안 됨! 텍스트→이미지→텍스트 패턴으로 배치.
 
 [구조 — 반드시 이 순서!!!]
-1. 도입부 <p>: 메인 키워드("${keyword}")를 자연스럽게 포함한 경험/감정 기반 첫 문단 (2~3문장, 80~160자). 이것이 네이버 검색 스니펫으로 노출됨. 주소/영업시간 등 정보가 아닌, 감성적 경험 문장이어야 함.
-2. 정보카드 (아래 HTML 그대로 삽입):
+${this._introPromptByCategory('food', keyword)}
+2. 본문: 가장 기억에 남는 경험부터 시작. h2/h3 사용. 매번 같은 순서 금지 — 기억에 남는 장면, 에피소드 중심으로 자유롭게 구성. [[VIDEO]] 1개 배치.
+3. 가게 정보카드 — 글 하단 마무리에 배치 (아래 HTML 그대로 삽입):
 ${infoCard}
-3. 본문: 가장 기억에 남는 경험부터 시작. h2/h3 사용. 매번 같은 순서 금지 — 기억에 남는 장면, 에피소드 중심으로 자유롭게 구성. [[VIDEO]] 1개 배치.
+→ 가게 정보는 반드시 글의 맨 마지막에 위치해야 함. 도입부나 본문 중간에 넣지 말 것. 독자가 글을 끝까지 읽고 방문을 결심한 후 확인하는 정보임.
 Output strictly a valid JSON: {"html": "..."}`;
 
         const parts = [{ text: prompt }];
@@ -809,7 +852,7 @@ ${imageInstructions}
 이미지 태그를 빠뜨리면 안 됨! 텍스트→이미지→텍스트 패턴으로 배치.
 
 [구조 — 반드시 이 순서!!!]
-1. 도입부 <p>: 메인 키워드("${keyword}")를 자연스럽게 포함한 경험/감정 기반 첫 문단 (2~3문장, 80~160자). 이것이 네이버 검색 스니펫으로 노출됨. 가격/스펙 등 정보가 아닌, 구매 동기나 첫인상 문장이어야 함.
+${this._introPromptByCategory('shopping', keyword)}
 2. 제품 정보카드 (아래 HTML 그대로 삽입):
 ${infoCard}
 3. 본문: 가장 기억에 남는 경험부터 시작. h2/h3 사용. 구매계기·실사용·장단점을 자유 순서로 구성. [[VIDEO]] 1개 배치.
@@ -1019,7 +1062,7 @@ ${JSON.stringify(captionExampleOutput)}`;
      * @param {string} title - 게시글 제목
      * @returns {Promise<{alternatives: Array<{text: string, strategy: string}>}>}
      */
-    async generateIntroAlternatives(currentIntro, mainKeyword, subKeywords = [], title = '', tone = 'friendly', bodyText = '') {
+    async generateIntroAlternatives(currentIntro, mainKeyword, subKeywords = [], title = '', tone = 'friendly', bodyText = '', category = 'daily') {
         const toneDesc = this._toneMap[tone] || this._toneMap['friendly'];
 
         // 본문이 있으면 본문 톤 우선, 없으면 설정 톤 사용
@@ -1033,12 +1076,26 @@ ${JSON.stringify(captionExampleOutput)}`;
 ${bodyText}`
             : `[톤앤무드]\n${toneDesc}`;
 
+        // 카테고리별 글자수 가이드 & 전략
+        const categoryGuides = {
+            food: { charMin: 150, charMax: 200, strategies: '첫 번째: 방문 계기·상황 묘사형 (누구와 왜 갔는지)\n   - 두 번째: 대표 메뉴 선행형 (가장 맛있었던 메뉴부터)\n   - 세 번째: 지역 탐방형 (동네·거리 분위기에서 시작)' },
+            cafe: { charMin: 150, charMax: 200, strategies: '첫 번째: 방문 계기·상황 묘사형 (누구와 왜 갔는지)\n   - 두 번째: 분위기·인테리어 선행형 (공간 느낌부터)\n   - 세 번째: 시그니처 메뉴 선행형 (메뉴 경험부터)' },
+            travel: { charMin: 150, charMax: 200, strategies: '첫 번째: 여행 동기·계절 배경형 (왜 떠났는지)\n   - 두 번째: 하이라이트 선행형 (가장 인상적인 장면부터)\n   - 세 번째: 궁금증 유발형 (의외의 발견·질문으로 시작)' },
+            daily: { charMin: 100, charMax: 150, strategies: '첫 번째: 공감 유도형 (독자 상황에 공감하며 시작)\n   - 두 번째: 핵심 정보 선행형 (결론/팁을 먼저 제시)\n   - 세 번째: 궁금증 유발형 (질문이나 의외의 사실로 시작)' },
+            pet: { charMin: 150, charMax: 200, strategies: '첫 번째: 에피소드형 (반려동물과의 구체적 에피소드)\n   - 두 번째: 고민 해결형 (겪었던 문제와 해결 과정)\n   - 세 번째: 감정 연결형 (반려동물에 대한 애정에서 시작)' },
+            shopping: { charMin: 150, charMax: 200, strategies: '첫 번째: 구매 동기형 (어떤 문제를 해결하려 샀는지)\n   - 두 번째: 결론 선행형 (사용 후 한줄 평가부터)\n   - 세 번째: 비교형 (기존 제품과 비교하며 시작)' },
+        };
+        const aliasMap = { '카페&맛집': 'food', '맛집': 'food', '쇼핑': 'shopping', '여행': 'travel', '일상': 'daily', '반려동물': 'pet' };
+        const catKey = aliasMap[category] || category;
+        const guide = categoryGuides[catKey] || categoryGuides.daily;
+
         const prompt = `너는 네이버 블로그 SEO 전문가야. 네이버 검색 결과에서 클릭률(CTR)을 최대한 끌어올리는 도입부를 작성해.
 
 [현재 게시글 정보]
 - 제목: ${title || '없음'}
 - 메인 키워드: ${mainKeyword}
 - 서브 키워드: ${subKeywords.join(', ') || '없음'}
+- 카테고리: ${category}
 - 톤앤무드: ${toneDesc}
 
 ${toneSection}
@@ -1050,17 +1107,15 @@ ${currentIntro}
 위 톤앤무드와 본문 문체를 모두 반영하여 대안 도입부 3개를 작성해.
 
 [규칙]
-1. **[글자수 — 가장 중요!!!]** 각 도입부는 반드시 한글 기준 140자 이상 160자 이하.
+1. **[글자수 — 가장 중요!!!]** 각 도입부는 반드시 한글 기준 ${guide.charMin}자 이상 ${guide.charMax}자 이하.
    - 공백·이모지 포함 전체 글자수 기준.
-   - 100자 이하는 절대 불가! 3~4문장으로 충분히 길게 작성할 것.
-   - 참고: "의왕 카포커피클럽은 반려견과 함께 방문하기 좋은 애견동반 카페입니다." = 약 38자. 이런 문장 4개를 이어 써야 140자가 됨.
-   - 작성 후 반드시 글자수를 세어 140자 미만이면 문장을 추가하고, 160자 초과면 줄일 것.
+   - ${guide.charMin - 40}자 이하는 절대 불가! 충분히 길게 작성할 것.
+   - 참고: "의왕 카포커피클럽은 반려견과 함께 방문하기 좋은 애견동반 카페입니다." = 약 38자. 이런 문장 ${Math.ceil(guide.charMin / 38)}개를 이어 써야 ${guide.charMin}자가 됨.
+   - 작성 후 반드시 글자수를 세어 ${guide.charMin}자 미만이면 문장을 추가하고, ${guide.charMax}자 초과면 줄일 것.
 2. 첫 문장에 메인 키워드("${mainKeyword}") 반드시 포함
-3. 네이버 검색 미리보기에 노출되는 첫 2문장에 핵심 정보 담기
+3. 네이버 검색 미리보기에 노출되는 첫 2문장(90자)에 핵심 정보 담기
 4. 각 도입부는 서로 다른 전략 사용:
-   - 첫 번째: 핵심 정보 선행형 (결론/정보를 먼저 제시)
-   - 두 번째: 공감 유도형 (독자 상황에 공감하며 시작)
-   - 세 번째: 궁금증 유발형 (질문이나 의외의 사실로 시작)
+   - ${guide.strategies}
 5. **[절대 규칙]** 본문의 어미를 100% 따라할 것. 본문이 "~다"로 끝나면 "~해요/~합니다/~거예요" 절대 금지. 본문이 "~해요"로 끝나면 "~다/~했다" 절대 금지.
 6. **[중복 금지]** 위 본문에 이미 있는 표현·문장을 그대로 반복하지 말 것. 도입부는 본문과 다른 시각·표현으로 시작해야 함. 본문 첫 문단과 내용이 겹치면 안 됨.
 

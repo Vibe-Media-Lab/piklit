@@ -114,7 +114,18 @@ export const formatParagraphs = (html) => {
     });
 };
 
-export const analyzePost = (title, htmlContent, keywords, targetLength = 1500) => {
+// 카테고리별 도입부 권장 글자수
+const INTRO_LENGTH_BY_CATEGORY = {
+    food: { min: 150, max: 200 },
+    cafe: { min: 150, max: 200 },
+    '카페&맛집': { min: 150, max: 200 },
+    travel: { min: 150, max: 200 },
+    daily: { min: 100, max: 150 },
+    pet: { min: 150, max: 200 },
+    shopping: { min: 150, max: 200 },
+};
+
+export const analyzePost = (title, htmlContent, keywords, targetLength = 1500, categoryId = 'daily') => {
     const issues = [];
     const checks = {
         titleKeyStart: false,
@@ -299,15 +310,16 @@ export const analyzePost = (title, htmlContent, keywords, targetLength = 1500) =
         checks.imageAltText = true; // 이미지 없으면 패스
     }
 
-    // 11. Intro Paragraph Length — 첫 문단 140~160자 (메타 디스크립션 역할)
+    // 11. Intro Paragraph Length — 카테고리별 권장 글자수
+    const introRange = INTRO_LENGTH_BY_CATEGORY[categoryId] || INTRO_LENGTH_BY_CATEGORY.daily;
     const firstParagraph = doc.querySelector('p');
     const introLength = firstParagraph ? (firstParagraph.textContent || '').replace(/\s/g, '').length : 0;
-    if (introLength >= 140 && introLength <= 160) {
+    if (introLength >= introRange.min && introLength <= introRange.max) {
         checks.introParagraphLength = true;
-    } else if (introLength > 0 && introLength < 140) {
-        issues.push({ id: 'intro_short', type: 'info', text: `도입부가 짧습니다 (${introLength}자, 권장: 140~160자).` });
-    } else if (introLength > 160) {
-        issues.push({ id: 'intro_long', type: 'info', text: `도입부가 깁니다 (${introLength}자, 권장: 140~160자).` });
+    } else if (introLength > 0 && introLength < introRange.min) {
+        issues.push({ id: 'intro_short', type: 'info', text: `도입부가 짧습니다 (${introLength}자, 권장: ${introRange.min}~${introRange.max}자).` });
+    } else if (introLength > introRange.max) {
+        issues.push({ id: 'intro_long', type: 'info', text: `도입부가 깁니다 (${introLength}자, 권장: ${introRange.min}~${introRange.max}자).` });
     } else {
         checks.introParagraphLength = true; // 본문 없으면 패스
     }

@@ -25,50 +25,85 @@
     padding: 16px 20px;
 }
 
-.image-seo-slot-section {
-    margin-bottom: 20px;
+/* === 사진별 1:1 카드 === */
+.image-seo-photo-card {
+    display: flex;
+    gap: 16px;
+    border: 1px solid #E5E7EB;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 12px;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.image-seo-slot-section:last-child {
+.image-seo-photo-card:last-child {
     margin-bottom: 0;
 }
 
-.image-seo-slot-title {
+.image-seo-photo-card:hover {
+    border-color: #D1D5DB;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* 왼쪽: 텍스트 영역 */
+.image-seo-photo-card-left {
+    flex: 1;
+    min-width: 0;
+}
+
+.image-seo-photo-card-title {
     font-size: 0.95rem;
     font-weight: 600;
-    color: #374151;
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.image-seo-slot-title .slot-count {
-    font-size: 0.8rem;
-    font-weight: 400;
-    color: #9CA3AF;
-}
-
-.image-seo-item {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding: 10px 14px;
-    background: #F9FAFB;
-    border: 1px solid #E5E7EB;
-    border-radius: 8px;
+    color: #1F2937;
     margin-bottom: 8px;
 }
 
-.image-seo-item:last-child {
+/* 오른쪽: 사진 썸네일 */
+.image-seo-photo-card-right {
+    flex-shrink: 0;
+}
+
+.image-seo-photo-thumb {
+    width: 100px;
+    height: 100px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 1px solid #E5E7EB;
+}
+
+/* AI 분석 텍스트 */
+.image-seo-analysis {
+    padding: 4px 0;
+}
+
+.image-seo-analysis-item {
+    margin: 0 0 5px;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: #374151;
+}
+
+.image-seo-analysis-item strong {
+    color: #1F2937;
+    font-weight: 600;
+}
+
+.image-seo-analysis-item:last-child {
     margin-bottom: 0;
 }
 
-.image-seo-item-number {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: #6B7280;
-    margin-bottom: 2px;
+/* 구분선 */
+.image-seo-divider {
+    height: 1px;
+    background: #E5E7EB;
+    margin: 10px 0;
+}
+
+/* SEO 행 묶음 */
+.image-seo-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
 .image-seo-row {
@@ -88,7 +123,7 @@
 
 .image-seo-row-value {
     flex: 1;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     color: #1F2937;
     word-break: break-all;
     font-family: 'SF Mono', 'Menlo', 'Monaco', monospace;
@@ -143,6 +178,52 @@
     color: #059669;
 }
 
+/* fallback 분석 영역 */
+.image-seo-fallback-analysis {
+    padding: 12px 0 16px;
+    border-bottom: 1px solid #E5E7EB;
+    margin-bottom: 16px;
+}
+
+.image-seo-analysis-group {
+    margin-bottom: 16px;
+}
+
+.image-seo-analysis-group:last-child {
+    margin-bottom: 0;
+}
+
+.image-seo-analysis-group-title {
+    margin: 0 0 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1F2937;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.image-seo-analysis-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #FF6B35;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+/* preamble */
+.image-seo-preamble {
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #F3F4F6;
+}
+
 .image-seo-footer {
     padding: 12px 20px;
     background: #FFFBEB;
@@ -152,7 +233,7 @@
     line-height: 1.5;
 }
 
-/* Floating button */
+/* === Floating button === */
 .image-seo-floating-btn {
     position: fixed;
     bottom: 24px;
@@ -195,7 +276,7 @@
     padding: 0 4px;
 }
 
-/* Drawer overlay */
+/* === Drawer overlay === */
 .image-seo-drawer-overlay {
     position: fixed;
     top: 0;
@@ -214,12 +295,12 @@
     visibility: visible;
 }
 
-/* Drawer */
+/* === Drawer (폭 460px) === */
 .image-seo-drawer {
     position: fixed;
     top: 0;
-    right: -420px;
-    width: 400px;
+    right: -480px;
+    width: 460px;
     max-width: 90vw;
     height: 100vh;
     background: white;
@@ -269,4 +350,23 @@
     flex: 1;
     overflow-y: auto;
     padding: 0;
+}
+
+/* === 반응형: 640px 이하 === */
+@media (max-width: 640px) {
+    .image-seo-photo-thumb {
+        width: 72px;
+        height: 72px;
+    }
+
+    .image-seo-photo-card {
+        padding: 12px;
+        gap: 12px;
+    }
+
+    .image-seo-drawer {
+        width: 100vw;
+        max-width: 100vw;
+        right: -100vw;
+    }
 }

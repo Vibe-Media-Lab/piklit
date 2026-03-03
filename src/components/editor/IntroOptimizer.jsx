@@ -5,8 +5,8 @@ import { useToast } from '../common/Toast';
 import { AIService } from '../../services/openai';
 import { humanizeText } from '../../utils/humanness';
 
-// 정보카드 감지: <h3>로 시작하고 📍 또는 🏷️ 이모지 포함
-const INFO_CARD_START = /<h3[^>]*>\s*(?:📍|🏷️)/i;
+// 정보카드 감지: <h2> 또는 <h3>로 시작하고 📍 또는 🏷️ 이모지 포함
+const INFO_CARD_START = /<h[23][^>]*>\s*(?:📍|🏷️)/i;
 
 /**
  * 정보카드가 콘텐츠 상단에 있는지 감지하고,
@@ -26,7 +26,7 @@ function detectInfoCard(html) {
 }
 
 const IntroOptimizer = () => {
-    const { title, content, setContent, keywords, suggestedTone } = useEditor();
+    const { title, content, setContent, keywords, suggestedTone, posts, currentPostId } = useEditor();
     const { showToast } = useToast();
     const [alternatives, setAlternatives] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -75,7 +75,9 @@ const IntroOptimizer = () => {
             const parser = new DOMParser();
             const doc = parser.parseFromString(content, 'text/html');
             const bodyText = (doc.body.textContent || '').substring(0, 800);
-            const result = await AIService.generateIntroAlternatives(currentIntro, mainKeyword, subKws, title, suggestedTone, bodyText);
+            const currentPost = posts.find(p => p.id === currentPostId);
+            const category = currentPost?.categoryId || 'daily';
+            const result = await AIService.generateIntroAlternatives(currentIntro, mainKeyword, subKws, title, suggestedTone, bodyText, category);
             if (result?.alternatives && Array.isArray(result.alternatives)) {
                 setAlternatives(result.alternatives);
             }

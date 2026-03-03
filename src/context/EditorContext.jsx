@@ -63,7 +63,7 @@ export const EditorProvider = ({ children }) => {
                 if (p.id !== currentPostId) return p;
 
                 // Compute SEO snapshot
-                const result = analyzePost(title, content, keywords, targetLength);
+                const result = analyzePost(title, content, keywords, targetLength, p.categoryId || 'daily');
                 const seoScore = computeSeoScore(result.checks);
 
                 return {
@@ -83,11 +83,16 @@ export const EditorProvider = ({ children }) => {
         return () => clearTimeout(timer);
     }, [title, content, keywords, currentPostId, targetLength]);
 
-    // 4. Analysis
+    // 4. Analysis — 현재 포스트의 categoryId 반영
+    const currentCategoryId = useMemo(() => {
+        const post = posts.find(p => p.id === currentPostId);
+        return post?.categoryId || 'daily';
+    }, [posts, currentPostId]);
+
     useEffect(() => {
-        const result = analyzePost(title, content, keywords, targetLength);
+        const result = analyzePost(title, content, keywords, targetLength, currentCategoryId);
         setAnalysis(result);
-    }, [title, content, keywords, targetLength]);
+    }, [title, content, keywords, targetLength, currentCategoryId]);
 
     // MEMOIZED ACTIONS
     const createPost = useCallback((meta = {}) => {

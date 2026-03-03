@@ -1420,77 +1420,6 @@ const EditorPage = () => {
                                     </div>
                                 )}
 
-                                {photoAnalysis && (
-                                    <div className="photo-analysis-result">
-                                        <h4 className="photo-analysis-header">
-                                            <CheckCircle size={16} /> AI 분석 결과
-                                        </h4>
-                                        <div className="photo-analysis-body">
-                                            {(() => {
-                                                const raw = typeof photoAnalysis === 'string' ? photoAnalysis : JSON.stringify(photoAnalysis, null, 2);
-                                                const lines = raw.split('\n').filter(l => {
-                                                    const t = l.trim();
-                                                    if (!t || /^-{3,}$/.test(t)) return false;
-                                                    // AI 잡담 필터링
-                                                    if (/^(원하시면|추가로|더 궁금|도움이|감사합니다|이상으로|참고로|위 분석|블로그에 활용)/.test(t)) return false;
-                                                    return true;
-                                                });
-                                                // 줄 단위로 사진별 그룹핑
-                                                const groups = [];
-                                                let current = null;
-                                                lines.forEach(line => {
-                                                    const trimmed = line.trim();
-                                                    // 제목 패턴들: "### 사진 1: 제목", "[사진 1] 제목", "**1. 사진**", "1. 사진 1:"
-                                                    const titleMatch = trimmed.match(/^#{2,}\s*사진\s*(\d+)\s*[:：]\s*(.+?)[:：]?\s*$/)
-                                                        || trimmed.match(/^\[사진\s*(\d+)\]\s*(.+?)[:：]?\s*$/)
-                                                        || trimmed.match(/^\*{2}사진\s*(\d+)\s*[:：]\s*(.+?)\*{2}\s*$/)
-                                                        || trimmed.match(/^\*{2}(\d+)\.\s*(?:사진\s*\d*:\s*)?(.+?)\*{2}$/)
-                                                        || trimmed.match(/^(\d+)\.\s*사진\s*\d*\s*[:：]\s*(.+?)[:：]?\s*$/)
-                                                        || trimmed.match(/^#{2,}\s*(\d+)\.\s*(.+?)[:：]?\s*$/)
-                                                        || trimmed.match(/^사진\s*(\d+)\s*[:：]\s*(.+?)[:：]?\s*$/);
-                                                    if (titleMatch) {
-                                                        current = { num: titleMatch[1], title: titleMatch[2].replace(/\*{1,2}/g, '').replace(/[:：]\s*$/, ''), lines: [] };
-                                                        groups.push(current);
-                                                    } else if (current) {
-                                                        current.lines.push(trimmed);
-                                                    } else {
-                                                        groups.push({ num: null, title: null, lines: [trimmed] });
-                                                    }
-                                                });
-                                                const clean = (s) => s.replace(/\*{1,2}/g, '').replace(/^#+\s*/, '');
-                                                return groups.map((group, gi) => {
-                                                    if (!group.num) {
-                                                        return <p key={gi} className="photo-analysis-item">{clean(group.lines.join(' '))}</p>;
-                                                    }
-                                                    return (
-                                                        <div key={gi} className="photo-analysis-card">
-                                                            <h5 className="photo-analysis-section-title">
-                                                                <span className="photo-analysis-num">{group.num}</span>
-                                                                {group.title}
-                                                            </h5>
-                                                            <div className="photo-analysis-items">
-                                                                {group.lines.map((line, j) => {
-                                                                    let text = clean(line.replace(/^\s*[\*\-]\s*/, '').trim());
-                                                                    if (!text) return null;
-                                                                    const labelMatch = text.match(/^([^:]+)[:：]\s*(.+)$/);
-                                                                    if (labelMatch) {
-                                                                        return (
-                                                                            <p key={j} className="photo-analysis-item">
-                                                                                <strong>{labelMatch[1]}:</strong> {labelMatch[2]}
-                                                                            </p>
-                                                                        );
-                                                                    }
-                                                                    return <p key={j} className="photo-analysis-item">{text}</p>;
-                                                                })}
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                });
-                                            })()}
-                                        </div>
-                                    </div>
-                                )}
-
                                 {(photoAnalysis || Object.keys(imageAlts).length > 0) && (
                                     <div className="wizard-mt-16">
                                         <ImageSeoGuide
@@ -1498,6 +1427,8 @@ const EditorPage = () => {
                                             imageAlts={imageAlts}
                                             imageCaptions={imageCaptions}
                                             photoMetadata={photoData.metadata}
+                                            photoAnalysis={photoAnalysis}
+                                            photoFiles={photoData.files}
                                         />
                                     </div>
                                 )}
@@ -1813,7 +1744,7 @@ const EditorPage = () => {
                     />
                     <div className={`image-seo-drawer ${showSeoDrawer ? 'open' : ''}`}>
                         <div className="image-seo-drawer-header">
-                            <h3>📸 이미지 SEO 가이드</h3>
+                            <h3>📸 {photoAnalysis ? '사진 분석 & SEO 가이드' : '이미지 SEO 가이드'}</h3>
                             <button
                                 className="image-seo-drawer-close"
                                 onClick={() => setShowSeoDrawer(false)}
@@ -1827,6 +1758,8 @@ const EditorPage = () => {
                                 imageAlts={imageAlts}
                                 imageCaptions={imageCaptions}
                                 photoMetadata={photoData.metadata}
+                                photoAnalysis={photoAnalysis}
+                                photoFiles={photoData.files}
                             />
                         </div>
                     </div>

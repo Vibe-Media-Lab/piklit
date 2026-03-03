@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart3, Search, CheckCircle, Loader2 } from 'lucide-react';
+import { BarChart3, Search, CheckCircle, Loader2, AlertTriangle } from 'lucide-react';
 
 const CompetitorAnalysis = ({ data, loading, onAnalyze }) => {
     if (!data && !loading) {
@@ -40,6 +40,7 @@ const CompetitorAnalysis = ({ data, loading, onAnalyze }) => {
     }
 
     const { average = {} } = data;
+    const insufficient = !average.charCount && !average.headingCount;
 
     return (
         <div className="competitor-panel">
@@ -48,23 +49,35 @@ const CompetitorAnalysis = ({ data, loading, onAnalyze }) => {
                     <BarChart3 size={18} />
                     상위 블로그 평균 가이드
                 </h4>
-                <div className="competitor-stats-grid">
-                    <div className="competitor-stat">
-                        <div className="competitor-stat-value">{(average.charCount || 0).toLocaleString()}</div>
-                        <div className="competitor-stat-label">평균 글자수</div>
+                {insufficient ? (
+                    <div className="competitor-insufficient">
+                        <AlertTriangle size={16} />
+                        <div>
+                            <strong>분석 데이터 부족</strong>
+                            <p>이 키워드로 검색된 블로그가 부족하여 평균 데이터를 수집하지 못했습니다. 권장 이미지 수는 카테고리 기준으로 표시됩니다.</p>
+                        </div>
                     </div>
-                    <div className="competitor-stat">
-                        <div className="competitor-stat-value">{average.imageCount || 0}</div>
-                        <div className="competitor-stat-label">권장 이미지</div>
+                ) : (
+                    <div className="competitor-stats-grid">
+                        <div className="competitor-stat">
+                            <div className="competitor-stat-value">{(average.charCount || 0).toLocaleString()}</div>
+                            <div className="competitor-stat-label">평균 글자수</div>
+                        </div>
+                        <div className="competitor-stat">
+                            <div className="competitor-stat-value">{average.imageCount || 0}</div>
+                            <div className="competitor-stat-label">권장 이미지</div>
+                        </div>
+                        <div className="competitor-stat">
+                            <div className="competitor-stat-value">{average.headingCount || 0}</div>
+                            <div className="competitor-stat-label">평균 소제목</div>
+                        </div>
                     </div>
-                    <div className="competitor-stat">
-                        <div className="competitor-stat-value">{average.headingCount || 0}</div>
-                        <div className="competitor-stat-label">평균 소제목</div>
-                    </div>
-                </div>
+                )}
                 <p className="competitor-header-note">
                     <CheckCircle size={14} />
-                    글자수·소제목은 검색 기반 분석, 이미지는 카테고리별 권장값
+                    {insufficient
+                        ? '이미지는 카테고리별 권장값'
+                        : '글자수·소제목은 검색 기반 분석, 이미지는 카테고리별 권장값'}
                 </p>
             </div>
         </div>
