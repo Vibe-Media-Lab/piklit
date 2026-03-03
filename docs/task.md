@@ -489,6 +489,23 @@
 - [x] `read-excel-file` 교체 — `excelParser.js`를 `read-excel-file/browser` 기반으로 재작성
 - [x] `npm audit` 취약점 0건 달성
 
+## 완료된 작업 (2026-03-03) — 코드 스플리팅 + 프롬프트 개선 + 에이전트팀
+
+### 번들 최적화: 코드 스플리팅
+- [x] `App.jsx` — 4개 페이지 React.lazy() + Suspense fallback 적용
+- [x] `vite.config.js` — manualChunks 함수형 (tiptap+prosemirror / firebase 분리)
+- [x] 메인 번들 1,071KB → 254KB, 500KB 경고 해소
+
+### 프롬프트 품질 개선
+- [x] `extractTags` — 영어→한국어 프롬프트, 네이버 태그 규칙 추가 (대중5+틈새5 배합)
+- [x] `recommendKeywords` — 레거시 삭제 (사용처 0건, analyzeKeywords와 중복)
+- [x] `refineManualDraft` — `_toneMap` + `_htmlRules(keyword)` 적용 (기존 헬퍼 미사용 버그 수정)
+
+### 에이전트팀 구축
+- [x] `docs/agent-team.md` — 팀 매뉴얼 (메인+QA+프롬프트 3인 구성)
+- [x] `docs/setup-agents.sh` — 셋업 가이드 스크립트
+- [x] `.claude/commands/team.md` — `/team` 슬래시 커맨드
+
 ## 아이디어 보관함 (Icebox)
 
 > 당장 구현하지 않지만 나중에 재검토할 수 있는 아이디어

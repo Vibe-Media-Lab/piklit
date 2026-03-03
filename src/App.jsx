@@ -1,16 +1,17 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { EditorProvider } from './context/EditorContext';
 import { ToastProvider } from './components/common/Toast';
-import LandingPage from './pages/LandingPage';
-import PostListPage from './pages/PostListPage';
-import EditorPage from './pages/EditorPage';
-import HistoryPage from './pages/HistoryPage';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import AppLayout from './components/layout/AppLayout';
 import './styles/global.css';
 import './styles/components.css';
+
+const LandingPage = React.lazy(() => import('./pages/LandingPage'));
+const PostListPage = React.lazy(() => import('./pages/PostListPage'));
+const EditorPage = React.lazy(() => import('./pages/EditorPage'));
+const HistoryPage = React.lazy(() => import('./pages/HistoryPage'));
 
 // 로그인 필요 라우트 보호 컴포넌트
 const ProtectedRoute = ({ children }) => {
@@ -34,8 +35,18 @@ const ProtectedRoute = ({ children }) => {
     return <AppLayout>{children}</AppLayout>;
 };
 
+const PageLoading = () => (
+    <div style={{
+        display: 'flex', justifyContent: 'center', alignItems: 'center',
+        height: '100vh', color: 'var(--color-text-sub)'
+    }}>
+        로딩 중...
+    </div>
+);
+
 function AppRoutes() {
     return (
+        <Suspense fallback={<PageLoading />}>
         <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/posts" element={
@@ -56,6 +67,7 @@ function AppRoutes() {
                 </ProtectedRoute>
             } />
         </Routes>
+        </Suspense>
     );
 }
 

@@ -943,30 +943,29 @@ Output strictly a valid JSON: {"html": "..."}`;
      * Flow 1: Direct Write Refinement (Expand manual draft using Search)
      */
     async refineManualDraft(currentHtml, keyword, tone) {
+        const toneInstruction = this._toneMap[tone] || this._toneMap['friendly'];
+
         const prompt = `
-            사용자가 직접 작성한 블로그 초안(HTML)이 있습니다.
-            이 내용을 유지하면서, **구글 검색**을 통해 얻은 실제 사실(영업시간, 위치, 특징 등)을 보완하여 1500자 이상의 블로그 글로 완성해주세요.
-            
-            주제 키워드: ${keyword}
-            선택한 톤: ${tone}
-            
+            너는 네이버 블로그 글 보완 전문가야.
+            사용자가 직접 작성한 블로그 초안(HTML)을 기반으로, 구글 검색을 통해 실제 사실을 보완하여 1500자 이상의 완성된 글로 만들어줘.
+
+            [키워드] ${keyword}
+
+            [톤 지시]
+            ${toneInstruction}
+
+            [HTML/문장 규칙]
+            ${this._htmlRules(keyword)}
+
             [미션]
             1. 사용자가 쓴 문장을 최대한 살리되, 문맥을 자연스럽게 다듬는다.
             2. 자연스러운 흐름으로 내용을 확장한다.
-            3. 검색 결과를 바탕으로 메뉴 가격, 가는 길, 꿀팁 등 실질적인 정보 Paragraph를 추가한다.
-            4. <h3>, <p>, <br> 태그를 사용하여 네이버 블로그 스타일로 깔끔하게 구성한다.
-            
+            3. 검색 결과를 바탕으로 메뉴 가격, 가는 길, 꿀팁 등 실질적인 정보를 추가한다.
+
             [원본 내용]
             ${currentHtml}
-            
-            Output strictly a valid JSON string wrapped in a markdown code block.
-            DO NOT output any conversational text.
-            Example:
-            \`\`\`json
-            {
-              "html": "..."
-            }
-            \`\`\`
+
+            Output strictly a valid JSON: { "html": "..." }
         `;
 
         return this.generateContent([{ text: prompt }], {
@@ -1225,10 +1224,21 @@ Output strictly a valid JSON:
 
     async extractTags(content) {
         const prompt = `
-      Extract 10 SEO hashtags for Naver Blog from this text.
-      Content: ${content.substring(0, 1000)}...
+      너는 네이버 블로그 SEO 태그 전문가야.
+      아래 본문을 분석해서 네이버 블로그에 최적화된 태그 10개를 추출해.
 
-      Return strictly a JSON array of strings.
+      ## 태그 규칙
+      - # 기호 없이 키워드만 반환
+      - 대중 태그 5개 (검색량 높은 범용 키워드) + 틈새 태그 5개 (구체적, 롱테일 키워드) 배합
+      - 본문의 메인 키워드를 반드시 포함
+      - 장소명, 브랜드명이 있으면 태그에 포함
+      - 한국어 태그만 (영어 브랜드명은 예외)
+      - 2~6글자 길이 권장, 띄어쓰기 없이 붙여쓰기
+
+      ## 본문
+      ${content.substring(0, 1500)}
+
+      Output strictly a valid JSON: ["태그1", "태그2", ...]
     `;
         return this.generateContent([{ text: prompt }], { thinkingBudget: 0 }, '태그 추출');
     },
@@ -1400,20 +1410,6 @@ ${styleDesc}
                 throw error;
             }
         }
-    },
-
-    async recommendKeywords(subject) {
-        const prompt = `
-      Analyze SEO keywords for Naver Blog about '${subject}'.
-      Target: Korean users.
-
-      Task:
-      1. Recommend 3 "Main Keywords".
-      2. Recommend 10 "Sub Keywords".
-
-      Return strictly a JSON object.
-    `;
-        return this.generateContent([{ text: prompt }], { thinkingBudget: 0 }, '키워드 추천');
     },
 
     /**
