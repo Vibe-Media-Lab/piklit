@@ -1,0 +1,25 @@
+{
+  "active": true,
+  "spec": "001-analyze-blog-writer-project-code",
+  "state": "building",
+  "subtasks": {
+    "completed": 9,
+    "total": 10,
+    "in_progress": 1,
+    "failed": 0
+  },
+  "phase": {
+    "current": "\uc9c4\ub2e8 \ubcf4\uace0\uc11c \uc791\uc131 & \uac80\uc99d",
+    "id": null,
+    "total": 2
+  },
+  "workers": {
+    "active": 0,
+    "max": 1
+  },
+  "session": {
+    "number": 9,
+    "started_at": "2026-03-04T11:15:40.391410"
+  },
+  "last_update": "2026-03-04T11:43:41.031565"
+}

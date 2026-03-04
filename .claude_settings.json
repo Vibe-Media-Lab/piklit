@@ -1,0 +1,39 @@
+{
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true
+  },
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Read(./**)",
+      "Write(./**)",
+      "Edit(./**)",
+      "Glob(./**)",
+      "Grep(./**)",
+      "Read(/Users/datable/Desktop/antigravity/\u1107\u1173\u11af\u1105\u1169\u1100\u1173 \u110c\u1161\u11a8\u1109\u1165\u11bc\u1100\u1175/.auto-claude/worktrees/tasks/001-analyze-blog-writer-project-code/**)",
+      "Write(/Users/datable/Desktop/antigravity/\u1107\u1173\u11af\u1105\u1169\u1100\u1173 \u110c\u1161\u11a8\u1109\u1165\u11bc\u1100\u1175/.auto-claude/worktrees/tasks/001-analyze-blog-writer-project-code/**)",
+      "Edit(/Users/datable/Desktop/antigravity/\u1107\u1173\u11af\u1105\u1169\u1100\u1173 \u110c\u1161\u11a8\u1109\u1165\u11bc\u1100\u1175/.auto-claude/worktrees/tasks/001-analyze-blog-writer-project-code/**)",
+      "Glob(/Users/datable/Desktop/antigravity/\u1107\u1173\u11af\u1105\u1169\u1100\u1173 \u110c\u1161\u11a8\u1109\u1165\u11bc\u1100\u1175/.auto-claude/worktrees/tasks/001-analyze-blog-writer-project-code/**)",
+      "Grep(/Users/datable/Desktop/antigravity/\u1107\u1173\u11af\u1105\u1169\u1100\u1173 \u110c\u1161\u11a8\u1109\u1165\u11bc\u1100\u1175/.auto-claude/worktrees/tasks/001-analyze-blog-writer-project-code/**)",
+      "Read(/Users/datable/Desktop/antigravity/\u1107\u1173\u11af\u1105\u1169\u1100\u1173 \u110c\u1161\u11a8\u1109\u1165\u11bc\u1100\u1175/.auto-claude/worktrees/tasks/001-analyze-blog-writer-project-code/.auto-claude/specs/001-analyze-blog-writer-project-code/**)",
+      "Write(/Users/datable/Desktop/antigravity/\u1107\u1173\u11af\u1105\u1169\u1100\u1173 \u110c\u1161\u11a8\u1109\u1165\u11bc\u1100\u1175/.auto-claude/worktrees/tasks/001-analyze-blog-writer-project-code/.auto-claude/specs/001-analyze-blog-writer-project-code/**)",
+      "Edit(/Users/datable/Desktop/antigravity/\u1107\u1173\u11af\u1105\u1169\u1100\u1173 \u110c\u1161\u11a8\u1109\u1165\u11bc\u1100\u1175/.auto-claude/worktrees/tasks/001-analyze-blog-writer-project-code/.auto-claude/specs/001-analyze-blog-writer-project-code/**)",
+      "Read(/Users/datable/Desktop/antigravity/\u1107\u1173\u11af\u1105\u1169\u1100\u1173 \u110c\u1161\u11a8\u1109\u1165\u11bc\u1100\u1175/.auto-claude/**)",
+      "Write(/Users/datable/Desktop/antigravity/\u1107\u1173\u11af\u1105\u1169\u1100\u1173 \u110c\u1161\u11a8\u1109\u1165\u11bc\u1100\u1175/.auto-claude/**)",
+      "Edit(/Users/datable/Desktop/antigravity/\u1107\u1173\u11af\u1105\u1169\u1100\u1173 \u110c\u1161\u11a8\u1109\u1165\u11bc\u1100\u1175/.auto-claude/**)",
+      "Glob(/Users/datable/Desktop/antigravity/\u1107\u1173\u11af\u1105\u1169\u1100\u1173 \u110c\u1161\u11a8\u1109\u1165\u11bc\u1100\u1175/.auto-claude/**)",
+      "Grep(/Users/datable/Desktop/antigravity/\u1107\u1173\u11af\u1105\u1169\u1100\u1173 \u110c\u1161\u11a8\u1109\u1165\u11bc\u1100\u1175/.auto-claude/**)",
+      "Bash(*)",
+      "WebFetch(*)",
+      "WebSearch(*)",
+      "mcp__context7__resolve-library-id(*)",
+      "mcp__context7__query-docs(*)",
+      "mcp__graphiti-memory__search_nodes(*)",
+      "mcp__graphiti-memory__search_facts(*)",
+      "mcp__graphiti-memory__add_episode(*)",
+      "mcp__graphiti-memory__get_episodes(*)",
+      "mcp__graphiti-memory__get_entity_edge(*)"
+    ]
+  }
+}
