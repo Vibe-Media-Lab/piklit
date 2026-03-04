@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { formatParagraphs } from '../analysis';
+import { describe, it, expect, beforeAll } from 'vitest';
+import { formatParagraphs, analyzePost } from '../analysis';
 
 describe('formatParagraphs', () => {
   it('단일 짧은 문단을 그대로 반환한다', () => {
@@ -48,5 +48,88 @@ describe('formatParagraphs', () => {
     const input = '<h2>제목</h2><p>내용입니다.</p>';
     const result = formatParagraphs(input);
     expect(result).toContain('<h2>제목</h2>');
+  });
+});
+
+describe('analyzePost', () => {
+  const makeKeywords = (main, sub = []) => ({ main, sub });
+
+  it('제목이 메인 키워드로 시작하면 titleKeyStart=true', () => {
+    const result = analyzePost(
+      '맛집 추천 베스트 10곳 소개합니다',
+      '<p>맛집 관련 콘텐츠입니다. 맛집을 찾아보세요. 맛집 정보를 드립니다.</p>',
+      makeKeywords('맛집')
+    );
+    expect(result.checks.titleKeyStart).toBe(true);
+  });
+
+  it('제목 길이 10~30자일 때 titleLength=true', () => {
+    const title = '맛집 추천 베스트 10곳'; // 11자
+    const result = analyzePost(
+      title,
+      '<p>내용</p>',
+      makeKeywords('맛집')
+    );
+    expect(result.checks.titleLength).toBe(true);
+  });
+
+  it('콘텐츠 길이가 targetLength 미달 시 length_short 이슈 생성', () => {
+    const result = analyzePost(
+      '짧은 글 테스트 제목입니다 열자이상',
+      '<p>짧은 내용</p>',
+      makeKeywords('짧은'),
+      1500
+    );
+    expect(result.checks.contentLength).toBe(false);
+    const issue = result.issues.find(i => i.id === 'length_short');
+    expect(issue).toBeDefined();
+    expect(issue.type).toBe('info');
+  });
+
+  it('메인 키워드 3~5회 반복 시 mainKeyDensity=true', () => {
+    const keyword = '카페';
+    // 카페를 정확히 4번 포함
+    const content = '<p>카페 방문 후기입니다. 이 카페는 분위기가 좋습니다. 카페 메뉴도 다양하고 카페 인테리어도 예쁩니다.</p>';
+    const result = analyzePost(
+      '카페 추천 분위기 좋은 곳 모음집',
+      content,
+      makeKeywords(keyword)
+    );
+    expect(result.checks.mainKeyDensity).toBe(true);
+  });
+
+  it('빈 mainKeyword 시 no_keyword 에러 이슈 생성', () => {
+    const result = analyzePost(
+      '제목입니다 테스트용 제목이에요',
+      '<p>내용입니다.</p>',
+      makeKeywords('')
+    );
+    const issue = result.issues.find(i => i.id === 'no_keyword');
+    expect(issue).toBeDefined();
+    expect(issue.type).toBe('error');
+  });
+
+  it('H2와 H3 모두 존재 시 structure=true', () => {
+    const content = '<h2>소제목</h2><p>내용</p><h3>하위 소제목</h3><p>추가 내용</p>';
+    const result = analyzePost(
+      '구조화된 글 테스트 제목입니다',
+      content,
+      makeKeywords('구조화')
+    );
+    expect(result.checks.structure).toBe(true);
+  });
+
+  it('이미지 5~15장 범위일 때 imageCount=true', () => {
+    const imgs = Array.from({ length: 7 }, (_, i) =>
+      `<img src="img${i}.jpg" alt="이미지${i}" />`
+    ).join('');
+    const content = `<p>내용</p>${imgs}`;
+    const result = analyzePost(
+      '이미지 테스트 제목이 됩니다',
+      content,
+      makeKeywords('이미지')
+    );
+    expect(result.checks.imageCount).toBe(true);
+    expect(result.imageCount).toBe(7);
   });
 });
