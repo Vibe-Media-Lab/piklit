@@ -549,3 +549,197 @@ Components → clipboard.js, readability.js, humanness.js, thumbnail.js, waterma
 7. **body 크기 제한** — API 프록시에 payload 제한 추가
 
 === END subtask-3-2 ===
+
+=== SESSION: subtask-3-3 (성능 & 번들 감사) ===
+
+## 1. 번들 크기 분석
+
+### Vite 빌드 출력 (2026-03-04)
+
+| 파일 | 원본 크기 | gzip 크기 |
+|------|----------|----------|
+| index.html | 0.85 KB | 0.49 KB |
+| index.css | 128.39 KB | 21.00 KB |
+| index (작은 JS) | 39.13 KB | 11.67 KB |
+| **index (메인 JS)** | **1,071.40 KB** | **337.36 KB** |
+
+**⚠️ Vite 경고:** "Some chunks are larger than 500 kB after minification"
+
+### 문제점
+- **단일 메인 청크 1,071KB** — 모든 코드가 하나의 번들로 합쳐짐
+- 이전 build-progress에 "254KB main" 기록이 있으나, 현재 빌드에서는 1,071KB로 확인됨 (manualChunks 미적용 상태)
+- vite.config.js에 코드 스플리팅 설정 없음 (plugins: [react()] 만 존재)
+
+---
+
+## 2. Vite 빌드 설정 감사
+
+### vite.config.js (현재)
+```js
+export default defineConfig({
+  plugins: [react()],
+})
+```
+
+**문제점:**
+- ❌ `build.rollupOptions.output.manualChunks` 미설정
+- ❌ 코드 스플리팅 전략 없음
+- ❌ 청크 크기 경고 무시 상태
+
+---
+
+## 3. 코드 스플리팅 & Lazy Loading 감사
+
+### React.lazy / Suspense 사용: ❌ 0건
+
+App.jsx에서 모든 페이지를 정적 import:
+```jsx
+import LandingPage from './pages/LandingPage';
+import PostListPage from './pages/PostListPage';
+import EditorPage from './pages/EditorPage';
+import HistoryPage from './pages/HistoryPage';
+```
+
+**영향:** 로그인 전 LandingPage 방문 시에도 EditorPage(1829줄), openai.js(1589줄), TipTap 전체, Firebase 전체가 로드됨.
+
+---
+
+## 4. 의존성 크기 분석 (node_modules)
+
+| 패키지 | 디스크 크기 | 비고 |
+|--------|-----------|------|
+| pretendard | 97 MB | 폰트 파일 전체 포함 (번들에는 CSS import만) |
+| lucide-react | 45 MB | 아이콘 라이브러리 (tree-shaking 대상) |
+| firebase | 39 MB | Auth/Firestore/Functions 전체 |
+| @tiptap | 6.5 MB | 에디터 코어 |
+
+**Firebase 번들 영향:**
+- `firebase` 패키지가 `src/services/firebase.js`에서만 import
+- 5개 소스 파일에서 firebase 관련 코드 사용
+- Firebase Auth + Firestore + Functions 전체가 번들에 포함될 가능성 (tree-shaking 효과 확인 필요)
+
+---
+
+## 5. 메모리 누수 잠재 포인트 — 🟡 3건
+
+### 5-1. URL.createObjectURL 누수 — 🟡 MEDIUM
+
+| 파일 | createObjectURL 호출 | revokeObjectURL 호출 | 상태 |
+|------|---------------------|---------------------|------|
+| EditorPage.jsx | 3건 (L89, L500, L612) | 2건 (L93 cleanup, L497) | 🟡 L612 미해제 |
+| PhotoUploader.jsx | 4건 (L233, L341, L361, L382) | 0건 | 🔴 전체 미해제 |
+| ImageGeneratorPanel.jsx | 3건 (L86, L114, L130) | 0건 | 🔴 전체 미해제 |
+| ImageSeoGuide.jsx | 1건 (L105) | 1건 (L112 cleanup) | ✅ 정상 |
+
+**PhotoUploader와 ImageGeneratorPanel에서 생성된 Object URL이 해제되지 않아 반복 사용 시 메모리 누적.**
+
+### 5-2. EditorPage 대형 컴포넌트 — 🟡 MEDIUM
+
+- 1829줄 단일 컴포넌트에 12+ useState, 다수의 useEffect
+- 위자드 단계 변경/AI 호출 시 전체 컴포넌트 리렌더링 발생
+- AI 응답 데이터 (경쟁자 분석, 아웃라인 등)가 모두 로컬 state에 보관 → 메모리 해제 시점 = 페이지 이탈 시만
+
+### 5-3. TipTap 에디터 인스턴스 — 🟢 LOW
+
+- TiptapEditor.jsx에서 cleanup 정상 구현 (L196, L213, L224)
+- editorRef 해제, selectionUpdate 리스너 해제 확인됨
+
+---
+
+## 6. 불필요한 리렌더링 분석
+
+### useMemo/useCallback 사용 현황
+
+| 파일 | useMemo | useCallback | 비고 |
+|------|---------|-------------|------|
+| EditorContext.jsx | 13 | 0 | Provider value useMemo ✅ |
+| HistoryPage.jsx | 7 | 0 | 데이터 가공 캐싱 |
+| TiptapEditor.jsx | 3 | 0 | |
+| HumannessPanel.jsx | 4 | 0 | |
+| ReadabilityPanel.jsx | 3 | 0 | |
+| IntroOptimizer.jsx | 4 | 0 | |
+| PhotoUploader.jsx | 4 | 0 | |
+| 기타 6개 파일 | 25 | 0 | |
+| **총계** | **63** | **0** | useCallback 사용 0건 |
+
+**문제점:**
+- **useCallback 사용 0건** — 자식 컴포넌트에 전달되는 함수가 매 렌더마다 새 참조 생성
+- EditorPage에서 AI 호출 핸들러 10+개가 인라인 함수로 자식에 전달 → 자식 리렌더링 유발
+- React.memo 사용 0건 — 순수 표시 컴포넌트도 부모 리렌더링에 연쇄 반응
+
+### EditorContext 리렌더링 범위
+- EditorProvider가 App 최상단에 위치 → posts/content/keywords 변경 시 전체 트리 리렌더링
+- useMemo로 value 래핑되어 있으나, 의존 배열이 넓음 (13개 값)
+
+---
+
+## 7. 성능 개선 포인트 (우선순위별)
+
+### P0 — 즉시 개선 (번들 크기 50%+ 감소 기대)
+
+**1. Route-level 코드 스플리팅**
+```jsx
+const LandingPage = React.lazy(() => import('./pages/LandingPage'));
+const EditorPage = React.lazy(() => import('./pages/EditorPage'));
+const HistoryPage = React.lazy(() => import('./pages/HistoryPage'));
+const PostListPage = React.lazy(() => import('./pages/PostListPage'));
+```
+- LandingPage 방문자는 EditorPage/TipTap/openai.js 로드 불필요
+- 예상 효과: 초기 로드 ~400KB → ~150KB (LandingPage만)
+
+**2. Vite manualChunks 설정**
+```js
+build: {
+  rollupOptions: {
+    output: {
+      manualChunks: {
+        tiptap: ['@tiptap/core', '@tiptap/react', '@tiptap/starter-kit', '@tiptap/pm'],
+        firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore'],
+        vendor: ['react', 'react-dom', 'react-router-dom'],
+      }
+    }
+  }
+}
+```
+- React/vendor를 별도 청크로 분리 → 캐시 효율 극대화
+
+**3. URL.revokeObjectURL 누수 수정**
+- PhotoUploader.jsx: 컴포넌트 언마운트 시 모든 preview URL 해제
+- ImageGeneratorPanel.jsx: 생성된 이미지 URL 교체/언마운트 시 해제
+- 예상 효과: 장시간 사용 시 메모리 안정화
+
+### P1 — 단기 개선
+
+**4. EditorPage 분할**
+- 1829줄 모놀리스를 위자드/에디터/사이드바 서브컴포넌트로 분리
+- state 범위 축소 → 리렌더링 영역 제한
+
+**5. useCallback 도입**
+- EditorPage의 AI 핸들러 함수들에 useCallback 적용
+- 자식 컴포넌트에 React.memo 적용 (PhotoUploader, TitleInput, AnalysisSidebar 등)
+
+### P2 — 중기 개선
+
+**6. lucide-react 최적화**
+- 45MB node_modules이지만 tree-shaking으로 번들 영향은 제한적
+- 명시적 개별 import 확인 필요: `import { Icon } from 'lucide-react'` vs `import * as icons`
+
+**7. Pretendard 폰트 최적화**
+- 97MB 전체 설치되어 있으나, 실제 사용은 Pretendard Variable 한 종류
+- CSS에서 필요한 weight만 @font-face로 서브셋 로드 권장
+
+---
+
+## 감사 요약
+
+| 영역 | 등급 | 핵심 이슈 |
+|------|------|----------|
+| 번들 크기 | 🔴 HIGH | 1,071KB 단일 청크, 코드 스플리팅 없음 |
+| Vite 설정 | 🔴 HIGH | manualChunks 미설정, 최소 설정만 존재 |
+| Lazy Loading | 🔴 HIGH | React.lazy 사용 0건, 모든 페이지 정적 import |
+| 메모리 누수 | 🟡 MEDIUM | ObjectURL 미해제 7건 (PhotoUploader, ImageGeneratorPanel) |
+| 리렌더링 | 🟡 MEDIUM | useCallback/React.memo 0건, EditorPage 1829줄 모놀리스 |
+| 이벤트 정리 | 🟢 GOOD | useEffect cleanup 대부분 정상 구현 |
+| 의존성 | 🟢 GOOD | 대형 패키지 있으나 tree-shaking으로 번들 영향 제한적 |
+
+=== END subtask-3-3 ===
