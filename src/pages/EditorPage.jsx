@@ -12,12 +12,13 @@ import PhotoUploader from '../components/editor/PhotoUploader';
 import ImageSeoGuide from '../components/editor/ImageSeoGuide';
 import ImageGeneratorPanel from '../components/editor/ImageGeneratorPanel';
 import CompetitorAnalysis from '../components/analysis/CompetitorAnalysis';
+import StepIndicator from '../components/wizard/StepIndicator';
 import { CATEGORIES, getToneForCategory } from '../data/categories';
 import {
     Search, FolderOpen, Edit3, CheckCircle, Tag, Flame, Bot,
     ClipboardList, Camera, Wand2, ArrowLeft, ArrowRight,
     ChevronDown, ChevronUp, Loader2, BarChart3, Settings,
-    Sparkles, RefreshCw, Plus, Trash2, Check
+    Sparkles, RefreshCw, Plus, Trash2
 } from 'lucide-react';
 import '../styles/components.css';
 import '../styles/ImageSeoGuide.css';
@@ -882,23 +883,9 @@ const EditorPage = () => {
         setEditorMode('direct');
     };
 
-    // Progress Indicator 컴포넌트
-    const StepIndicator = () => (
-        <div className="wizard-step-indicator">
-            {[1, 2, 3, 4].map(s => (
-                <React.Fragment key={s}>
-                    <div className="wizard-step-item">
-                        <div className={`wizard-step-circle ${s === aiStep ? 'active' : s < aiStep ? 'completed' : 'pending'}`}>
-                            {s < aiStep ? <Check size={14} /> : s}
-                        </div>
-                        <span className={`wizard-step-label ${s === aiStep ? 'active' : s < aiStep ? 'completed' : 'pending'}`}>
-                            {STEP_LABELS[s - 1]}
-                        </span>
-                    </div>
-                    {s < 4 && <div className={`wizard-step-connector ${s < aiStep ? 'completed' : ''}`} />}
-                </React.Fragment>
-            ))}
-        </div>
+    // Progress Indicator — 외부 컴포넌트 사용
+    const renderStepIndicator = () => (
+        <StepIndicator currentStep={aiStep} labels={STEP_LABELS} />
     );
 
     // AI 모드일 때 전체 페이지로 스텝 UI 렌더링
@@ -910,7 +897,7 @@ const EditorPage = () => {
                         {/* STEP 1: 주제 선택 (카테고리 + 주제) */}
                         {aiStep === 1 && (
                             <div className="wizard-card-wrap">
-                                <StepIndicator />
+                                {renderStepIndicator()}
 
                                 <h2 className="wizard-step-heading">
                                     <FolderOpen size={20} /> Step 1: 주제 선택
@@ -1010,7 +997,7 @@ const EditorPage = () => {
                         {/* STEP 2: 키워드 분석 + 세부 설정 (점진적 노출) */}
                         {aiStep === 2 && (
                             <div className="wizard-card-wrap">
-                                <StepIndicator />
+                                {renderStepIndicator()}
 
                                 <h2 className="wizard-step-heading">
                                     <Search size={20} /> Step 2: 키워드 + 설정
@@ -1361,7 +1348,7 @@ const EditorPage = () => {
                         {/* STEP 3: 이미지 업로드 & 분석 */}
                         {aiStep === 3 && (
                             <div className="wizard-card-wrap">
-                                <StepIndicator />
+                                {renderStepIndicator()}
 
                                 <h2 className="wizard-step-heading">
                                     <Camera size={20} /> Step 3: 이미지 업로드
@@ -1464,7 +1451,7 @@ const EditorPage = () => {
                         {/* STEP 4: 아웃라인 + 생성 */}
                         {aiStep === 4 && (
                             <div className="wizard-card-wrap">
-                                <StepIndicator />
+                                {renderStepIndicator()}
 
                                 <h2 className="wizard-step-heading">
                                     <Wand2 size={20} /> Step 4: 아웃라인 + 생성
