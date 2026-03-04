@@ -378,3 +378,174 @@ Components → clipboard.js, readability.js, humanness.js, thumbnail.js, waterma
 - 다음 글 추천 (RecommendSection) — Phase 2에 추가 권장
 
 === END subtask-2-2 ===
+
+=== SESSION: subtask-3-2 (보안 감사) ===
+
+## 분석 대상
+
+### API 엔드포인트 (6개)
+1. api/gemini.js — Gemini 프록시 (인증 ✅)
+2. api/gemini-image.js — 이미지 생성 프록시 (인증 ✅)
+3. api/usage.js — 사용량 조회 (인증 ✅)
+4. api/auth/naver.js — 네이버 OAuth 시작
+5. api/auth/kakao.js — 카카오 OAuth 시작
+6. api/auth/callback.js — OAuth 콜백 (토큰 발급)
+
+### 인증 관련 파일 (4개)
+1. api/lib/auth.js — Firebase JWT 검증
+2. api/lib/firestore.js — Firestore REST 접근 (SA 키)
+3. src/context/AuthContext.jsx — 클라이언트 인증 상태
+4. src/services/firebase.js — Firebase 초기화 + 프록시
+
+---
+
+## 1. API 키 저장 방식 — 🔴 HIGH
+
+| 항목 | 현황 | 위험도 |
+|------|------|--------|
+| BYOK 키 저장 | `localStorage.setItem('openai_api_key', ...)` (평문) | 🔴 HIGH |
+| 키 전송 | `userApiKey`로 서버에 평문 전달 → 서버가 Gemini API URL 쿼리스트링에 삽입 | 🟡 MEDIUM |
+| Firebase 설정 노출 | `VITE_FIREBASE_*` 6개 env → 빌드에 포함 (공개 키 성격이라 정상) | 🟢 LOW |
+| 서버 Gemini 키 | `process.env.GEMINI_API_KEY` (Vercel Secrets, 정상) | 🟢 OK |
+| DEV 모드 직접 호출 | `import.meta.env.VITE_GEMINI_API_KEY`가 클라이언트에 번들링 | 🟡 MEDIUM |
+
+**세부 분석:**
+- BYOK 키가 localStorage에 평문 저장 → XSS 공격 시 탈취 가능
+- localStorage 키 이름 `openai_api_key`는 레거시 네이밍 (실제 Gemini 키)
+- DEV 모드에서 `VITE_GEMINI_API_KEY`가 클라이언트 번들에 포함되지만, 프로덕션에서는 Vercel 프록시를 통해 서버사이드에서만 사용 (정상 설계)
+
+**권장:**
+- BYOK 키를 Web Crypto API로 암호화 후 저장 (AES-GCM + 세션 파생 키)
+- 또는 서버사이드에 키를 저장하고 클라이언트에는 키 존재 여부만 노출
+
+---
+
+## 2. 인증 체인 (Firebase JWT) — 🟢 GOOD
+
+| 항목 | 현황 | 평가 |
+|------|------|------|
+| JWT 검증 | `jose` 라이브러리, Google JWKS 엔드포인트, issuer/audience 검증 | ✅ 정상 |
+| Bearer 토큰 전달 | `Authorization: Bearer ${token}` 헤더 | ✅ 정상 |
+| Custom Token 발행 | `jose` RS256 서명, 1시간 만료, SA 키는 env에서 로드 | ✅ 정상 |
+| 토큰 만료 | Firebase ID Token 기본 1시간, SDK 자동 갱신 | ✅ 정상 |
+
+**양호한 점:**
+- `verifyFirebaseToken()`이 모든 API 엔드포인트에서 호출됨 (auth/* 제외)
+- JWKS는 `createRemoteJWKSet()`으로 자동 캐시/갱신
+- projectId 기반 issuer/audience 검증 (토큰 위조 방지)
+
+---
+
+## 3. OAuth 콜백 보안 — 🟡 MEDIUM
+
+| 항목 | 현황 | 위험도 |
+|------|------|--------|
+| state 파라미터 | `randomUUID()` 사용, 서버에서 생성 | 🟡 MEDIUM |
+| state 검증 | ❌ 콜백에서 state를 provider 파싱에만 사용, CSRF 방지용 검증 없음 | 🔴 HIGH |
+| postMessage origin | `window.location.origin` 체크 | ✅ 정상 |
+| 클라이언트 origin 검증 | `event.origin !== window.location.origin` 체크 | ✅ 정상 |
+| redirect_uri 하드코딩 | `process.env.NEXT_PUBLIC_BASE_URL` fallback `piklit.pro` | ✅ 정상 |
+
+**세부 분석:**
+- `state`가 `naver:{uuid}` 형태로 생성되지만, 콜백에서 세션/쿠키 기반 검증 없이 provider 이름만 추출 → **CSRF 공격에 취약**
+- 공격자가 임의의 `state=naver:xxx`와 유효한 `code`를 전달하면 콜백이 처리됨
+- 다만 OAuth code 자체가 단발성이고 redirect_uri 일치가 필요하므로 실제 악용 난이도는 높음
+
+**권장:**
+- state를 서버 세션/Redis에 저장 후 콜백에서 일치 검증
+- 또는 HMAC 서명된 state 사용 (서버 시크릿 기반)
+
+---
+
+## 4. XSS 벡터 — 🟡 MEDIUM
+
+| 벡터 | 위치 | 위험도 |
+|------|------|--------|
+| `innerHTML` 사용 (6건) | PostListPage, IntroOptimizer(2), history.js, clipboard.js, analysis.js | 🟡 MEDIUM |
+| DOMPurify 부재 | 프로젝트 전체에 sanitization 라이브러리 없음 | 🟡 MEDIUM |
+| AI 생성 HTML 삽입 | TipTap `setContent()`로 AI 응답 HTML 직접 삽입 | 🟡 MEDIUM |
+| OAuth 콜백 HTML | `JSON.stringify()`로 이스케이프 (정상) | 🟢 LOW |
+| React JSX | 기본적으로 이스케이프 처리 | ✅ 정상 |
+
+**세부 분석:**
+- `innerHTML` 사용 6건 모두 HTML→텍스트 변환 목적 (텍스트 추출용 임시 DOM)으로, 사용자 입력이 직접 삽입되는 경우는 없음
+- 그러나 AI 응답에 악성 HTML이 포함될 경우 TipTap 에디터를 통해 렌더링될 수 있음
+- TipTap은 자체적으로 허용 노드만 렌더링하므로 스크립트 주입은 차단됨
+- clipboard.js의 `innerHTML`은 내보내기용으로, 외부 입력과 무관
+
+**권장:**
+- `innerHTML` 사용 시 DOMPurify로 래핑 (방어적 코딩)
+- AI 응답 HTML에 대한 허용 태그 화이트리스트 적용
+
+---
+
+## 5. CORS 설정 — 🔴 HIGH
+
+| 엔드포인트 | 설정 | 위험도 |
+|-----------|------|--------|
+| api/gemini.js | `Access-Control-Allow-Origin: *` | 🔴 HIGH |
+| api/gemini-image.js | `Access-Control-Allow-Origin: *` | 🔴 HIGH |
+| api/usage.js | `Access-Control-Allow-Origin: *` | 🔴 HIGH |
+| api/auth/* | CORS 헤더 없음 (redirect 방식) | 🟢 OK |
+
+**세부 분석:**
+- 모든 API 프록시 엔드포인트가 `Origin: *` 허용 → 타 사이트에서 인증된 사용자의 토큰으로 API 호출 가능
+- Bearer 토큰 인증이 있으므로 직접적인 무단 접근은 불가하나, CSRF + 토큰 탈취 시 악용 가능
+- `Access-Control-Allow-Credentials`는 설정되지 않아 쿠키 기반 공격은 불가
+
+**권장:**
+- `Access-Control-Allow-Origin`을 `https://piklit.pro`로 제한
+- 개발 환경용으로 `localhost:5173` 추가 허용 (환경변수 분기)
+
+---
+
+## 6. 서버사이드 입력 검증 — 🟡 MEDIUM
+
+| 항목 | 현황 | 위험도 |
+|------|------|--------|
+| req.body 검증 | ❌ 없음 — `{ body, model, userApiKey, action }` 구조 분해만 수행 | 🟡 MEDIUM |
+| model 파라미터 | 사용자 입력 `model`이 URL에 직접 삽입 (SSRF 벡터는 아님, 고정 도메인) | 🟢 LOW |
+| body 전달 | req.body.body를 Gemini API에 그대로 전달 (passthrough) | 🟡 MEDIUM |
+| action 파라미터 | `DRAFT_ACTIONS.includes(action)` 화이트리스트 비교 | ✅ 정상 |
+| userApiKey 검증 | 형식 검증 없이 Gemini API에 직접 전달 | 🟡 MEDIUM |
+| Firestore 쓰기 | 서버에서 생성한 데이터만 기록 (사용자 입력 미포함) | ✅ 정상 |
+
+**세부 분석:**
+- API 프록시 특성상 `body`를 Gemini에 그대로 전달하는 것은 의도된 설계
+- `model` 파라미터로 임의 모델 ID 지정 가능하지만, Gemini API 도메인이 고정되어 SSRF 위험 없음
+- 대용량 body 전송 제한이 없어 서버 리소스 남용 가능 (rate limiting 부재)
+
+**권장:**
+- `model` 파라미터 화이트리스트 (`gemini-2.5-flash`, `gemini-2.5-flash-preview-04-17`)
+- `body` 크기 제한 (예: 10MB)
+- rate limiting 미들웨어 추가 (Vercel Edge Functions 또는 Upstash Redis)
+
+---
+
+## 보안 요약 매트릭스
+
+| 영역 | 등급 | 주요 이슈 |
+|------|------|----------|
+| API 키 저장 (BYOK) | 🔴 HIGH | localStorage 평문 저장, XSS 시 탈취 가능 |
+| 인증 체인 | 🟢 GOOD | Firebase JWT 정상 구현, JWKS 검증 |
+| OAuth 콜백 | 🟡 MEDIUM | state CSRF 검증 부재 (실제 악용 난이도 높음) |
+| XSS 방어 | 🟡 MEDIUM | DOMPurify 미사용, innerHTML 6건 (텍스트 추출 목적) |
+| CORS | 🔴 HIGH | 모든 API가 Origin: * 허용 |
+| 입력 검증 | 🟡 MEDIUM | 서버 입력 검증/크기 제한 없음, rate limiting 부재 |
+
+## 우선 조치 사항 (P0~P2)
+
+### P0 — 즉시 수정
+1. **CORS Origin 제한** — `*` → `https://piklit.pro` (+ 개발용 localhost)
+
+### P1 — 단기 수정
+2. **OAuth state CSRF 검증** — HMAC 서명 state 또는 서버 세션 저장
+3. **rate limiting** — API 엔드포인트별 요청 제한
+4. **model 화이트리스트** — 허용 모델 ID 검증
+
+### P2 — 중기 개선
+5. **BYOK 키 암호화** — Web Crypto API 활용 localStorage 암호화
+6. **DOMPurify 도입** — innerHTML 사용 위치에 sanitization 적용
+7. **body 크기 제한** — API 프록시에 payload 제한 추가
+
+=== END subtask-3-2 ===
