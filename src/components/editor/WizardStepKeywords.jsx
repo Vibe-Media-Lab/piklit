@@ -203,7 +203,7 @@ const WizardStepKeywords = ({
                 const filtered = result.seasonKeywords.filter(sk => !existingSet.has(sk.keyword));
                 setSeasonKeywords(filtered);
             }
-        } catch (e) {
+        } catch {
             showToast('시즌 키워드 분석 중 오류가 발생했습니다.', 'error');
         } finally {
             setIsAnalyzingSeason(false);

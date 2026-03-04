@@ -1,9 +1,7 @@
 import React from 'react';
 import { FolderOpen, Edit3, ArrowLeft, ArrowRight } from 'lucide-react';
 import WizardStepIndicator from './WizardStepIndicator';
-import { CATEGORIES, getToneForCategory } from '../../data/categories';
-import { useEditor } from '../../context/EditorContext';
-import { getTemplateById } from '../../data/templates';
+import { CATEGORIES } from '../../data/categories';
 
 // 카테고리별 placeholder
 const CATEGORY_PLACEHOLDERS = {
@@ -37,8 +35,6 @@ const WizardStepTopic = ({
     onNext,
     onSwitchToDirect,
 }) => {
-    const { updatePostMeta, updateMainKeyword } = useEditor();
-
     return (
         <div className="wizard-card-wrap">
             <WizardStepIndicator aiStep={1} />

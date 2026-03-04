@@ -21,7 +21,7 @@ import '../styles/ImageSeoGuide.css';
 const EditorPage = () => {
     const { id } = useParams();
     const location = useLocation();
-    const { openPost, posts, currentPostId, updateMainKeyword, updateSubKeywords, setSuggestedTone, setContent, content, setTargetLength, editorRef, lastCursorPosRef, closeSession, recordAiAction, updatePostMeta, setPhotoPreviewUrls } = useEditor();
+    const { openPost, posts, currentPostId, updateMainKeyword, updateSubKeywords, setSuggestedTone, setContent, setTargetLength, editorRef, lastCursorPosRef, closeSession, recordAiAction, updatePostMeta, setPhotoPreviewUrls } = useEditor();
     const { showToast } = useToast();
 
     const locationStateProcessed = useRef(false);
@@ -313,6 +313,7 @@ const EditorPage = () => {
         injectedHtml = humanizeText(injectedHtml, selectedTone || 'friendly');
 
         // 4. 이모지 전용 <p> 태그를 다음 문단과 병합 (이모지가 별도 줄로 분리되는 현상 방지)
+        // eslint-disable-next-line no-misleading-character-class
         injectedHtml = injectedHtml.replace(/<p>\s*([\u{1F300}-\u{1FAD6}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{200D}\u{20E3}\u{E0020}-\u{E007F}\s]{1,6})\s*<\/p>\s*<p>/gu, '<p>$1 ');
 
         const chunkSize = 20;
@@ -328,8 +329,6 @@ const EditorPage = () => {
 
     // 본문 생성
     const handleAiGenerate = async () => {
-        const effectiveWizardData = wizardData || location.state;
-
         setIsGenerating(true);
         setGenerationStep(0);
         recordAiAction('fullDraft');
@@ -371,7 +370,7 @@ const EditorPage = () => {
             // 이미지 ALT 텍스트가 없으면 본문 생성 전에 생성 시도 (ref로 최신 값 참조)
             if (Object.keys(imageAltsRef.current).length === 0) {
                 const uploadedSlots = Object.entries(photoData.metadata)
-                    .filter(([_, count]) => count > 0)
+                    .filter(([, count]) => count > 0)
                     .map(([slot]) => slot);
                 if (uploadedSlots.length > 0) {
                     const slotCounts = {};

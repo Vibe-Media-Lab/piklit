@@ -20,6 +20,7 @@ const WizardStepOutline = ({
     selectedCategory,
     selectedKeywords,
     selectedTone,
+    // eslint-disable-next-line no-unused-vars
     selectedLength,
     categoryId,
     photoData,
@@ -83,7 +84,7 @@ const WizardStepOutline = ({
     };
 
     const StepIndicator = () => (
-        <WizardStepIndicator currentStep={4} totalSteps={4} />
+        <WizardStepIndicator aiStep={4} />
     );
 
     return (
