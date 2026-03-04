@@ -57,6 +57,88 @@ describe('AIService', () => {
       expect(stats.history).toHaveLength(1);
       expect(stats.history[0].label).toBe('테스트 호출');
     });
+
+    it('여러 호출 후 토큰이 누적 합산되어야 한다', () => {
+      AIService._recordTokenUsage(
+        { promptTokenCount: 10, candidatesTokenCount: 20, totalTokenCount: 30 },
+        '첫 번째 호출'
+      );
+      AIService._recordTokenUsage(
+        { promptTokenCount: 15, candidatesTokenCount: 25, totalTokenCount: 40 },
+        '두 번째 호출'
+      );
+      AIService._recordTokenUsage(
+        { promptTokenCount: 5, candidatesTokenCount: 10, totalTokenCount: 15 },
+        '세 번째 호출'
+      );
+
+      const stats = AIService.getTokenStats();
+      expect(stats.totalPrompt).toBe(30);
+      expect(stats.totalCandidates).toBe(55);
+      expect(stats.totalTokens).toBe(85);
+      expect(stats.callCount).toBe(3);
+    });
+
+    it('history 배열에 호출별 기록이 저장되어야 한다', () => {
+      AIService._recordTokenUsage(
+        { promptTokenCount: 10, candidatesTokenCount: 20, totalTokenCount: 30 },
+        '키워드 분석'
+      );
+      AIService._recordTokenUsage(
+        { promptTokenCount: 5, candidatesTokenCount: 15, totalTokenCount: 20 },
+        '본문 생성'
+      );
+
+      const stats = AIService.getTokenStats();
+      expect(stats.history).toHaveLength(2);
+
+      expect(stats.history[0]).toMatchObject({
+        label: '키워드 분석',
+        prompt: 10,
+        candidates: 20,
+        total: 30,
+      });
+      expect(stats.history[0]).toHaveProperty('time');
+
+      expect(stats.history[1]).toMatchObject({
+        label: '본문 생성',
+        prompt: 5,
+        candidates: 15,
+        total: 20,
+      });
+    });
+
+    it('누적 후 resetTokenStats 호출 시 모든 값이 초기화되어야 한다', () => {
+      AIService._recordTokenUsage(
+        { promptTokenCount: 100, candidatesTokenCount: 200, totalTokenCount: 300 },
+        '호출 1'
+      );
+      AIService._recordTokenUsage(
+        { promptTokenCount: 50, candidatesTokenCount: 100, totalTokenCount: 150 },
+        '호출 2'
+      );
+
+      // 누적 확인
+      expect(AIService.getTokenStats().callCount).toBe(2);
+
+      // 초기화
+      AIService.resetTokenStats();
+      const stats = AIService.getTokenStats();
+      expect(stats.totalPrompt).toBe(0);
+      expect(stats.totalCandidates).toBe(0);
+      expect(stats.totalTokens).toBe(0);
+      expect(stats.callCount).toBe(0);
+      expect(stats.history).toEqual([]);
+    });
+
+    it('usage에 누락된 필드가 있으면 0으로 처리해야 한다', () => {
+      AIService._recordTokenUsage({}, '빈 usage');
+      const stats = AIService.getTokenStats();
+      expect(stats.totalPrompt).toBe(0);
+      expect(stats.totalCandidates).toBe(0);
+      expect(stats.totalTokens).toBe(0);
+      expect(stats.callCount).toBe(1);
+    });
   });
 
   describe('_tryParseJson', () => {
