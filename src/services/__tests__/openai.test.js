@@ -15,8 +15,7 @@ vi.mock('../../data/categories', () => ({
 }));
 
 import { AIService } from '../openai';
-import { callGeminiProxy, callGeminiImageProxy } from '../firebase';
-import { getRecommendedImages } from '../../data/categories';
+import { callGeminiProxy } from '../firebase';
 
 describe('AIService', () => {
   beforeEach(() => {

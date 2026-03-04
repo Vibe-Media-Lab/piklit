@@ -90,7 +90,6 @@ describe('formatParagraphs', () => {
 
 describe('analyzePost', () => {
   // 헬퍼: 반복 텍스트로 원하는 글자수의 HTML 생성
-  const makeContent = (text, repeat) => `<p>${text.repeat(repeat)}</p>`;
   const defaultKeywords = { main: '맛집', sub: ['분위기', '메뉴'] };
 
   it('최적화된 글은 주요 체크를 모두 통과한다', () => {
