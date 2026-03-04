@@ -15,7 +15,7 @@ const OutlineStep = ({
     selectedCategory,
     selectedKeywords,
     selectedTone,
-    selectedLength,
+    // selectedLength - available via props if needed
     competitorData,
     outlineItems,
     photoData,

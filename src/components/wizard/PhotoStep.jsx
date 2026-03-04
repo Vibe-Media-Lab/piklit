@@ -58,7 +58,7 @@ const PhotoStep = ({
 
                 // 사진 분석 완료 후 이미지 ALT 텍스트 자동 생성 (개별 이미지별)
                 const uploadedSlots = Object.entries(photoData.metadata)
-                    .filter(([_, count]) => count > 0)
+                    .filter(([, count]) => count > 0)
                     .map(([slot]) => slot);
                 const slotCounts = {};
                 uploadedSlots.forEach(slot => { slotCounts[slot] = photoData.metadata[slot]; });
