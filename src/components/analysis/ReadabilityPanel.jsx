@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useEditor } from '../../context/EditorContext';
 import { analyzeReadability, locateSuggestion } from '../../utils/readability';
+import { MetricBar } from '../common/MetricBar';
 
 const GRADE_COLORS = {
     A: '#16A34A',
@@ -16,28 +17,6 @@ const GRADE_LABELS = {
     C: '보통',
     D: '개선 필요',
     '-': '분석 대기'
-};
-
-const MetricBar = ({ label, score, maxScore }) => {
-    const pct = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
-    const barColor = pct >= 80 ? '#16A34A' : pct >= 60 ? '#2563EB' : pct >= 40 ? '#D97706' : '#EF4444';
-
-    return (
-        <div className="readability-metric">
-            <div className="readability-metric-header">
-                <span className="readability-metric-label">{label}</span>
-                <span className="readability-metric-score" style={{ color: barColor }}>
-                    {score}/{maxScore}
-                </span>
-            </div>
-            <div className="readability-metric-bar-bg">
-                <div
-                    className="readability-metric-bar-fill"
-                    style={{ width: `${pct}%`, background: barColor }}
-                />
-            </div>
-        </div>
-    );
 };
 
 const ReadabilityPanel = () => {
@@ -104,7 +83,7 @@ const ReadabilityPanel = () => {
                                 {/* 지표 바 차트 */}
                                 <div className="readability-metrics-list">
                                     {Object.values(metrics).map((m, i) => (
-                                        <MetricBar key={i} label={m.label} score={m.score} maxScore={m.maxScore} />
+                                        <MetricBar key={i} label={m.label} score={m.score} maxScore={m.maxScore} classPrefix="readability-metric" />
                                     ))}
                                 </div>
                             </div>
