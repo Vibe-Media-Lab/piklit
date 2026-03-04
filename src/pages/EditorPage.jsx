@@ -1,6 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
-// Header 제거 — AppLayout의 Sidebar/TopBar로 대체
+import { useEffect, useRef, useState } from 'react';
+import { useParams, useLocation } from 'react-router-dom';
 import MainContainer from '../components/layout/MainContainer';
 import { useEditor } from '../context/EditorContext';
 import { useToast } from '../components/common/Toast';
@@ -8,7 +7,6 @@ import { getTemplateById } from '../data/templates';
 import { AIService } from '../services/openai';
 import { formatParagraphs } from '../utils/analysis';
 import { humanizeText } from '../utils/humanness';
-import PhotoUploader from '../components/editor/PhotoUploader';
 import ImageSeoGuide from '../components/editor/ImageSeoGuide';
 import ImageGeneratorPanel from '../components/editor/ImageGeneratorPanel';
 import WizardStepTopic from '../components/editor/WizardStepTopic';
@@ -17,23 +15,15 @@ import WizardStepPhotos from '../components/editor/WizardStepPhotos';
 import WizardStepOutline from '../components/editor/WizardStepOutline';
 import GenerationLoadingScreen from '../components/editor/GenerationLoadingScreen';
 import { CATEGORIES, getToneForCategory } from '../data/categories';
-import {
-    Search, FolderOpen, Edit3, CheckCircle, Tag, Flame, Bot,
-    ClipboardList, Camera, Wand2, ArrowLeft, ArrowRight,
-    ChevronDown, ChevronUp, Loader2, BarChart3, Settings,
-    Sparkles, RefreshCw, Plus, Trash2, Check
-} from 'lucide-react';
 import '../styles/components.css';
 import '../styles/ImageSeoGuide.css';
 
 const EditorPage = () => {
     const { id } = useParams();
-    const navigate = useNavigate();
     const location = useLocation();
     const { openPost, posts, currentPostId, updateMainKeyword, updateSubKeywords, setSuggestedTone, setContent, content, setTargetLength, editorRef, lastCursorPosRef, closeSession, recordAiAction, updatePostMeta, setPhotoPreviewUrls } = useEditor();
     const { showToast } = useToast();
 
-    const loadedRef = useRef(null);
     const locationStateProcessed = useRef(false);
 
     // DUAL MODE STATE
@@ -478,10 +468,6 @@ const EditorPage = () => {
             }
         }
     }, [id, posts, currentPostId, openPost, location.state, updateMainKeyword, setSuggestedTone, setContent]);
-
-    // 아웃라인 핸들러 → WizardStepOutline로 이동
-
-
 
     // "직접 작성" 전환 핸들러
     const handleSwitchToDirect = () => {
