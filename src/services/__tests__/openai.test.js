@@ -13,11 +13,13 @@ vi.mock('../../data/categories', () => ({
 
 // AIService import (모킹 후)
 const { AIService } = await import('../openai.js');
+const { callGeminiProxy } = await import('../firebase');
 
 describe('AIService 유틸리티 메서드', () => {
     beforeEach(() => {
         AIService.resetTokenStats();
         vi.restoreAllMocks();
+        callGeminiProxy.mockReset();
     });
 
     describe('_tryParseJson', () => {
@@ -85,6 +87,62 @@ describe('AIService 유틸리티 메서드', () => {
             const original = AIService.getTokenStats();
             expect(original.totalPrompt).toBe(10);
             expect(original.callCount).toBe(1);
+        });
+    });
+
+    describe('generateContent', () => {
+        beforeEach(() => {
+            vi.spyOn(console, 'log').mockImplementation(() => {});
+            vi.spyOn(console, 'warn').mockImplementation(() => {});
+            vi.spyOn(console, 'error').mockImplementation(() => {});
+        });
+
+        it('정상 JSON 응답 처리', async () => {
+            callGeminiProxy.mockResolvedValueOnce({
+                data: {
+                    candidates: [{ content: { parts: [{ text: '{"title": "테스트 제목"}' }] } }],
+                    usageMetadata: { promptTokenCount: 10, candidatesTokenCount: 5, totalTokenCount: 15 },
+                },
+            });
+
+            const result = await AIService.generateContent('테스트 프롬프트', {}, '테스트');
+            expect(result).toEqual({ title: '테스트 제목' });
+        });
+
+        it('rawText 모드 시 JSON 파싱 없이 텍스트 반환', async () => {
+            callGeminiProxy.mockResolvedValueOnce({
+                data: {
+                    candidates: [{ content: { parts: [{ text: '이것은 일반 텍스트입니다' }] } }],
+                    usageMetadata: { promptTokenCount: 10, candidatesTokenCount: 5, totalTokenCount: 15 },
+                },
+            });
+
+            const result = await AIService.generateContent('프롬프트', { rawText: true }, '테스트');
+            expect(result).toEqual({ text: '이것은 일반 텍스트입니다' });
+        });
+
+        it('429 QUOTA_EXCEEDED 에러 시 재시도 없이 즉시 throw', async () => {
+            const quotaError = new Error('Quota exceeded');
+            quotaError.status = 429;
+            quotaError.code = 'QUOTA_EXCEEDED';
+            callGeminiProxy.mockRejectedValue(quotaError);
+
+            await expect(AIService.generateContent('프롬프트')).rejects.toThrow(quotaError);
+            expect(callGeminiProxy).toHaveBeenCalledTimes(1);
+        });
+
+        it('string contentParts 입력 시 자동 [{text: ...}] 변환', async () => {
+            callGeminiProxy.mockResolvedValueOnce({
+                data: {
+                    candidates: [{ content: { parts: [{ text: '{"ok": true}' }] } }],
+                    usageMetadata: { promptTokenCount: 5, candidatesTokenCount: 3, totalTokenCount: 8 },
+                },
+            });
+
+            await AIService.generateContent('문자열 입력', {}, '변환 테스트');
+
+            const callBody = callGeminiProxy.mock.calls[0][0].body;
+            expect(callBody.contents[0].parts).toEqual([{ text: '문자열 입력' }]);
         });
     });
 
