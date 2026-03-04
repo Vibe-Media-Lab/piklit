@@ -1,0 +1,162 @@
+=== AUTO-BUILD PROGRESS ===
+
+Project: Piklit 블로그 작성기 — 전체 코드베이스 분석
+Workspace: /Users/datable/Desktop/antigravity/블로그 작성기
+Started: 2026-03-03
+
+Workflow Type: investigation
+Rationale: 코드 변경 없이 50+ 소스 파일을 읽고 분석하여 진단 보고서를 작성하는 조사 작업
+
+Session 1 (Planner):
+- Created implementation_plan.json
+- Phases: 4
+- Total subtasks: 10
+- Created init.sh
+- Updated context.json with investigation findings
+
+Phase Summary:
+- Phase 1 (아키텍처 & 파일 구조 분석): 3 subtasks, depends on [] — 페이지/컴포넌트/서비스 레이어 분석
+- Phase 2 (기능 완성도 인벤토리): 2 subtasks, depends on [phase-1] — 42개 기능 검증 + CDO 갭 분석
+- Phase 3 (코드 품질 & 보안 감사): 3 subtasks, depends on [phase-1] — 품질/보안/성능 감사
+- Phase 4 (진단 보고서 작성): 2 subtasks, depends on [phase-2, phase-3] — 보고서 컴파일 + 검증
+
+Services Involved:
+- main (React SPA): 전체 분석 대상 — 4 pages, 23 components, 2 services, 2 contexts, 9 utils
+- api (Vercel Serverless): 보안 감사 대상 — 6 endpoints, 2 lib files
+
+Parallelism Analysis:
+- Max parallel phases: 2
+- Recommended workers: 2
+- Parallel groups: [Phase 2 + Phase 3 can run concurrently after Phase 1]
+- Speedup estimate: 1.3x faster than sequential
+
+Key Investigation Findings (Phase 0):
+- 42+ features fully implemented
+- Zero test files (no testing framework installed)
+- No TypeScript (JSX/JS only)
+- 62 console statements across 16 files
+- 3 monolith files: EditorPage.jsx (1829 lines), openai.js (1585 lines), LandingPage.jsx (1053 lines)
+- architecture.md references stale StartWizardPage
+- BYOK API key stored in localStorage (plain text)
+- 254KB main bundle after code-splitting
+
+Output Deliverable:
+- docs/codebase-analysis.md — Korean-language structured diagnostic report
+
+=== STARTUP COMMAND ===
+
+To continue building this spec, run:
+
+  source auto-claude/.venv/bin/activate && python auto-claude/run.py --spec 001 --parallel 2
+
+=== END SESSION 1 ===
+
+=== SESSION: subtask-1-3 (서비스/컨텍스트/유틸리티/데이터 레이어 분석) ===
+
+## 서비스 레이어 (2 files, 1685 lines)
+
+### openai.js (1589 lines) — AIService 싱글톤 객체
+23개 async 메서드:
+1. generateContent() — 모든 AI 호출 게이트웨이 (retry 5회, exponential backoff)
+2. analyzeKeywords() — 주제→메인/서브 키워드 (google_search + JSON 변환 2단계)
+3. analyzeSeasonKeywords() — 시즌/트렌드 키워드 추천
+4. analyzeCompetitors() — 경쟁 블로그 분석 (_competitorCache 캐시)
+5. analyzePhotos() — 사진 AI 분석 (inline_data multimodal)
+6. generateOutline() — H2/H3 아웃라인 트리
+7. generateFullDraft() — 카테고리별 라우터 (food/shopping → 전용, 나머지 → 범용)
+8. searchPlaceInfo() — 업장 정보 검색 (주소/영업시간/메뉴)
+9. generateRestaurantDraft() — 맛집 전용 본문 (searchPlaceInfo 연쇄호출)
+10. searchProductInfo() — 제품 정보 검색
+11. generateShoppingDraft() — 쇼핑 전용 본문
+12. refineManualDraft() — 수동 초안 보완
+13. rewriteSelection() — 선택영역 재작성 (expand/condense/factboost/polish)
+14. generateImageAlts() — 이미지 ALT+캡션 생성
+15. generateIntroAlternatives() — 도입부 대안 3개 (카테고리별 전략)
+16. recommendTitles() — SEO 제목 5개 추천
+17. extractTags() — 해시태그 10개 추출
+18. enhanceImagePrompt() — 이미지 프롬프트 최적화
+19. generateImage() — AI 이미지 생성 (callGeminiImageProxy)
+20. recommendKeywords() — 키워드 추천 (레거시)
+21. generateThumbnailText() — 썸네일 메인/서브 텍스트
+22. analyzeHumanness() — AI 감지 회피 제안
+23. recommendNextTopics() — 다음 글 주제 추천
+
+핵심 헬퍼:
+- _tryParseJson(): 3-전략 JSON 파싱 (직접→패턴추출→html값추출)
+- _toneMap: 5종 톤 (friendly/professional/honest/emotional/guide) — 각 ~10줄 상세 지시문
+- _categorySlots: 16카테고리별 이미지 슬롯 정의
+- _htmlRules(): AI 패턴 금지어 10+개, 80자 문장규칙
+- _introPromptByCategory(): 카테고리별 도입부 SEO 프롬프트 (food/cafe/travel/daily/pet/shopping)
+- _categoryToneBoost(): 카테고리+톤 조합별 보정 (10개 조합)
+- _photoPrompt(), _subKeywordPrompt(), _competitorPrompt(), _outlinePrompt()
+- _tokenStats: 누적 토큰 사용량 추적 (window.tokenStats() 콘솔 접근)
+- _imageStyleMap: 5종 이미지 스타일
+- _slotContextMap: 30+개 슬롯별 프롬프트 컨텍스트
+
+### firebase.js (96 lines)
+- Firebase 초기화 (env 변수 6개)
+- callVercelFunction(): Bearer token 인증 프록시
+- callGeminiDirect(): 로컬 개발용 직접 호출 (gemini-2.5-flash)
+- callGeminiImageDirect(): 이미지 생성용 (gemini-2.5-flash-preview-04-17)
+- callGeminiProxy: DEV=직접 / PROD=Vercel
+- callGeminiImageProxy: DEV=직접 / PROD=Vercel
+- callGetUsageInfo: 사용량 조회
+
+## 컨텍스트 레이어 (2 files, 453 lines)
+
+### EditorContext.jsx (317 lines)
+상태 구조:
+- posts: Post[] (localStorage 동기 초기화, migratePosts 마이그레이션)
+- currentPostId: string|null
+- keywords: {main: string, sub: string[3]}
+- title, content, analysis (SEO 체크 결과)
+- suggestedTone, targetLength, photoPreviewUrls
+- editorRef, lastCursorPosRef (TipTap 참조)
+- sessionRef (in-memory 편집세션: postId, startedAt, charsBefore, seoScoreBefore, aiActions[])
+
+핵심 로직:
+- 자동저장: 1초 debounce + SEO 스냅샷 (computeSeoScore)
+- postsRef: dependency 최적화 (openPostStable에서 posts 의존 제거)
+- 세션 추적: openPost→시작, closeSessionInternal→종료 (5초 미만 세션 무시)
+- history 연동: 모든 CRUD에서 loadHistory/saveHistory 호출
+
+제공 값 (useMemo): posts, currentPostId, createPost, openPost, savePost, deletePost,
+keywords, title, content, analysis, suggestedTone, targetLength, editorRef,
+closeSession, recordAiAction, updatePostMeta, photoPreviewUrls + setters
+
+### AuthContext.jsx (136 lines)
+- Firebase Auth onAuthStateChanged 리스너
+- Google: signInWithPopup (Firebase 네이티브)
+- Naver/Kakao: openSocialPopup → /api/auth/{provider} → signInWithCustomToken
+- 제공 값: user, loading, loginWithGoogle/Naver/Kakao, logout, isLoggedIn
+
+## 유틸리티 레이어 (9 files, 2387 lines)
+
+1. analysis.js (331줄) — formatParagraphs(80자 분리), analyzePost(SEO 체크 14+항목)
+2. history.js (329줄) — 16개 export: localStorage 기반 히스토리 (일별통계, 세션, 카테고리, 키워드, 주간점수, 스토리지사용량, SEO점수, 연속기록)
+3. clipboard.js (147줄) — 4가지 내보내기: copyToClipboard, exportAsMarkdown/Html/Text
+4. readability.js (528줄) — 가독성 분석 (문장길이, 단어빈도, 접속사, 능동태/수동태 등)
+5. humanness.js (447줄) — AI감지 분석 + 자동 휴먼라이징 (analyzeHumanness, humanizeText)
+6. excelParser.js (123줄) — 네이버 블로그 통계 엑셀(xlsx) 파싱 (SheetJS)
+7. thumbnail.js (393줄) — Canvas 기반 썸네일 생성 (6가지 스타일, 폰트매핑, 그라디언트)
+8. watermark.js (48줄) — AI 생성 이미지 워터마크 추가
+9. fontLoader.js (41줄) — Google Fonts 동적 로드
+
+## 데이터 레이어 (2 files, 166 lines)
+
+1. categories.js (37줄) — CATEGORIES: 15개 카테고리 SSOT (id, label, icon, tone, templateId, recommendedImages). getToneForCategory(), getRecommendedImages() 헬퍼.
+2. templates.js (129줄) — SEO_TEMPLATES: 5종 (A:리뷰방문, B:정보전문, C:가이드, D:비교리뷰, E:쇼핑리뷰). 각 H3 소제목 + placeholder 구조.
+
+## 의존성 흐름
+
+```
+AuthContext ← firebase.js ← Firebase Auth
+EditorContext ← analysis.js, history.js
+openai.js ← firebase.js (callGeminiProxy/ImageProxy)
+openai.js ← categories.js (getRecommendedImages)
+EditorPage → openai.js (AIService.*) + EditorContext (recordAiAction)
+HistoryPage → history.js + excelParser.js
+Components → clipboard.js, readability.js, humanness.js, thumbnail.js, watermark.js, fontLoader.js
+```
+
+=== END subtask-1-3 ===
