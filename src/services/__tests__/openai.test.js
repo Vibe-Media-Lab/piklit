@@ -60,18 +60,38 @@ describe('AIService', () => {
   });
 
   describe('_tryParseJson', () => {
-    it('유효한 JSON 문자열을 파싱해야 한다', () => {
+    it('유효한 JSON 문자열을 직접 파싱해야 한다', () => {
       const result = AIService._tryParseJson('{"key": "value"}');
       expect(result).toEqual({ key: 'value' });
     });
 
-    it('코드 블록 없이 중괄호 패턴을 추출해야 한다', () => {
+    it('코드블록으로 감싼 JSON을 추출해야 한다', () => {
+      // generateContent에서 ```json 마커는 제거되지만, 앞뒤 텍스트가 남을 수 있음
+      const input = 'Here is the result:\n{"title": "테스트", "count": 3}\nEnd of response';
+      const result = AIService._tryParseJson(input);
+      expect(result).toEqual({ title: '테스트', count: 3 });
+    });
+
+    it('{...} 패턴을 추출하여 파싱해야 한다', () => {
       const result = AIService._tryParseJson('some text {"key": "value"} more text');
       expect(result).toEqual({ key: 'value' });
     });
 
-    it('파싱 불가 시 null을 반환해야 한다', () => {
+    it('"html" 키 값을 직접 추출해야 한다 (줄바꿈으로 JSON 깨진 경우)', () => {
+      // 줄바꿈이 이스케이프되지 않아 JSON.parse가 실패하는 케이스
+      const input = '{"html": "첫째 줄\n둘째 줄"}';
+      const result = AIService._tryParseJson(input);
+      expect(result).toHaveProperty('html');
+      expect(result.html).toContain('둘째 줄');
+    });
+
+    it('파싱 불가 텍스트에 null을 반환해야 한다', () => {
       const result = AIService._tryParseJson('not json at all');
+      expect(result).toBeNull();
+    });
+
+    it('빈 문자열에 null을 반환해야 한다', () => {
+      const result = AIService._tryParseJson('');
       expect(result).toBeNull();
     });
   });
