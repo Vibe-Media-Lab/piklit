@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { useParams, useLocation } from 'react-router-dom';
 // Header 제거 — AppLayout의 Sidebar/TopBar로 대체
 import MainContainer from '../components/layout/MainContainer';
 import { useEditor } from '../context/EditorContext';
@@ -8,28 +8,27 @@ import { getTemplateById } from '../data/templates';
 import { AIService } from '../services/openai';
 import { formatParagraphs } from '../utils/analysis';
 import { humanizeText } from '../utils/humanness';
-import PhotoUploader from '../components/editor/PhotoUploader';
-import ImageSeoGuide from '../components/editor/ImageSeoGuide';
 import ImageGeneratorPanel from '../components/editor/ImageGeneratorPanel';
-import CompetitorAnalysis from '../components/analysis/CompetitorAnalysis';
+import StepIndicator from '../components/wizard/StepIndicator';
+import TopicStep from '../components/wizard/TopicStep';
+import KeywordStep, { recommendLength, getKw } from '../components/wizard/KeywordStep';
+import PhotoStep from '../components/wizard/PhotoStep';
+import OutlineStep from '../components/wizard/OutlineStep';
+import { fileToBase64 } from '../utils/image';
 import { CATEGORIES, getToneForCategory } from '../data/categories';
 import {
-    Search, FolderOpen, Edit3, CheckCircle, Tag, Flame, Bot,
-    ClipboardList, Camera, Wand2, ArrowLeft, ArrowRight,
-    ChevronDown, ChevronUp, Loader2, BarChart3, Settings,
-    Sparkles, RefreshCw, Plus, Trash2, Check
+    Search, CheckCircle, Tag,
+    Loader2, Sparkles
 } from 'lucide-react';
 import '../styles/components.css';
 import '../styles/ImageSeoGuide.css';
 
 const EditorPage = () => {
     const { id } = useParams();
-    const navigate = useNavigate();
     const location = useLocation();
     const { openPost, posts, currentPostId, updateMainKeyword, updateSubKeywords, setSuggestedTone, setContent, content, setTargetLength, editorRef, lastCursorPosRef, closeSession, recordAiAction, updatePostMeta, setPhotoPreviewUrls } = useEditor();
     const { showToast } = useToast();
 
-    const loadedRef = useRef(null);
     const locationStateProcessed = useRef(false);
 
     // DUAL MODE STATE
@@ -44,29 +43,15 @@ const EditorPage = () => {
     // 카테고리 + 주제 (StartWizardPage에서 통합)
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [topicInput, setTopicInput] = useState('');
-    const [showSettings, setShowSettings] = useState(true); // 세부 설정 토글 (기본 펼침)
-
     // AI 모드 4단계 스텝
     const [aiStep, setAiStep] = useState(1); // 1: 주제, 2: 키워드+설정, 3: 이미지, 4: 아웃라인+생성
 
     // Step 1: 키워드 상태 (제안형 + 선택형)
     const [mainKeyword, setMainKeyword] = useState('');
-    const [suggestedKeywords, setSuggestedKeywords] = useState([]); // AI가 제안한 키워드 목록
     const [selectedKeywords, setSelectedKeywords] = useState([]); // 사용자가 선택한 키워드 (최소 3, 최대 5)
-    const [customKeywordInput, setCustomKeywordInput] = useState(''); // 직접 입력 키워드
-    const [isAnalyzingKeywords, setIsAnalyzingKeywords] = useState(false);
-
-    // 키워드 강도 확인 상태
-    const [isCheckingDifficulty, setIsCheckingDifficulty] = useState(false);
-    const [difficultyChecked, setDifficultyChecked] = useState(false);
-
-    // 시즌 키워드 상태
-    const [seasonKeywords, setSeasonKeywords] = useState([]);      // [{keyword, reason, timing}]
-    const [isAnalyzingSeason, setIsAnalyzingSeason] = useState(false);
 
     // 경쟁 블로그 분석 상태
     const [competitorData, setCompetitorData] = useState(null);
-    const [isAnalyzingCompetitors, setIsAnalyzingCompetitors] = useState(false);
 
     // Step 2: 이미지 상태
     const [photoData, setPhotoData] = useState({
@@ -75,7 +60,6 @@ const EditorPage = () => {
         files: {}
     });
     const [photoAnalysis, setPhotoAnalysis] = useState(null);
-    const [isAnalyzingPhotos, setIsAnalyzingPhotos] = useState(false);
     const [imageAlts, setImageAlts] = useState({});
     const [imageCaptions, setImageCaptions] = useState({});
     const [cachedPhotoAssets, setCachedPhotoAssets] = useState([]);
@@ -99,8 +83,6 @@ const EditorPage = () => {
 
     // Step 4: 아웃라인 상태
     const [outlineItems, setOutlineItems] = useState([]); // [{level: 'h2'|'h3', title: '...'}]
-    const [isGeneratingOutline, setIsGeneratingOutline] = useState(false);
-
     // 이미지 SEO 가이드 드로어 상태
     const [showSeoDrawer, setShowSeoDrawer] = useState(false);
 
@@ -122,35 +104,6 @@ const EditorPage = () => {
         setTargetLength(minChars);
     };
 
-    // 경쟁 블로그 평균 글자수 기반 글자수 옵션 자동 추천
-    const LENGTH_OPTIONS = ['800~1200자', '1200~1800자', '1800~2500자', '2500~3000자'];
-    const LENGTH_MIDPOINTS = [1000, 1500, 2150, 2750];
-    const recommendLength = (avgCharCount) => {
-        if (!avgCharCount) return null;
-        let closest = LENGTH_OPTIONS[0];
-        let minDiff = Math.abs(avgCharCount - LENGTH_MIDPOINTS[0]);
-        for (let i = 1; i < LENGTH_MIDPOINTS.length; i++) {
-            const diff = Math.abs(avgCharCount - LENGTH_MIDPOINTS[i]);
-            if (diff < minDiff) {
-                minDiff = diff;
-                closest = LENGTH_OPTIONS[i];
-            }
-        }
-        return closest;
-    };
-
-    const TONES = [
-        { id: 'friendly', label: '🥳 친근한 이웃형', emoji: '🥳', desc: '해요체, 이모지, 감탄사',
-          sample: '여기 진짜 숨은 맛집이에요 🍽️ 제가 3번이나 갔는데 매번 웨이팅 있더라고요. 근데 그만큼 맛은 보장된다는 뜻이겠죠?!' },
-        { id: 'professional', label: '🔎 전문 정보형', emoji: '🔎', desc: '합쇼체, 개조식 요약, 신뢰감',
-          sample: '이 제품의 핵심은 발열 성능입니다. 실측 결과 30분 만에 20도까지 상승했으며, 동급 제품 대비 15% 빠른 수치입니다.' },
-        { id: 'honest', label: '📝 내돈내산 솔직형', emoji: '📝', desc: '단호한 문체, 장단점 명확',
-          sample: '맛은 괜찮은데 가격이 좀 있어요. 1인분 15,000원이면 솔직히 이 동네 물가 감안해도 비싼 편. 근데 양은 넉넉해요.' },
-        { id: 'emotional', label: '☕️ 감성 에세이형', emoji: '☕️', desc: '평어체, 명조체 감성, 여백',
-          sample: '창밖으로 노을이 번졌다. 커피잔을 감싸 쥔 손끝이 따뜻했다. 이런 오후가 자주 오면 좋겠다고 생각했다.' },
-        { id: 'guide', label: '📚 단계별 가이드형', emoji: '📚', desc: '권유형, 번호표, 팁 박스',
-          sample: '먼저 재료를 준비하세요. 꿀팁: 양파는 반달 모양으로 썰면 식감이 살아요. 그다음 센 불에서 2분간 볶아주세요.' }
-    ];
 
     // 주제로 초기화
     useEffect(() => {
@@ -205,301 +158,11 @@ const EditorPage = () => {
         }
     }, [competitorData]);
 
-    // 키워드 AI 분석 (추가 제안 시 이미 선택한 키워드 제외)
-    const handleAnalyzeKeywords = async () => {
-        const topic = wizardData?.initialMainKeyword || location.state?.initialMainKeyword || mainKeyword;
-        if (!topic) return showToast('주제를 먼저 입력해주세요.', 'warning');
-
-        console.log('[키워드 분석] 시작:', { topic, excludeKeywords: selectedKeywords });
-
-        setIsAnalyzingKeywords(true);
-        recordAiAction('keywordAnalysis');
-        try {
-            // 이미 선택한 키워드를 제외하고 새로운 키워드 요청
-            const excludeKeywords = selectedKeywords.map(k => getKw(k)).join(', ');
-            const result = await AIService.analyzeKeywords(topic, excludeKeywords);
-
-            console.log('[키워드 분석] API 응답:', result);
-
-            if (result) {
-                if (result.mainKeyword && !mainKeyword) {
-                    setMainKeyword(result.mainKeyword);
-                }
-                // 통합 응답에서 경쟁 분석 데이터 추출
-                if (result.competitors && result.competitors.blogs) {
-                    setCompetitorData(result.competitors);
-                }
-                if (result.subKeywords && Array.isArray(result.subKeywords)) {
-                    // 새 형식: [{keyword, difficulty}] 또는 레거시: [string]
-                    const normalized = result.subKeywords.map(item =>
-                        typeof item === 'string'
-                            ? { keyword: item, difficulty: 'medium' }
-                            : { keyword: item.keyword || item, difficulty: item.difficulty || 'medium' }
-                    );
-
-                    // 중복 제거 (keyword 문자열 기준)
-                    const existingKws = [...suggestedKeywords.map(k => k.keyword || k), ...selectedKeywords.map(k => k.keyword || k)];
-                    const newKeywords = normalized.filter(kw => !existingKws.includes(kw.keyword));
-
-                    if (newKeywords.length > 0) {
-                        // 첫 분석일 때: 상위 5개 자동 선택, 나머지는 제안 목록
-                        if (selectedKeywords.length === 0) {
-                            const autoSelect = newKeywords.slice(0, 5);
-                            const rest = newKeywords.slice(5);
-                            setSelectedKeywords(autoSelect);
-                            setSuggestedKeywords(prev => [...prev, ...rest]);
-                        } else {
-                            // 추가 분석: 제안 목록에만 추가
-                            setSuggestedKeywords(prev => [...prev, ...newKeywords]);
-                        }
-                    }
-                } else {
-                    console.log('[키워드 분석] subKeywords가 없거나 배열이 아님:', result.subKeywords);
-                }
-            } else {
-                console.log('[키워드 분석] result가 없음');
-            }
-        } catch (e) {
-            console.error('키워드 분석 오류:', e);
-            showToast('키워드 분석 중 오류가 발생했습니다.', 'error');
-        } finally {
-            setIsAnalyzingKeywords(false);
-        }
-    };
-
-    // 키워드 강도 확인 (선택사항 — 어절 수 기반 난이도 세팅)
-    const handleCheckDifficulty = () => {
-        setIsCheckingDifficulty(true);
-        const addDifficulty = (kwObj) => {
-            const word = kwObj.keyword || kwObj;
-            const wordCount = word.trim().split(/\s+/).length;
-            let difficulty = 'medium';
-            if (wordCount <= 2) difficulty = 'hard';
-            else if (wordCount >= 4) difficulty = 'easy';
-            return { ...kwObj, difficulty };
-        };
-        setSelectedKeywords(prev => prev.map(addDifficulty));
-        setSuggestedKeywords(prev => prev.map(addDifficulty));
-        setDifficultyChecked(true);
-        setIsCheckingDifficulty(false);
-    };
-
-    // 키워드 선택/해제 토글 (객체 {keyword, difficulty} 기준)
-    const handleKeywordToggle = (kwObj) => {
-        const kw = kwObj.keyword || kwObj;
-        const isSelected = selectedKeywords.some(k => (k.keyword || k) === kw);
-        if (isSelected) {
-            setSelectedKeywords(prev => prev.filter(k => (k.keyword || k) !== kw));
-        } else {
-            if (selectedKeywords.length < 5) {
-                setSelectedKeywords(prev => [...prev, kwObj]);
-                setSuggestedKeywords(prev => prev.filter(k => (k.keyword || k) !== kw));
-            } else {
-                showToast('서브 키워드는 최대 5개까지 선택할 수 있습니다.', 'warning');
-            }
-        }
-    };
-
-    // 선택한 키워드 제거 (isSeason이면 시즌 목록으로, isCustom이면 그냥 삭제, 아니면 제안 목록으로 복귀)
-    const handleRemoveSelectedKeyword = (kwObj) => {
-        const kw = kwObj.keyword || kwObj;
-        setSelectedKeywords(prev => prev.filter(k => (k.keyword || k) !== kw));
-        if (kwObj.isCustom) {
-            // 직접 입력한 키워드는 복귀 없이 삭제
-        } else if (kwObj.isSeason) {
-            setSeasonKeywords(prev => [...prev, { keyword: kw, reason: kwObj.reason || '', timing: kwObj.timing || '' }]);
-        } else {
-            setSuggestedKeywords(prev => [...prev, kwObj]);
-        }
-    };
-
-    // 키워드 직접 입력 추가
-    const handleAddCustomKeyword = () => {
-        const kw = customKeywordInput.trim();
-        if (!kw) return;
-        if (selectedKeywords.length >= 5) {
-            return showToast('서브 키워드는 최대 5개까지 선택할 수 있습니다.', 'warning');
-        }
-        const allKws = selectedKeywords.map(k => (k.keyword || k));
-        if (allKws.includes(kw)) {
-            return showToast('이미 추가된 키워드입니다.', 'warning');
-        }
-        setSelectedKeywords(prev => [...prev, { keyword: kw, isCustom: true }]);
-        setCustomKeywordInput('');
-    };
-
-    // 시즌 트렌드 키워드 분석
-    const handleAnalyzeSeasonKeywords = async () => {
-        const topic = wizardData?.initialMainKeyword || location.state?.initialMainKeyword || mainKeyword;
-        if (!topic) return showToast('메인 키워드를 먼저 입력해주세요.', 'warning');
-
-        setIsAnalyzingSeason(true);
-        recordAiAction('seasonKeywordAnalysis');
-        try {
-            const existingKws = [
-                ...selectedKeywords.map(k => getKw(k)),
-                ...suggestedKeywords.map(k => getKw(k))
-            ];
-            const result = await AIService.analyzeSeasonKeywords(topic, categoryId, existingKws);
-            if (result?.seasonKeywords && Array.isArray(result.seasonKeywords)) {
-                // 기존 키워드와 중복 필터
-                const existingSet = new Set(existingKws);
-                const filtered = result.seasonKeywords.filter(sk => !existingSet.has(sk.keyword));
-                setSeasonKeywords(filtered);
-            }
-        } catch (e) {
-            console.error('시즌 키워드 분석 오류:', e);
-            showToast('시즌 키워드 분석 중 오류가 발생했습니다.', 'error');
-        } finally {
-            setIsAnalyzingSeason(false);
-        }
-    };
-
-    // 시즌 키워드 선택 → selectedKeywords에 추가
-    const handleAddSeasonKeyword = (seasonKw) => {
-        if (selectedKeywords.length >= 5) {
-            return showToast('서브 키워드는 최대 5개까지 선택할 수 있습니다.', 'warning');
-        }
-        setSelectedKeywords(prev => [...prev, {
-            keyword: seasonKw.keyword,
-            difficulty: 'medium',
-            isSeason: true,
-            reason: seasonKw.reason,
-            timing: seasonKw.timing
-        }]);
-        setSeasonKeywords(prev => prev.filter(sk => sk.keyword !== seasonKw.keyword));
-    };
-
-    // 경쟁 블로그 분석 (캐시 우선, 없으면 단독 API 호출)
-    const handleAnalyzeCompetitors = async () => {
-        if (!mainKeyword.trim()) return showToast('메인 키워드를 먼저 입력해주세요.', 'warning');
-        setIsAnalyzingCompetitors(true);
-        recordAiAction('competitorAnalysis');
-        try {
-            const result = await AIService.analyzeCompetitors(mainKeyword, selectedCategory?.id || 'daily');
-            if (result?.average) {
-                setCompetitorData(result);
-                // 경쟁 분석 평균 글자수 기반 글자수 자동 선택
-                if (result.average.charCount) {
-                    const recommended = recommendLength(result.average.charCount);
-                    if (recommended) setSelectedLength(recommended);
-                }
-            } else {
-                console.warn('[경쟁 분석] 예상치 못한 응답 형식:', result);
-                showToast('분석 결과 형식이 올바르지 않습니다. 다시 시도해주세요.', 'error');
-            }
-        } catch (e) {
-            console.error('경쟁 블로그 분석 오류:', e);
-            if (e.message?.includes('429')) {
-                showToast('API 호출 제한에 걸렸습니다. 잠시 후(약 30초) 다시 시도해주세요.', 'error');
-            } else {
-                showToast(`경쟁 블로그 분석 중 오류: ${e.message}`, 'error');
-            }
-        } finally {
-            setIsAnalyzingCompetitors(false);
-        }
-    };
-
-    // 난이도 뱃지 렌더링 헬퍼
-    const DifficultyBadge = ({ difficulty }) => {
-        const map = {
-            easy: { emoji: '🟢', label: '쉬움' },
-            medium: { emoji: '🟡', label: '보통' },
-            hard: { emoji: '🔴', label: '어려움' },
-        };
-        const d = map[difficulty] || map.medium;
-        return <span title={d.label} style={{ marginLeft: '4px', fontSize: '0.75rem' }}>{d.emoji}</span>;
-    };
-
-    // 키워드 문자열 추출 헬퍼 (객체 또는 문자열 대응)
-    const getKw = (item) => item?.keyword || item;
-    const getDifficulty = (item) => item?.difficulty || 'medium';
 
     // Step 1 → 2 이동 가능 여부 (카테고리 선택 + 주제 입력 + 최소 3개 키워드)
     const canProceedToStep1 = isNewPost ? (selectedCategory && topicInput.trim()) : mainKeyword.trim();
     const canProceedToStep2 = mainKeyword.trim() && selectedKeywords.length >= 3;
 
-    // 사진 AI 분석
-    const handleAnalyzePhotos = async () => {
-        const photoCount = Object.values(photoData.metadata).filter(v => v > 0).length;
-        if (photoCount < 1) return showToast('최소 1장의 사진을 업로드해주세요.', 'warning');
-
-        setIsAnalyzingPhotos(true);
-        recordAiAction('photoAnalysis');
-        try {
-            const photoAssets = [];
-            for (const slotId in photoData.files) {
-                const files = photoData.files[slotId];
-                for (const file of files) {
-                    const base64 = await fileToBase64(file);
-                    photoAssets.push({ slotId, base64, mimeType: 'image/jpeg' });
-                }
-            }
-
-            setCachedPhotoAssets(photoAssets);
-            const result = await AIService.analyzePhotos(photoAssets, mainKeyword);
-            if (result) {
-                setPhotoAnalysis(result);
-
-                // 사진 분석 완료 후 이미지 ALT 텍스트 자동 생성 (개별 이미지별)
-                const uploadedSlots = Object.entries(photoData.metadata)
-                    .filter(([_, count]) => count > 0)
-                    .map(([slot]) => slot);
-                const slotCounts = {};
-                uploadedSlots.forEach(slot => { slotCounts[slot] = photoData.metadata[slot]; });
-                try {
-                    const keywordStrings = selectedKeywords.map(k => getKw(k));
-                    const altResult = await AIService.generateImageAlts(mainKeyword, keywordStrings, result, uploadedSlots, slotCounts, selectedTone || 'friendly');
-                    if (altResult && Object.keys(altResult).length > 0) {
-                        const alts = {}, captions = {};
-                        for (const [slot, items] of Object.entries(altResult)) {
-                            alts[slot] = items.map(i => typeof i === 'string' ? i : i.alt);
-                            captions[slot] = items.map(i => typeof i === 'string' ? '' : i.caption);
-                        }
-                        setImageAlts(alts);
-                        setImageCaptions(captions);
-                        console.log('[이미지 ALT+캡션] 생성 완료:', alts, captions);
-                    }
-                } catch (altErr) {
-                    console.warn('[이미지 ALT] 생성 실패, 기본 ALT 사용:', altErr.message);
-                }
-            }
-        } catch (e) {
-            console.error('사진 분석 오류:', e);
-            showToast('사진 분석 중 오류가 발생했습니다.', 'error');
-        } finally {
-            setIsAnalyzingPhotos(false);
-        }
-    };
-
-    // Step 2 → 3 이동 가능 여부 (사진 없어도 진행 가능)
-    const canProceedToStep3 = true;
-    const hasAnyPhotos = Object.values(photoData.metadata).filter(v => v > 0).length >= 1;
-
-    // API 전송용: 512px로 리사이즈하여 이미지 토큰 절감
-    const fileToBase64 = (file, maxSize = 512) => {
-        return new Promise((resolve, reject) => {
-            const img = new window.Image();
-            img.onload = () => {
-                let { width, height } = img;
-                if (width > maxSize || height > maxSize) {
-                    const ratio = Math.min(maxSize / width, maxSize / height);
-                    width = Math.round(width * ratio);
-                    height = Math.round(height * ratio);
-                }
-                const canvas = document.createElement('canvas');
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-                const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-                resolve(dataUrl.split(',')[1]);
-                URL.revokeObjectURL(img.src);
-            };
-            img.onerror = reject;
-            img.src = URL.createObjectURL(file);
-        });
-    };
 
     // Streaming Logic
     const streamContentToEditor = async (fullHtml) => {
@@ -788,83 +451,9 @@ const EditorPage = () => {
         }
     }, [id, posts, currentPostId, openPost, location.state, updateMainKeyword, setSuggestedTone, setContent]);
 
-    // 아웃라인 핸들러
-    const handleGenerateOutline = async () => {
-        setIsGeneratingOutline(true);
-        recordAiAction('outlineGenerate');
-        try {
-            const keywordStrings = selectedKeywords.map(k => getKw(k));
-            const effectiveWizardData = wizardData || location.state;
-            const result = await AIService.generateOutline(
-                mainKeyword, keywordStrings, selectedTone,
-                categoryId,
-                competitorData
-            );
-            if (result?.outline && Array.isArray(result.outline)) {
-                setOutlineItems(result.outline);
-            }
-        } catch (e) {
-            console.error('[아웃라인] 생성 오류:', e);
-            showToast('아웃라인 생성 중 오류가 발생했습니다: ' + e.message, 'error');
-        } finally {
-            setIsGeneratingOutline(false);
-        }
-    };
-
-    const handleOutlineEdit = (index, newTitle) => {
-        setOutlineItems(prev => prev.map((item, i) => i === index ? { ...item, title: newTitle } : item));
-    };
-
-    const handleOutlineToggleLevel = (index) => {
-        setOutlineItems(prev => prev.map((item, i) =>
-            i === index ? { ...item, level: item.level === 'h2' ? 'h3' : 'h2' } : item
-        ));
-    };
-
-    const handleOutlineMove = (index, direction) => {
-        setOutlineItems(prev => {
-            const arr = [...prev];
-            const target = index + direction;
-            if (target < 0 || target >= arr.length) return arr;
-            [arr[index], arr[target]] = [arr[target], arr[index]];
-            return arr;
-        });
-    };
-
-    const handleOutlineDelete = (index) => {
-        setOutlineItems(prev => prev.filter((_, i) => i !== index));
-    };
-
-    const handleOutlineAdd = (afterIndex) => {
-        setOutlineItems(prev => {
-            const arr = [...prev];
-            arr.splice(afterIndex + 1, 0, { level: 'h3', title: '' });
-            return arr;
-        });
-    };
-
     const STEP_LABELS = ['주제 선택', '키워드 + 설정', '이미지 업로드', '아웃라인 + 생성'];
 
     // 카테고리별 placeholder
-    const CATEGORY_PLACEHOLDERS = {
-        food: '예: 제주 김선문 식당',
-        cafe: '예: 성수동 카페 온도',
-        shopping: '예: 애플 맥미니 M4',
-        comparison: '예: 다이슨 에어랩 vs 샤오미 드라이어',
-        review: '예: 삼성 갤럭시 S25 울트라',
-        travel: '예: 제주도 2박3일 여행',
-        pet: '예: 골든리트리버 산책 코스 추천',
-        tech: '예: 애플 비전프로 개발자 리뷰',
-        recipe: '예: 초간단 원팬 파스타',
-        parenting: '예: 12개월 아기 이유식',
-        tips: '예: 자취방 곰팡이 제거 꿀팁',
-        economy: '예: 2026 청년 주택청약 총정리',
-        medical: '예: 역류성 식도염 증상과 생활습관',
-        law: '예: 전세 보증금 반환 청구 절차',
-        tutorial: '예: 노션 자동화 워크플로우 만들기',
-        daily: '예: 직장인 퇴근 후 루틴 공유',
-    };
-
     // "직접 작성" 전환 핸들러
     const handleSwitchToDirect = () => {
         if (selectedCategory) {
@@ -882,23 +471,9 @@ const EditorPage = () => {
         setEditorMode('direct');
     };
 
-    // Progress Indicator 컴포넌트
-    const StepIndicator = () => (
-        <div className="wizard-step-indicator">
-            {[1, 2, 3, 4].map(s => (
-                <React.Fragment key={s}>
-                    <div className="wizard-step-item">
-                        <div className={`wizard-step-circle ${s === aiStep ? 'active' : s < aiStep ? 'completed' : 'pending'}`}>
-                            {s < aiStep ? <Check size={14} /> : s}
-                        </div>
-                        <span className={`wizard-step-label ${s === aiStep ? 'active' : s < aiStep ? 'completed' : 'pending'}`}>
-                            {STEP_LABELS[s - 1]}
-                        </span>
-                    </div>
-                    {s < 4 && <div className={`wizard-step-connector ${s < aiStep ? 'completed' : ''}`} />}
-                </React.Fragment>
-            ))}
-        </div>
+    // Progress Indicator — 외부 컴포넌트 사용
+    const renderStepIndicator = () => (
+        <StepIndicator currentStep={aiStep} labels={STEP_LABELS} />
     );
 
     // AI 모드일 때 전체 페이지로 스텝 UI 렌더링
@@ -909,731 +484,91 @@ const EditorPage = () => {
                     <div className="wizard-page-inner">
                         {/* STEP 1: 주제 선택 (카테고리 + 주제) */}
                         {aiStep === 1 && (
-                            <div className="wizard-card-wrap">
-                                <StepIndicator />
-
-                                <h2 className="wizard-step-heading">
-                                    <FolderOpen size={20} /> Step 1: 주제 선택
-                                </h2>
-                                <p className="wizard-step-desc">
-                                    카테고리를 선택하고 주제를 입력하세요. 다음 단계에서 키워드를 분석합니다.
-                                </p>
-
-                                {/* 카테고리 그리드 */}
-                                {isNewPost && (
-                                    <div className="wizard-form-group">
-                                        <label className="wizard-label">
-                                            <FolderOpen size={16} /> 카테고리 선택 <span className="wizard-required">*</span>
-                                        </label>
-                                        <div className="wizard-category-grid">
-                                            {CATEGORIES.map(cat => (
-                                                <div
-                                                    key={cat.id}
-                                                    className={`wizard-category-card ${selectedCategory?.id === cat.id ? 'selected' : ''}`}
-                                                    onClick={() => {
-                                                        setSelectedCategory(cat);
-                                                        setToneState(getToneForCategory(cat.id));
-                                                        updatePostMeta(id, { categoryId: cat.id, tone: getToneForCategory(cat.id) });
-                                                    }}
-                                                >
-                                                    <span className="wizard-category-card-icon">{cat.icon}</span>
-                                                    <span className="wizard-category-card-label">
-                                                        {cat.label}
-                                                    </span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* 주제 입력 */}
-                                {isNewPost && (
-                                    <div className="wizard-form-group">
-                                        <label className="wizard-label">
-                                            <Edit3 size={16} /> 주제 입력 <span className="wizard-required">*</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={topicInput}
-                                            onChange={e => {
-                                                setTopicInput(e.target.value);
-                                                setMainKeyword(e.target.value);
-                                                updateMainKeyword(e.target.value);
-                                            }}
-                                            placeholder={CATEGORY_PLACEHOLDERS[selectedCategory?.id] || '예: 작성할 주제를 입력하세요'}
-                                            className="wizard-field"
-                                            autoFocus
-                                        />
-                                    </div>
-                                )}
-
-                                {/* 메인 키워드 (기존 글 재편집 시 표시) */}
-                                {!isNewPost && (
-                                    <div className="wizard-form-group">
-                                        <label className="wizard-label">
-                                            <Edit3 size={16} /> 메인 키워드 <span className="wizard-required">*</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={mainKeyword}
-                                            onChange={e => setMainKeyword(e.target.value)}
-                                            placeholder="예: 제주 김선문 식당"
-                                            className="wizard-field"
-                                        />
-                                    </div>
-                                )}
-
-                                <div className="wizard-nav">
-                                    <button
-                                        onClick={isNewPost ? handleSwitchToDirect : () => setEditorMode('direct')}
-                                        className="wizard-btn-ghost"
-                                    >
-                                        <ArrowLeft size={16} /> 직접 작성으로 전환
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            if (isNewPost && !mainKeyword.trim() && topicInput.trim()) {
-                                                setMainKeyword(topicInput.trim());
-                                                updateMainKeyword(topicInput.trim());
-                                            }
-                                            setAiStep(2);
-                                        }}
-                                        disabled={!canProceedToStep1}
-                                        className="wizard-btn-primary"
-                                    >
-                                        다음: 키워드 + 설정 <ArrowRight size={16} />
-                                    </button>
-                                </div>
-                            </div>
+                            <TopicStep
+                                isNewPost={isNewPost}
+                                selectedCategory={selectedCategory}
+                                topicInput={topicInput}
+                                mainKeyword={mainKeyword}
+                                setSelectedCategory={setSelectedCategory}
+                                setTopicInput={setTopicInput}
+                                setMainKeyword={setMainKeyword}
+                                setToneState={setToneState}
+                                onNext={() => {
+                                    if (isNewPost && !mainKeyword.trim() && topicInput.trim()) {
+                                        setMainKeyword(topicInput.trim());
+                                        updateMainKeyword(topicInput.trim());
+                                    }
+                                    setAiStep(2);
+                                }}
+                                onSwitchToDirect={isNewPost ? handleSwitchToDirect : () => setEditorMode('direct')}
+                                canProceed={canProceedToStep1}
+                                postId={id}
+                                renderStepIndicator={renderStepIndicator}
+                            />
                         )}
 
                         {/* STEP 2: 키워드 분석 + 세부 설정 (점진적 노출) */}
                         {aiStep === 2 && (
-                            <div className="wizard-card-wrap">
-                                <StepIndicator />
-
-                                <h2 className="wizard-step-heading">
-                                    <Search size={20} /> Step 2: 키워드 + 설정
-                                </h2>
-                                <p className="wizard-step-desc">
-                                    AI가 SEO 키워드를 제안합니다. 키워드를 선택하고 설정을 조정하세요.
-                                </p>
-                                <div className="wizard-step-meta">
-                                    <span>주제: <strong>{mainKeyword || '미설정'}</strong></span>
-                                    {selectedCategory && <span>카테고리: {selectedCategory.icon} <strong>{selectedCategory.label}</strong></span>}
-                                </div>
-
-                                {/* ── 1단계: AI 키워드 분석 버튼 (분석 전에만 상단) ── */}
-                                {suggestedKeywords.length === 0 && selectedKeywords.length === 0 && (
-                                    <button
-                                        onClick={handleAnalyzeKeywords}
-                                        disabled={isAnalyzingKeywords}
-                                        className="wizard-btn-accent"
-                                    >
-                                        {isAnalyzingKeywords
-                                            ? <><Loader2 size={16} className="spin" /> 키워드 분석 중...</>
-                                            : <><Bot size={16} /> AI 키워드 분석하기</>
-                                        }
-                                    </button>
-                                )}
-
-                                {/* 키워드 분석 프로그레스 */}
-                                {isAnalyzingKeywords && (
-                                    <div className="ai-progress-card">
-                                        <div className="ai-progress-header">
-                                            <Loader2 size={16} className="spin" />
-                                            네이버 검색 데이터를 기반으로 키워드를 분석하고 있습니다
-                                            <div className="ai-progress-dots"><span /><span /><span /></div>
-                                        </div>
-                                        <div className="ai-progress-bar-track">
-                                            <div className="ai-progress-bar-fill" />
-                                        </div>
-                                        <div className="ai-progress-steps">
-                                            <div className="ai-progress-step done">
-                                                <div className="ai-progress-step-icon"><CheckCircle size={14} /></div>
-                                                검색어 전달 완료
-                                            </div>
-                                            <div className="ai-progress-step active">
-                                                <div className="ai-progress-step-icon"><Loader2 size={14} /></div>
-                                                네이버 실시간 검색 데이터 수집 중
-                                            </div>
-                                            <div className="ai-progress-step">
-                                                <div className="ai-progress-step-icon"><Search size={14} /></div>
-                                                SEO 최적화 키워드 추출
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* 분석 전 가이드 */}
-                                {suggestedKeywords.length === 0 && selectedKeywords.length === 0 && !isAnalyzingKeywords && (
-                                    <p className="wizard-info-box">
-                                        <Search size={14} /> 위 버튼을 클릭하면 네이버 검색 데이터 기반으로 SEO 키워드를 추천받을 수 있습니다.
-                                    </p>
-                                )}
-
-                                {/* ── 2단계: 키워드 선택 카드 (분석 결과 후 노출) ── */}
-                                {(suggestedKeywords.length > 0 || selectedKeywords.length > 0) && (
-                                    <div className="wizard-section-card">
-                                        {/* 제안된 키워드 목록 */}
-                                        {suggestedKeywords.length > 0 && (
-                                            <div className="wizard-suggested-section">
-                                                <label className="wizard-label">
-                                                    <Tag size={16} /> AI 제안 키워드 (클릭하여 선택)
-                                                </label>
-                                                <div className="wizard-chip-list">
-                                                    {suggestedKeywords.map((kwObj, i) => (
-                                                        <span
-                                                            key={i}
-                                                            onClick={() => handleKeywordToggle(kwObj)}
-                                                            className={`wizard-suggested-chip ${selectedKeywords.length >= 5 ? 'disabled' : ''}`}
-                                                        >
-                                                            + {getKw(kwObj)}
-                                                            {difficultyChecked && <DifficultyBadge difficulty={getDifficulty(kwObj)} />}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                                <button
-                                                    onClick={handleAnalyzeKeywords}
-                                                    disabled={isAnalyzingKeywords}
-                                                    className="wizard-btn-accent wizard-mt-8"
-                                                >
-                                                    {isAnalyzingKeywords
-                                                        ? <><Loader2 size={16} className="spin" /> 키워드 분석 중...</>
-                                                        : <><RefreshCw size={16} /> 추가 키워드 더 받기</>
-                                                    }
-                                                </button>
-                                            </div>
-                                        )}
-
-                                        {/* 선택된 키워드 */}
-                                        <div className="wizard-selected-keywords">
-                                            <label className="wizard-label">
-                                                <CheckCircle size={16} /> 선택한 서브 키워드 ({selectedKeywords.length}/5)
-                                                {selectedKeywords.length < 3 && (
-                                                    <span className="wizard-min-warning">최소 3개 선택 필요</span>
-                                                )}
-                                            </label>
-                                            <div className="wizard-chip-list">
-                                                {selectedKeywords.length === 0 ? (
-                                                    <span className="wizard-chip-placeholder">위 제안된 키워드를 클릭하여 선택하세요</span>
-                                                ) : (
-                                                    selectedKeywords.map((kwObj, i) => (
-                                                        <span
-                                                            key={i}
-                                                            onClick={() => handleRemoveSelectedKeyword(kwObj)}
-                                                            className={`wizard-keyword-chip ${kwObj.isCustom ? 'custom' : kwObj.isSeason ? 'season' : ''}`}
-                                                        >
-                                                            {kwObj.isSeason && <Flame size={13} />}{kwObj.isCustom && <Edit3 size={13} />}{getKw(kwObj)}
-                                                            {difficultyChecked && <DifficultyBadge difficulty={getDifficulty(kwObj)} />}
-                                                            <span className="chip-remove">×</span>
-                                                        </span>
-                                                    ))
-                                                )}
-                                            </div>
-
-                                            {/* 키워드 직접 입력 */}
-                                            <div className="wizard-custom-input-row">
-                                                <input
-                                                    type="text"
-                                                    value={customKeywordInput}
-                                                    onChange={e => setCustomKeywordInput(e.target.value)}
-                                                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustomKeyword(); } }}
-                                                    placeholder="키워드 직접 입력"
-                                                    disabled={selectedKeywords.length >= 5}
-                                                    className="wizard-custom-input"
-                                                />
-                                                <button
-                                                    onClick={handleAddCustomKeyword}
-                                                    disabled={!customKeywordInput.trim() || selectedKeywords.length >= 5}
-                                                    className="wizard-custom-add-btn"
-                                                >
-                                                    <Plus size={14} /> 추가
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        {/* 키워드 강도 확인 */}
-                                        <div className="wizard-keyword-actions">
-                                            {!difficultyChecked && (
-                                                <button
-                                                    onClick={handleCheckDifficulty}
-                                                    disabled={isCheckingDifficulty}
-                                                    className="wizard-btn-secondary"
-                                                >
-                                                    {isCheckingDifficulty
-                                                        ? <><Loader2 size={16} className="spin" /> 확인 중...</>
-                                                        : <><BarChart3 size={16} /> 키워드 강도 확인하기</>
-                                                    }
-                                                </button>
-                                            )}
-                                            {difficultyChecked && (
-                                                <span className="wizard-difficulty-done">
-                                                    <CheckCircle size={16} /> 강도 확인 완료
-                                                </span>
-                                            )}
-                                        </div>
-
-                                        {/* 시즌 트렌드 (키워드 카드 안에 배치 — 보조 옵션) */}
-                                        <div className="wizard-season-section">
-                                            <button
-                                                onClick={handleAnalyzeSeasonKeywords}
-                                                disabled={isAnalyzingSeason || !mainKeyword.trim()}
-                                                className="wizard-btn-accent"
-                                            >
-                                                {isAnalyzingSeason
-                                                    ? <><Loader2 size={16} className="spin" /> 시즌 트렌드를 분석하고 있습니다...</>
-                                                    : seasonKeywords.length > 0
-                                                        ? <><RefreshCw size={16} /> 시즌 트렌드 키워드 다시 추천받기</>
-                                                        : <><Flame size={16} /> 시즌 트렌드 키워드 추천받기</>
-                                                }
-                                            </button>
-
-                                            {isAnalyzingSeason && (
-                                                <div className="ai-progress-card">
-                                                    <div className="ai-progress-header">
-                                                        <Loader2 size={16} className="spin" />
-                                                        시즌 트렌드 키워드를 분석하고 있습니다
-                                                        <div className="ai-progress-dots"><span /><span /><span /></div>
-                                                    </div>
-                                                    <div className="ai-progress-bar-track">
-                                                        <div className="ai-progress-bar-fill" />
-                                                    </div>
-                                                    <div className="ai-progress-steps">
-                                                        <div className="ai-progress-step done">
-                                                            <div className="ai-progress-step-icon"><CheckCircle size={14} /></div>
-                                                            시즌 데이터 요청 완료
-                                                        </div>
-                                                        <div className="ai-progress-step active">
-                                                            <div className="ai-progress-step-icon"><Loader2 size={14} /></div>
-                                                            현재 시즌 트렌드 검색 중
-                                                        </div>
-                                                        <div className="ai-progress-step">
-                                                            <div className="ai-progress-step-icon"><Flame size={14} /></div>
-                                                            트렌드 키워드 추출
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {seasonKeywords.length > 0 && !isAnalyzingSeason && (
-                                                <div className="wizard-season-panel">
-                                                    <label className="wizard-label">
-                                                        <Flame size={16} /> 시즌 트렌드 키워드
-                                                    </label>
-                                                    <div className="wizard-season-list">
-                                                        {seasonKeywords.map((sk, i) => (
-                                                            <div key={i} className="wizard-season-card">
-                                                                <div className="wizard-season-card-body">
-                                                                    <div className="wizard-season-card-title">
-                                                                        <Flame size={14} /> {sk.keyword}
-                                                                    </div>
-                                                                    <div className="wizard-season-card-meta">
-                                                                        {sk.reason} · {sk.timing}
-                                                                    </div>
-                                                                </div>
-                                                                <button
-                                                                    onClick={() => handleAddSeasonKeyword(sk)}
-                                                                    disabled={selectedKeywords.length >= 5}
-                                                                    className="wizard-season-add-btn"
-                                                                >
-                                                                    + 선택
-                                                                </button>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* 진행 상태 (키워드 카드 안에 배치) */}
-                                        <div className={`wizard-info-box ${selectedKeywords.length >= 3 ? 'success' : ''}`}>
-                                            <p>
-                                                {selectedKeywords.length >= 3
-                                                    ? <><CheckCircle size={14} /> {selectedKeywords.length}개의 서브 키워드가 선택되었습니다. 다음 단계로 진행할 수 있습니다.</>
-                                                    : `${3 - selectedKeywords.length}개의 서브 키워드를 더 선택해주세요.`
-                                                }
-                                            </p>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* ── 3단계: 경쟁 블로그 분석 (키워드 분석 후 노출) ── */}
-                                {(suggestedKeywords.length > 0 || selectedKeywords.length > 0) && (
-                                    <div className="wizard-section-mt">
-                                        <CompetitorAnalysis
-                                            data={competitorData}
-                                            loading={isAnalyzingCompetitors}
-                                            onAnalyze={handleAnalyzeCompetitors}
-                                        />
-                                    </div>
-                                )}
-
-                                {/* ── 4단계: 세부 설정 (경쟁 분석 완료 or 키워드 3개 이상 선택 시 노출) ── */}
-                                {(competitorData || selectedKeywords.length >= 3) && (
-                                    <div className="wizard-section-mt">
-                                        <button
-                                            onClick={() => setShowSettings(!showSettings)}
-                                            className="wizard-settings-toggle"
-                                        >
-                                            <span className="wizard-settings-toggle-label">
-                                                <Settings size={16} /> 세부 설정 (톤앤무드 · 글자수)
-                                            </span>
-                                            <span className={`wizard-settings-chevron ${showSettings ? 'open' : ''}`}>
-                                                <ChevronDown size={16} />
-                                            </span>
-                                        </button>
-
-                                        {showSettings && (
-                                            <div className="wizard-settings-panel">
-                                                {/* 글자수 선택 */}
-                                                <div className="wizard-section-mb">
-                                                    <label className="wizard-label">
-                                                        <Edit3 size={16} /> 글자수 선택
-                                                    </label>
-                                                    <div className="wizard-length-grid">
-                                                        {LENGTH_OPTIONS.map(l => (
-                                                            <button
-                                                                key={l}
-                                                                className={`wizard-length-option ${selectedLength === l ? 'selected' : ''}`}
-                                                                onClick={() => setSelectedLength(l)}
-                                                            >
-                                                                {l}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                    {competitorData?.average?.charCount && (
-                                                        <p className="wizard-length-recommend">
-                                                            <span>
-                                                                <BarChart3 size={14} /> 경쟁 블로그 평균 {competitorData.average.charCount.toLocaleString()}자 기준으로 <strong>{recommendLength(competitorData.average.charCount)}</strong>를 추천합니다
-                                                            </span>
-                                                        </p>
-                                                    )}
-                                                </div>
-
-                                                {/* 톤앤무드 선택 */}
-                                                <div>
-                                                    <label className="wizard-label">
-                                                        <Sparkles size={16} /> 톤앤무드 선택
-                                                    </label>
-                                                    <div className="wizard-tone-grid">
-                                                        {TONES.map(t => (
-                                                            <div
-                                                                key={t.id}
-                                                                className={`wizard-tone-option ${selectedTone === t.id ? 'selected' : ''}`}
-                                                                onClick={() => setToneState(t.id)}
-                                                            >
-                                                                <div className="wizard-tone-label">{t.label}</div>
-                                                                <div className="wizard-tone-desc">{t.desc}</div>
-                                                                {selectedTone === t.id && (
-                                                                    <div className="wizard-tone-sample">
-                                                                        <div className="wizard-tone-sample-label">미리보기</div>
-                                                                        <p className="wizard-tone-sample-text">{t.sample}</p>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-
-                                <div className="wizard-nav">
-                                    <button
-                                        onClick={() => setAiStep(1)}
-                                        className="wizard-btn-ghost"
-                                    >
-                                        <ArrowLeft size={16} /> 이전: 주제 선택
-                                    </button>
-                                    <button
-                                        onClick={() => setAiStep(3)}
-                                        disabled={!canProceedToStep2}
-                                        className="wizard-btn-primary"
-                                    >
-                                        다음: 이미지 업로드 <ArrowRight size={16} />
-                                    </button>
-                                </div>
-                            </div>
+                            <KeywordStep
+                                mainKeyword={mainKeyword}
+                                selectedCategory={selectedCategory}
+                                selectedKeywords={selectedKeywords}
+                                selectedLength={selectedLength}
+                                selectedTone={selectedTone}
+                                competitorData={competitorData}
+                                categoryId={categoryId}
+                                wizardData={wizardData || location.state}
+                                setSelectedKeywords={setSelectedKeywords}
+                                setSelectedLength={setSelectedLength}
+                                setToneState={setToneState}
+                                setCompetitorData={setCompetitorData}
+                                onPrev={() => setAiStep(1)}
+                                onNext={() => setAiStep(3)}
+                                canProceed={canProceedToStep2}
+                                renderStepIndicator={renderStepIndicator}
+                            />
                         )}
 
                         {/* STEP 3: 이미지 업로드 & 분석 */}
                         {aiStep === 3 && (
-                            <div className="wizard-card-wrap">
-                                <StepIndicator />
-
-                                <h2 className="wizard-step-heading">
-                                    <Camera size={20} /> Step 3: 이미지 업로드
-                                </h2>
-                                <p className="wizard-step-desc">
-                                    이미지를 업로드하면 AI가 분석하여 본문 작성에 활용합니다.
-                                </p>
-                                <div className="wizard-step-meta">
-                                    <span>주제: <strong>{mainKeyword || '미설정'}</strong></span>
-                                    {selectedCategory && <span>카테고리: {selectedCategory.icon} <strong>{selectedCategory.label}</strong></span>}
-                                </div>
-
-                                <PhotoUploader
-                                    keyword={mainKeyword}
-                                    onUpdate={setPhotoData}
-                                    categoryId={categoryId}
-                                />
-
-                                <div className="wizard-section-mt">
-                                    <button
-                                        onClick={handleAnalyzePhotos}
-                                        disabled={isAnalyzingPhotos || !hasAnyPhotos}
-                                        className="wizard-btn-accent"
-                                    >
-                                        {isAnalyzingPhotos
-                                            ? <><Loader2 size={16} className="spin" /> 사진 분석 중...</>
-                                            : <><Bot size={16} /> 사진 AI 분석하기</>
-                                        }
-                                    </button>
-                                </div>
-
-                                {isAnalyzingPhotos && (
-                                    <div className="ai-progress-card wizard-mt-16">
-                                        <div className="ai-progress-header">
-                                            <Loader2 size={16} className="spin" />
-                                            업로드한 사진을 AI가 분석하고 있습니다
-                                            <div className="ai-progress-dots"><span /><span /><span /></div>
-                                        </div>
-                                        <div className="ai-progress-bar-track">
-                                            <div className="ai-progress-bar-fill" />
-                                        </div>
-                                        <div className="ai-progress-steps">
-                                            <div className="ai-progress-step done">
-                                                <div className="ai-progress-step-icon"><CheckCircle size={14} /></div>
-                                                이미지 전송 완료
-                                            </div>
-                                            <div className="ai-progress-step active">
-                                                <div className="ai-progress-step-icon"><Loader2 size={14} /></div>
-                                                사진 내용 분석 중
-                                            </div>
-                                            <div className="ai-progress-step">
-                                                <div className="ai-progress-step-icon"><Camera size={14} /></div>
-                                                블로그 활용 가이드 생성
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {(photoAnalysis || Object.keys(imageAlts).length > 0) && (
-                                    <div className="wizard-mt-16">
-                                        <ImageSeoGuide
-                                            mainKeyword={mainKeyword}
-                                            imageAlts={imageAlts}
-                                            imageCaptions={imageCaptions}
-                                            photoMetadata={photoData.metadata}
-                                            photoAnalysis={photoAnalysis}
-                                            photoFiles={photoData.files}
-                                        />
-                                    </div>
-                                )}
-
-                                <div className="wizard-nav">
-                                    <button
-                                        onClick={() => setAiStep(2)}
-                                        className="wizard-btn-ghost"
-                                    >
-                                        <ArrowLeft size={16} /> 이전: 키워드 + 설정
-                                    </button>
-                                    <div className="wizard-nav-flex">
-                                        {!hasAnyPhotos && (
-                                            <button
-                                                onClick={() => setAiStep(4)}
-                                                className="wizard-btn-secondary"
-                                            >
-                                                사진 없이 진행하기 <ArrowRight size={16} />
-                                            </button>
-                                        )}
-                                        <button
-                                            onClick={() => setAiStep(4)}
-                                            disabled={!canProceedToStep3}
-                                            className="wizard-btn-primary"
-                                        >
-                                            다음: 아웃라인 + 생성 <ArrowRight size={16} />
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
+                            <PhotoStep
+                                mainKeyword={mainKeyword}
+                                selectedCategory={selectedCategory}
+                                selectedKeywords={selectedKeywords}
+                                selectedTone={selectedTone}
+                                photoData={photoData}
+                                photoAnalysis={photoAnalysis}
+                                imageAlts={imageAlts}
+                                imageCaptions={imageCaptions}
+                                categoryId={categoryId}
+                                setPhotoData={setPhotoData}
+                                setPhotoAnalysis={setPhotoAnalysis}
+                                setImageAlts={setImageAlts}
+                                setImageCaptions={setImageCaptions}
+                                setCachedPhotoAssets={setCachedPhotoAssets}
+                                onPrev={() => setAiStep(2)}
+                                onNext={() => setAiStep(4)}
+                                renderStepIndicator={renderStepIndicator}
+                            />
                         )}
 
                         {/* STEP 4: 아웃라인 + 생성 */}
                         {aiStep === 4 && (
-                            <div className="wizard-card-wrap">
-                                <StepIndicator />
-
-                                <h2 className="wizard-step-heading">
-                                    <Wand2 size={20} /> Step 4: 아웃라인 + 생성
-                                </h2>
-                                <p className="wizard-step-desc">
-                                    AI가 소제목 구조를 생성합니다. 수정 후 본문을 생성하세요.
-                                </p>
-                                <div className="wizard-step-meta">
-                                    <span>주제: <strong>{mainKeyword || '미설정'}</strong></span>
-                                    {selectedCategory && <span>카테고리: {selectedCategory.icon} <strong>{selectedCategory.label}</strong></span>}
-                                </div>
-
-                                {/* 작성 정보 요약 */}
-                                <div className="wizard-summary-grid">
-                                    <div className="wizard-summary-card">
-                                        <div className="summary-label">메인 키워드</div>
-                                        <div className="summary-value">{mainKeyword}</div>
-                                    </div>
-                                    <div className="wizard-summary-card">
-                                        <div className="summary-label">서브 키워드</div>
-                                        <div className="summary-value">{selectedKeywords.length}개</div>
-                                    </div>
-                                    <div className="wizard-summary-card">
-                                        <div className="summary-label">톤앤무드</div>
-                                        <div className="summary-value">{TONES.find(t => t.id === selectedTone)?.label?.replace(/^[^\s]+\s/, '') || '미선택'}</div>
-                                    </div>
-                                    <div className="wizard-summary-card">
-                                        <div className="summary-label">사진</div>
-                                        <div className="summary-value">
-                                            {(() => {
-                                                const total = Object.values(photoData.metadata).reduce((sum, v) => sum + v, 0);
-                                                return total > 0 ? `${total}장` : '없음';
-                                            })()}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* 아웃라인 생성 버튼 */}
-                                <div className="wizard-section-mb">
-                                    <button
-                                        onClick={handleGenerateOutline}
-                                        disabled={isGeneratingOutline}
-                                        className="wizard-btn-accent"
-                                    >
-                                        {isGeneratingOutline
-                                            ? <><Loader2 size={16} className="spin" /> 아웃라인 생성 중...</>
-                                            : outlineItems.length > 0
-                                                ? <><RefreshCw size={16} /> 아웃라인 다시 생성</>
-                                                : <><Bot size={16} /> AI 아웃라인 생성하기</>
-                                        }
-                                    </button>
-                                </div>
-
-                                {isGeneratingOutline && (
-                                    <div className="ai-progress-card wizard-section-mb">
-                                        <div className="ai-progress-header">
-                                            <Loader2 size={16} className="spin" />
-                                            글의 구조를 설계하고 있습니다
-                                            <div className="ai-progress-dots"><span /><span /><span /></div>
-                                        </div>
-                                        <div className="ai-progress-bar-track">
-                                            <div className="ai-progress-bar-fill" />
-                                        </div>
-                                        <div className="ai-progress-steps">
-                                            <div className="ai-progress-step done">
-                                                <div className="ai-progress-step-icon"><CheckCircle size={14} /></div>
-                                                키워드·사진 데이터 수집 완료
-                                            </div>
-                                            <div className="ai-progress-step active">
-                                                <div className="ai-progress-step-icon"><Loader2 size={14} /></div>
-                                                경쟁 블로그 구조 반영 중
-                                            </div>
-                                            <div className="ai-progress-step">
-                                                <div className="ai-progress-step-icon"><ClipboardList size={14} /></div>
-                                                소제목 아웃라인 생성
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* 아웃라인 편집 UI */}
-                                {outlineItems.length > 0 && (
-                                    <div className="outline-editor">
-                                        <div className="outline-header">
-                                            <label>
-                                                <ClipboardList size={16} /> 소제목 구조
-                                            </label>
-                                            <span className="outline-count">
-                                                H2 {outlineItems.filter(i => i.level === 'h2').length} / H3 {outlineItems.filter(i => i.level === 'h3').length}
-                                            </span>
-                                        </div>
-
-                                        <div className="outline-list">
-                                            {outlineItems.map((item, idx) => (
-                                                <div key={idx} className={`outline-row ${item.level === 'h3' ? 'is-h3' : ''}`}>
-                                                    <button
-                                                        onClick={() => handleOutlineToggleLevel(idx)}
-                                                        className={`outline-level-btn ${item.level}`}
-                                                        title="H2/H3 전환"
-                                                    >
-                                                        {item.level.toUpperCase()}
-                                                    </button>
-
-                                                    <input
-                                                        type="text"
-                                                        value={item.title}
-                                                        onChange={(e) => handleOutlineEdit(idx, e.target.value)}
-                                                        placeholder="소제목 입력..."
-                                                        className={`outline-input ${item.level}`}
-                                                    />
-
-                                                    <div className="outline-actions">
-                                                        <button
-                                                            onClick={() => handleOutlineMove(idx, -1)}
-                                                            disabled={idx === 0}
-                                                            className="outline-action-btn"
-                                                            title="위로 이동"
-                                                        ><ChevronUp size={14} /></button>
-                                                        <button
-                                                            onClick={() => handleOutlineMove(idx, 1)}
-                                                            disabled={idx === outlineItems.length - 1}
-                                                            className="outline-action-btn"
-                                                            title="아래로 이동"
-                                                        ><ChevronDown size={14} /></button>
-                                                        <button
-                                                            onClick={() => handleOutlineAdd(idx)}
-                                                            className="outline-action-btn add"
-                                                            title="아래에 항목 추가"
-                                                        ><Plus size={14} /></button>
-                                                        <button
-                                                            onClick={() => handleOutlineDelete(idx)}
-                                                            disabled={outlineItems.length <= 1}
-                                                            className="outline-action-btn delete"
-                                                            title="삭제"
-                                                        ><Trash2 size={14} /></button>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-
-                                        {competitorData?.average?.headingCount && (
-                                            <div className={`outline-competitor-bar ${outlineItems.length >= competitorData.average.headingCount ? 'sufficient' : 'insufficient'}`}>
-                                                <BarChart3 size={14} />
-                                                경쟁 블로그 평균 소제목 {competitorData.average.headingCount}개 — 현재 {outlineItems.length}개
-                                                {outlineItems.length >= competitorData.average.headingCount
-                                                    ? <><CheckCircle size={14} /> 충분</>
-                                                    : ' — 부족'
-                                                }
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-
-                                <div className="wizard-nav">
-                                    <button
-                                        onClick={() => setAiStep(3)}
-                                        className="wizard-btn-ghost"
-                                    >
-                                        <ArrowLeft size={16} /> 이전: 이미지 업로드
-                                    </button>
-                                    <button
-                                        onClick={handleAiGenerate}
-                                        disabled={outlineItems.length === 0}
-                                        className="wizard-btn-primary wizard-btn-generate"
-                                    >
-                                        <Sparkles size={18} /> AI 본문 생성 시작
-                                    </button>
-                                </div>
-                            </div>
+                            <OutlineStep
+                                mainKeyword={mainKeyword}
+                                selectedCategory={selectedCategory}
+                                selectedKeywords={selectedKeywords}
+                                selectedTone={selectedTone}
+                                selectedLength={selectedLength}
+                                competitorData={competitorData}
+                                outlineItems={outlineItems}
+                                photoData={photoData}
+                                categoryId={categoryId}
+                                setOutlineItems={setOutlineItems}
+                                onPrev={() => setAiStep(3)}
+                                onGenerate={handleAiGenerate}
+                                renderStepIndicator={renderStepIndicator}
+                            />
                         )}
                     </div>
                 </div>
