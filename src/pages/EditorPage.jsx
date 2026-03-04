@@ -12,6 +12,7 @@ import PhotoUploader from '../components/editor/PhotoUploader';
 import ImageSeoGuide from '../components/editor/ImageSeoGuide';
 import ImageGeneratorPanel from '../components/editor/ImageGeneratorPanel';
 import CompetitorAnalysis from '../components/analysis/CompetitorAnalysis';
+import WizardStepIndicator from '../components/editor/WizardStepIndicator';
 import { CATEGORIES, getToneForCategory } from '../data/categories';
 import {
     Search, FolderOpen, Edit3, CheckCircle, Tag, Flame, Bot,
@@ -843,7 +844,7 @@ const EditorPage = () => {
         });
     };
 
-    const STEP_LABELS = ['주제 선택', '키워드 + 설정', '이미지 업로드', '아웃라인 + 생성'];
+
 
     // 카테고리별 placeholder
     const CATEGORY_PLACEHOLDERS = {
@@ -882,24 +883,8 @@ const EditorPage = () => {
         setEditorMode('direct');
     };
 
-    // Progress Indicator 컴포넌트
-    const StepIndicator = () => (
-        <div className="wizard-step-indicator">
-            {[1, 2, 3, 4].map(s => (
-                <React.Fragment key={s}>
-                    <div className="wizard-step-item">
-                        <div className={`wizard-step-circle ${s === aiStep ? 'active' : s < aiStep ? 'completed' : 'pending'}`}>
-                            {s < aiStep ? <Check size={14} /> : s}
-                        </div>
-                        <span className={`wizard-step-label ${s === aiStep ? 'active' : s < aiStep ? 'completed' : 'pending'}`}>
-                            {STEP_LABELS[s - 1]}
-                        </span>
-                    </div>
-                    {s < 4 && <div className={`wizard-step-connector ${s < aiStep ? 'completed' : ''}`} />}
-                </React.Fragment>
-            ))}
-        </div>
-    );
+    // Progress Indicator — WizardStepIndicator로 추출됨
+    const StepIndicator = () => <WizardStepIndicator aiStep={aiStep} />;
 
     // AI 모드일 때 전체 페이지로 스텝 UI 렌더링
     if (editorMode === 'ai' && !isGenerating) {
