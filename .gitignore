@@ -26,3 +26,6 @@ dist-ssr
 
 # Claude Code 개인 설정 (로컬만)
 .claude/settings.local.json
+
+# Auto Claude data directory
+.auto-claude/

@@ -247,3 +247,134 @@ Components → clipboard.js, readability.js, humanness.js, thumbnail.js, waterma
 4. **#41 코드 스플리팅** — 핵심 대형 라이브러리(tiptap, firebase) 분리 완료, 254KB main 달성. 추가 최적화 여지 있으나 기본 목표 충족.
 
 === END subtask-2-1 ===
+
+=== SESSION: subtask-2-2 (CDO 로드맵 갭 분석) ===
+
+## Phase 1: MVP — 완료율 100% (14/14)
+
+| CDO 항목 | 코드 상태 | 구현 위치 | 비고 |
+|----------|----------|----------|------|
+| 랜딩 페이지 (piklit.pro) | ✅ 완성 | LandingPage.jsx (1053줄) | 12개 섹션, 반응형 |
+| 소셜 로그인 (네이버/카카오/구글) | ✅ 완성 | AuthContext.jsx + api/auth/* | Custom Token via Vercel |
+| API 키 서버 사이드 숨김 | ✅ 완성 | api/gemini.js | Vercel Serverless proxy |
+| 무료 체험 (월 3회 + 첫달 무료) | ✅ 완성 | api/gemini.js MONTHLY_LIMIT=3, PROMO_DAYS=30 | Firestore quota |
+| Vercel 배포 | ✅ 완성 | vercel.json + piklit.pro | |
+| 위자드 기반 글 작성 (4단계) | ✅ 완성 | EditorPage.jsx aiStep state | |
+| AI 키워드 분석 + 경쟁 분석 | ✅ 완성 | openai.js analyzeKeywords() + analyzeCompetitors() | google_search |
+| AI 본문 생성 (16개 카테고리) | ✅ 완성 | openai.js generateFullDraft/Restaurant/Shopping | 3분기 라우팅 |
+| 실시간 SEO 분석 (12개 항목) | ✅ 완성 | analysis.js (실제 13항목) | |
+| AI 부분 재작성 (4모드) | ✅ 완성 | TiptapEditor.jsx BubbleMenu | |
+| 도입부 최적화 (3전략) | ✅ 완성 | IntroOptimizer.jsx | |
+| 가독성 분석 | ✅ 완성 | readability.js + ReadabilityPanel.jsx | |
+| 이미지 ALT 텍스트 생성 | ✅ 완성 | openai.js generateImageAlts() | ALT+캡션 동시 |
+| 히스토리 대시보드 | ✅ 완성 | HistoryPage.jsx + history.js | |
+
+## Phase 2: 더 잘 쓰기 — 완료율 28% (7/25)
+
+### 완료된 항목 (7개)
+
+| CDO 항목 | 코드 상태 | 구현 위치 |
+|----------|----------|----------|
+| 톤 프리셋 5개 + 위자드 샘플 미리보기 | ✅ 완성 | openai.js _toneMap + EditorPage TONES[].sample |
+| 시즌/트렌드 키워드 추천 | ✅ 완성 | openai.js analyzeSeasonKeywords() + EditorPage UI |
+| 사진 SEO 최적화 (파일명/alt/캡션) | ✅ 완성 | ImageSeoGuide.jsx + PhotoUploader generateSeoFilename |
+| 사진 → 썸네일 자동 생성 | ✅ 완성 | ThumbnailPanel.jsx + thumbnail.js (7스타일, Canvas) |
+| (task.md 추가) AI 감지 분석 | ✅ 완성 | HumannessPanel.jsx + humanness.js (CDO 미기재) |
+| (task.md 추가) 키워드 직접 입력 | ✅ 완성 | EditorPage Step 1 (CDO 미기재) |
+| (task.md 추가) 다음 글 추천 | ✅ 완성 | RecommendSection.jsx (CDO 미기재) |
+
+### 미착수 항목 (18개)
+
+| CDO 항목 | 코드 상태 | 우선순위 | 비고 |
+|----------|----------|---------|------|
+| **아카이브 v1 — 주제 메모 CRUD** | ❌ 미구현 | P1 | Firestore 필요 |
+| 메모 → 글 작성 원클릭 연결 | ❌ 미구현 | P1 | 아카이브 의존 |
+| 아카이브 탭 사이드바 | ❌ 미구현 | P1 | 아카이브 의존 |
+| **AI 콘텐츠 캘린더 — 주간 트렌드** | ❌ 미구현 | P2 | 시즌 키워드와 유사하나 별도 기능 |
+| "지금 쓰면 좋은 주제" AI 제안 | ❌ 미구현 | P2 | 콘텐츠 캘린더 의존 |
+| 주간 발행 목표 + 배지 | ❌ 미구현 | P2 | 게이미피케이션 |
+| **시리즈(연재) — 글 묶음** | ❌ 미구현 | P2 | task.md "기능 8 보류" |
+| 시리즈 구조 AI 자동 제안 | ❌ 미구현 | P2 | 시리즈 의존 |
+| 이전 편 참조 후속 글 생성 | ❌ 미구현 | P2 | 시리즈 의존 |
+| **체험단 가이드 업로드** | ❌ 미구현 | P1 | CDO 상세 기획 존재, 핵심 차별점 |
+| 가이드 AI 파싱 → 필수 요소 추출 | ❌ 미구현 | P1 | 체험단 의존 |
+| 가이드 기반 글 생성 + 준수 체크 | ❌ 미구현 | P1 | 체험단 의존 |
+| 광고 표시 자동 삽입 | ❌ 미구현 | P1 | 체험단 의존 |
+| 글 품질 개선 (자연스러운 본문) | 🟡 진행중 | P1 | 카테고리별 프롬프트 지속 개선 중 |
+| **클라우드 저장 (Firestore)** | ❌ 미구현 | P1 | src에 Firestore import 0건, localStorage만 사용 |
+| 사용자 피드백 기반 프롬프트 튜닝 | ❌ 미구현 | P2 | 피드백 수집 메커니즘 부재 |
+| 사진 묶음 → 여러 글 분리 | 🧊 Icebox | - | CDO에서도 Icebox 표기 |
+
+## Phase 3: 발행과 성장 — 완료율 0% (0/15)
+
+| CDO 항목 | 코드 상태 | 우선순위 |
+|----------|----------|---------|
+| BYOK 모드 (사용자 API 키) | 🟡 부분 | P1 | localStorage 키 저장 동작하나 구독 결제 미연동 |
+| 구독 결제 시스템 | ❌ 미구현 | P1 | 결제 코드 0건 |
+| 프리미엄 기능 분리 | ❌ 미구현 | P1 | 구독 의존 |
+| 팀/기업 요금제 | ❌ 미구현 | P2 | |
+| 아카이브 v2 (URL 크롤링+AI 분석) | ❌ 미구현 | P2 | |
+| "이 스타일로 쓰기" | ❌ 미구현 | P2 | |
+| 내 톤 만들기 | ❌ 미구현 | P2 | |
+| 톤 마켓플레이스 | ❌ 미구현 | P3 | |
+| 인기 톤 랭킹 | ❌ 미구현 | P3 | |
+| 프리미엄 톤 Pro 전용 | ❌ 미구현 | P3 | |
+| 네이버 블로그 API OAuth 연동 | ❌ 미구현 | P2 | |
+| 글+사진 원클릭 발행 | ❌ 미구현 | P2 | |
+| SEO 시뮬레이션 예상 노출 | ❌ 미구현 | P3 | |
+| 네이버 플레이스 연동 | ❌ 미구현 | P3 | Firebase Functions 필요 |
+| 주간 자동 포스팅 | ❌ 미구현 | P3 | Firebase Functions 필요 |
+
+## task.md 보류/미구현 항목 검증
+
+| task.md 항목 | CDO 대응 | 코드 상태 |
+|-------------|---------|----------|
+| 기능 7: 시즌/트렌드 키워드 추천 | Phase 2 | ✅ 보류 해제 후 구현 완료 (2026-02-19) |
+| 기능 8: 내부 링크/시리즈 관리 | Phase 2 시리즈 기능 | ❌ 보류 유지 |
+| 도입부 글자수 140~160자 준수율 모니터링 | - | ❌ 보류 |
+| 주제 입력 시 카테고리 자동 감지 | Phase 3 | ❌ 보류 |
+| 업그레이드 플로우 | Phase 3 구독 결제 | ❌ e.preventDefault() 비활성 상태 |
+
+## architecture.md 불일치/스테일 항목
+
+| 항목 | architecture.md 기술 | 실제 상태 | 심각도 |
+|------|---------------------|----------|--------|
+| StartWizardPage | 컴포넌트 트리에 /start → StartWizardPage 표기 | EditorPage에 통합, StartWizardPage.jsx 파일 없음 | Medium |
+| 위자드 단계 수 | "Step 1~4" (카테고리/사진/키워드/아웃라인) | 실제 5단계 (카테고리→키워드설정→사진→아웃라인→생성) | Low |
+| 카테고리 수 | "16개" | categories.js에 15개 (맛집+카페 통합 후) | Low |
+| Firebase 아키텍처 | "계획된 Firebase 아키텍처" 섹션 | Vercel Serverless로 구현됨 (Cloud Functions 아님) | Medium |
+| AI 메서드 수 | 표에 20개 | 실제 23개 (recommendNextTopics, analyzeHumanness, generateThumbnailText 누락) | Low |
+| AnalysisSidebar 구성 | 4개 패널 (AIAnalysis/Competitor/Readability/PostHistory) | 7개 패널 (+ Humanness/Thumbnail/추가 기능) | Low |
+
+## 갭 분석 요약
+
+| Phase | CDO 항목 수 | 완료 | 부분 | 미착수 | 완료율 |
+|-------|-----------|------|------|--------|--------|
+| Phase 1 (MVP) | 14 | 14 | 0 | 0 | **100%** |
+| Phase 2 (더 잘 쓰기) | 25 | 7 | 1 | 16+1 Icebox | **28%** |
+| Phase 3 (발행과 성장) | 15 | 0 | 1 | 14 | **~3%** |
+| **전체** | **54** | **21** | **2** | **30+1** | **39%** |
+
+## 핵심 갭 우선순위 (P0~P2)
+
+### P0 — 비즈니스 블로커
+없음 (Phase 1 MVP 완전 배포됨)
+
+### P1 — 단기 해결 필요 (Phase 2 핵심)
+1. **클라우드 저장 (Firestore 마이그레이션)** — 디바이스 간 동기화 불가, localStorage 5MB 한계
+2. **체험단/협찬 글 모드** — CDO 핵심 차별점, 상세 기획 완료이나 코드 0줄
+3. **구독 결제 시스템** — 수익화 블로커, "업그레이드" 버튼이 비활성 상태
+4. **아카이브 v1 (주제 메모)** — 리텐션 목표의 핵심 기능
+
+### P2 — 중기 과제
+5. AI 콘텐츠 캘린더
+6. 시리즈(연재) 기능
+7. 네이버 원클릭 발행
+8. 톤 프리셋 마켓
+
+## CDO 미기재 but 구현된 기능 (3건)
+- AI 감지 분석 (HumannessPanel) — Phase 2에 추가 권장
+- 키워드 직접 입력 — 위자드 UX 개선으로 자연 발생
+- 다음 글 추천 (RecommendSection) — Phase 2에 추가 권장
+
+=== END subtask-2-2 ===
