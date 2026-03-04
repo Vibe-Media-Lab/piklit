@@ -204,6 +204,44 @@ describe('AIService', () => {
       expect(result).toEqual({ text: '원본 텍스트' });
     });
 
+    it('문자열 인자를 parts 배열로 자동 변환해야 한다', async () => {
+      callGeminiProxy.mockResolvedValueOnce({
+        data: {
+          candidates: [{ content: { parts: [{ text: '{"ok": true}' }] } }],
+          usageMetadata: { promptTokenCount: 5, candidatesTokenCount: 10, totalTokenCount: 15 },
+        },
+      });
+
+      await AIService.generateContent('문자열 프롬프트', {}, '테스트');
+      const calledBody = callGeminiProxy.mock.calls[0][0].body;
+      expect(calledBody.contents[0].parts).toEqual([{ text: '문자열 프롬프트' }]);
+    });
+
+    it('429 재시도 후 성공해야 한다', async () => {
+      const retryError = new Error('429 Too Many Requests');
+      callGeminiProxy
+        .mockRejectedValueOnce(retryError)
+        .mockRejectedValueOnce(retryError)
+        .mockResolvedValueOnce({
+          data: {
+            candidates: [{ content: { parts: [{ text: '{"result": "ok"}' }] } }],
+            usageMetadata: { promptTokenCount: 5, candidatesTokenCount: 10, totalTokenCount: 15 },
+          },
+        });
+
+      const result = await AIService.generateContent('테스트');
+      expect(result).toEqual({ result: 'ok' });
+      expect(callGeminiProxy).toHaveBeenCalledTimes(3);
+    }, 30000);
+
+    it('maxRetries 초과 시 에러를 throw해야 한다', async () => {
+      const retryError = new Error('429 Too Many Requests');
+      callGeminiProxy.mockRejectedValue(retryError);
+
+      await expect(AIService.generateContent('테스트')).rejects.toThrow('이용량이 초과되었습니다');
+      expect(callGeminiProxy).toHaveBeenCalledTimes(5);
+    }, 120000);
+
     it('429 QUOTA_EXCEEDED 에러는 재시도 없이 throw해야 한다', async () => {
       const error = new Error('quota exceeded');
       error.status = 429;
@@ -212,6 +250,27 @@ describe('AIService', () => {
 
       await expect(AIService.generateContent('테스트')).rejects.toThrow();
       expect(callGeminiProxy).toHaveBeenCalledTimes(1);
+    });
+
+    it('403 BYOK_REQUIRED 에러는 재시도 없이 throw해야 한다', async () => {
+      const error = new Error('BYOK required');
+      error.status = 403;
+      error.code = 'BYOK_REQUIRED';
+      callGeminiProxy.mockRejectedValueOnce(error);
+
+      await expect(AIService.generateContent('테스트')).rejects.toThrow();
+      expect(callGeminiProxy).toHaveBeenCalledTimes(1);
+    });
+
+    it('응답에 text가 없을 때 에러를 throw해야 한다', async () => {
+      callGeminiProxy.mockResolvedValueOnce({
+        data: {
+          candidates: [{ content: { parts: [] } }],
+          usageMetadata: { promptTokenCount: 5, candidatesTokenCount: 0, totalTokenCount: 5 },
+        },
+      });
+
+      await expect(AIService.generateContent('테스트')).rejects.toThrow('AI 응답에서 텍스트를 찾을 수 없습니다.');
     });
   });
 });
