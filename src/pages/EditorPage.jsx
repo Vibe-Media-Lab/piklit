@@ -13,6 +13,7 @@ import ImageSeoGuide from '../components/editor/ImageSeoGuide';
 import ImageGeneratorPanel from '../components/editor/ImageGeneratorPanel';
 import CompetitorAnalysis from '../components/analysis/CompetitorAnalysis';
 import WizardStepIndicator from '../components/editor/WizardStepIndicator';
+import GenerationLoadingScreen from '../components/editor/GenerationLoadingScreen';
 import { CATEGORIES, getToneForCategory } from '../data/categories';
 import {
     Search, FolderOpen, Edit3, CheckCircle, Tag, Flame, Bot,
@@ -1628,51 +1629,7 @@ const EditorPage = () => {
 
     // 생성 중 로딩 UI (단계별 체크리스트 + 프로그레스 바)
     if (isGenerating) {
-        const GENERATION_STEPS = [
-            { label: '준비 중 (이미지 변환)', icon: <Loader2 size={16} /> },
-            { label: '사진 분석 중', icon: <Search size={16} /> },
-            { label: 'ALT 텍스트 생성 중', icon: <Tag size={16} /> },
-            { label: '본문 작성 중', icon: <Sparkles size={16} /> },
-        ];
-        const progressPercent = Math.round((generationStep / (GENERATION_STEPS.length - 1)) * 100);
-
-        return (
-            <div>
-                <div className="generation-loading">
-                    <div className="generation-card">
-                        <div className="generation-icon">
-                            <Sparkles size={48} />
-                        </div>
-                        <h2>AI가 글을 작성하고 있어요</h2>
-                        <p className="generation-subtitle">
-                            잠시만 기다려주세요. 곧 완성됩니다!
-                        </p>
-
-                        <div className="generation-progress-track">
-                            <div className="generation-progress-fill" style={{ width: `${progressPercent}%` }} />
-                        </div>
-
-                        <div className="generation-steps">
-                            {GENERATION_STEPS.map((step, idx) => {
-                                const isDone = idx < generationStep;
-                                const isCurrent = idx === generationStep;
-                                return (
-                                    <div key={idx} className={`generation-step ${isDone ? 'done' : isCurrent ? 'current' : ''}`}>
-                                        <span className="generation-step-icon">
-                                            {isDone ? <CheckCircle size={16} /> : isCurrent ? step.icon : <span className="generation-step-placeholder" />}
-                                        </span>
-                                        <span>{step.label}</span>
-                                        {isCurrent && (
-                                            <span className="generation-step-status">진행 중...</span>
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
+        return <GenerationLoadingScreen generationStep={generationStep} />;
     }
 
     // AI 이미지 본문 삽입 핸들러 (마지막 커서 위치에 삽입)
