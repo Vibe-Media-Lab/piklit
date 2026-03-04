@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { useEditor } from '../../context/EditorContext';
 import { useToast } from '../common/Toast';
 import { AIService } from '../../services/openai';
-import { TONES } from './KeywordStep';
-import { getKw } from './KeywordStep';
+import { TONES, getKw } from './constants';
 import {
     Wand2, Bot, ClipboardList, ArrowLeft,
     ChevronDown, ChevronUp, Loader2, BarChart3,

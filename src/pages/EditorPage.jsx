@@ -11,7 +11,8 @@ import { humanizeText } from '../utils/humanness';
 import ImageGeneratorPanel from '../components/editor/ImageGeneratorPanel';
 import StepIndicator from '../components/wizard/StepIndicator';
 import TopicStep from '../components/wizard/TopicStep';
-import KeywordStep, { recommendLength, getKw } from '../components/wizard/KeywordStep';
+import KeywordStep from '../components/wizard/KeywordStep';
+import { recommendLength, getKw } from '../components/wizard/constants';
 import PhotoStep from '../components/wizard/PhotoStep';
 import OutlineStep from '../components/wizard/OutlineStep';
 import { fileToBase64 } from '../utils/image';
@@ -26,7 +27,7 @@ import '../styles/ImageSeoGuide.css';
 const EditorPage = () => {
     const { id } = useParams();
     const location = useLocation();
-    const { openPost, posts, currentPostId, updateMainKeyword, updateSubKeywords, setSuggestedTone, setContent, content, setTargetLength, editorRef, lastCursorPosRef, closeSession, recordAiAction, updatePostMeta, setPhotoPreviewUrls } = useEditor();
+    const { openPost, posts, currentPostId, updateMainKeyword, updateSubKeywords, setSuggestedTone, setContent, setTargetLength, editorRef, lastCursorPosRef, closeSession, recordAiAction, updatePostMeta, setPhotoPreviewUrls } = useEditor();
     const { showToast } = useToast();
 
     const locationStateProcessed = useRef(false);

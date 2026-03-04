@@ -6,7 +6,7 @@ import { AIService } from '../../services/openai';
 import { fileToBase64 } from '../../utils/image';
 import PhotoUploader from '../editor/PhotoUploader';
 import ImageSeoGuide from '../editor/ImageSeoGuide';
-import { getKw } from './KeywordStep';
+import { getKw } from './constants';
 
 const PhotoStep = ({
     mainKeyword,
