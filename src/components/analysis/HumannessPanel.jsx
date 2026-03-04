@@ -163,7 +163,7 @@ const HumannessPanel = () => {
 
                                 <div className="humanness-metrics-list">
                                     {Object.values(metrics).map((m, i) => (
-                                        <MetricBar key={i} label={m.label} score={m.score} maxScore={m.maxScore} classPrefix="humanness-metric" />
+                                        <MetricBar key={i} label={m.label} score={m.score} maxScore={m.maxScore}/>
                                     ))}
                                 </div>
                             </div>

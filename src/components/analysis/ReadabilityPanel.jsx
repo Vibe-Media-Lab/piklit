@@ -83,7 +83,7 @@ const ReadabilityPanel = () => {
                                 {/* 지표 바 차트 */}
                                 <div className="readability-metrics-list">
                                     {Object.values(metrics).map((m, i) => (
-                                        <MetricBar key={i} label={m.label} score={m.score} maxScore={m.maxScore} classPrefix="readability-metric" />
+                                        <MetricBar key={i} label={m.label} score={m.score} maxScore={m.maxScore}/>
                                     ))}
                                 </div>
                             </div>
