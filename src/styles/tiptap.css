@@ -672,36 +672,37 @@
     gap: 8px;
 }
 
-.readability-metric {
+/* 통합 지표 바 */
+.metric-bar {
     display: flex;
     flex-direction: column;
     gap: 3px;
 }
 
-.readability-metric-header {
+.metric-bar-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.readability-metric-label {
+.metric-bar-label {
     font-size: 0.78rem;
     color: #555;
 }
 
-.readability-metric-score {
+.metric-bar-score {
     font-size: 0.75rem;
     font-weight: 600;
 }
 
-.readability-metric-bar-bg {
+.metric-bar-bar-bg {
     height: 6px;
     background: #E5E7EB;
     border-radius: 3px;
     overflow: hidden;
 }
 
-.readability-metric-bar-fill {
+.metric-bar-bar-fill {
     height: 100%;
     border-radius: 3px;
     transition: width 0.4s ease;
@@ -888,40 +889,6 @@
     gap: 8px;
 }
 
-.humanness-metric {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-}
-
-.humanness-metric-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.humanness-metric-label {
-    font-size: 0.78rem;
-    color: #555;
-}
-
-.humanness-metric-score {
-    font-size: 0.75rem;
-    font-weight: 600;
-}
-
-.humanness-metric-bar-bg {
-    height: 6px;
-    background: #E5E7EB;
-    border-radius: 3px;
-    overflow: hidden;
-}
-
-.humanness-metric-bar-fill {
-    height: 100%;
-    border-radius: 3px;
-    transition: width 0.4s ease;
-}
 
 /* 개선 포인트 */
 .humanness-suggestions {

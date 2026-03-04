@@ -4,6 +4,7 @@ import { Loader2 } from 'lucide-react';
 import { useToast } from '../common/Toast';
 import { analyzeHumanness } from '../../utils/humanness';
 import { AIService } from '../../services/openai';
+import { MetricBar } from '../common/MetricBar';
 
 const GRADE_COLORS = {
     A: '#16A34A',
@@ -19,28 +20,6 @@ const GRADE_LABELS = {
     C: 'AI 느낌',
     D: 'AI 감지 위험',
     '-': '분석 대기'
-};
-
-const MetricBar = ({ label, score, maxScore }) => {
-    const pct = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
-    const barColor = pct >= 80 ? '#16A34A' : pct >= 60 ? '#2563EB' : pct >= 40 ? '#D97706' : '#EF4444';
-
-    return (
-        <div className="humanness-metric">
-            <div className="humanness-metric-header">
-                <span className="humanness-metric-label">{label}</span>
-                <span className="humanness-metric-score" style={{ color: barColor }}>
-                    {score}/{maxScore}
-                </span>
-            </div>
-            <div className="humanness-metric-bar-bg">
-                <div
-                    className="humanness-metric-bar-fill"
-                    style={{ width: `${pct}%`, background: barColor }}
-                />
-            </div>
-        </div>
-    );
 };
 
 const HumannessPanel = () => {
@@ -184,7 +163,7 @@ const HumannessPanel = () => {
 
                                 <div className="humanness-metrics-list">
                                     {Object.values(metrics).map((m, i) => (
-                                        <MetricBar key={i} label={m.label} score={m.score} maxScore={m.maxScore} />
+                                        <MetricBar key={i} label={m.label} score={m.score} maxScore={m.maxScore}/>
                                     ))}
                                 </div>
                             </div>
