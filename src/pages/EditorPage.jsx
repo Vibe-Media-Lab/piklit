@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { useParams, useLocation } from 'react-router-dom';
 // Header 제거 — AppLayout의 Sidebar/TopBar로 대체
 import MainContainer from '../components/layout/MainContainer';
 import { useEditor } from '../context/EditorContext';
@@ -25,12 +25,10 @@ import '../styles/ImageSeoGuide.css';
 
 const EditorPage = () => {
     const { id } = useParams();
-    const navigate = useNavigate();
     const location = useLocation();
     const { openPost, posts, currentPostId, updateMainKeyword, updateSubKeywords, setSuggestedTone, setContent, content, setTargetLength, editorRef, lastCursorPosRef, closeSession, recordAiAction, updatePostMeta, setPhotoPreviewUrls } = useEditor();
     const { showToast } = useToast();
 
-    const loadedRef = useRef(null);
     const locationStateProcessed = useRef(false);
 
     // DUAL MODE STATE
