@@ -672,14 +672,14 @@
 .pain-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: var(--spacing-md);
+    gap: 24px;
 }
 
 .pain-card {
     display: flex;
     align-items: center;
-    gap: 16px;
-    padding: 20px 24px;
+    gap: 20px;
+    padding: 24px 28px;
     border-radius: var(--radius-lg);
     border: 1px solid var(--color-border);
     background: white;
