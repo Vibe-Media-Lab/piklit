@@ -39,6 +39,22 @@
     margin-bottom: var(--spacing-md);
 }
 
+/* Section-specific badge colors */
+.landing-steps .landing-section-badge {
+    background: #EBF5FF;
+    color: #2563EB;
+}
+
+.landing-reviews .landing-section-badge {
+    background: #ECFDF5;
+    color: #059669;
+}
+
+.landing-faq .landing-section-badge {
+    background: #F3F4F6;
+    color: #6B7280;
+}
+
 .landing-section-title {
     font-size: 2.25rem;
     font-weight: 800;
