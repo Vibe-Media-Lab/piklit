@@ -72,7 +72,6 @@
 }
 
 /* Center section headers (most sections) */
-.landing-pain,
 .landing-features,
 .landing-steps,
 .landing-categories,
@@ -83,8 +82,6 @@
     padding: 80px 0;
 }
 
-.landing-pain .landing-section-badge,
-.landing-pain .landing-section-title,
 .landing-features .landing-section-badge,
 .landing-features .landing-section-title,
 .landing-steps .landing-section-badge,

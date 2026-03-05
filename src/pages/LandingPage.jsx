@@ -516,11 +516,12 @@ const SampleCarousel = () => (
     </section>
 );
 
-const PainSection = () => (
-    <section className="landing-pain reveal-on-scroll">
+const PainFeatureSection = () => (
+    <section className="landing-features reveal-on-scroll" id="features">
         <div className="landing-section-inner">
-            <span className="landing-section-badge">문제 해결</span>
-            <h2 className="landing-section-title">블로그 글쓰기, 이렇게 고민하셨죠?</h2>
+            <span className="landing-section-badge">왜 피클잇인가</span>
+            <h2 className="landing-section-title">사진 한 장에서 상위 노출까지, 5분</h2>
+            <p className="landing-section-desc">이렇게 고민하셨죠?</p>
             <div className="pain-grid">
                 {PAIN_POINTS.map((p, i) => (
                     <div className="pain-card" key={i}>
@@ -532,6 +533,28 @@ const PainSection = () => (
                         <div className="pain-after">
                             <Check size={16} />
                             <span>{p.after}</span>
+                        </div>
+                    </div>
+                ))}
+            </div>
+            <div className="features-grid">
+                {FEATURES.map((feat, i) => (
+                    <div className={`feature-card ${i % 2 === 1 ? 'reverse' : ''}`} key={feat.id}>
+                        <div className="feature-card-text">
+                            <div className="feature-card-icon">
+                                <feat.icon size={20} />
+                                <span>{feat.label}</span>
+                            </div>
+                            <h3>{feat.title}</h3>
+                            <p>{feat.desc}</p>
+                            <ul>
+                                {feat.bullets.map((b, j) => (
+                                    <li key={j}><Check size={14} /> {b}</li>
+                                ))}
+                            </ul>
+                        </div>
+                        <div className="feature-card-visual">
+                            <FeatureMockup id={feat.id} />
                         </div>
                     </div>
                 ))}
@@ -609,37 +632,6 @@ const FeatureMockup = ({ id }) => {
     );
     return null;
 };
-
-const FeatureShowcase = () => (
-    <section className="landing-features reveal-on-scroll" id="features">
-        <div className="landing-section-inner">
-            <span className="landing-section-badge">왜 피클잇인가</span>
-            <h2 className="landing-section-title">사진 한 장에서 상위 노출까지, 5분</h2>
-            <div className="features-grid">
-                {FEATURES.map((feat, i) => (
-                    <div className={`feature-card ${i % 2 === 1 ? 'reverse' : ''}`} key={feat.id}>
-                        <div className="feature-card-text">
-                            <div className="feature-card-icon">
-                                <feat.icon size={20} />
-                                <span>{feat.label}</span>
-                            </div>
-                            <h3>{feat.title}</h3>
-                            <p>{feat.desc}</p>
-                            <ul>
-                                {feat.bullets.map((b, j) => (
-                                    <li key={j}><Check size={14} /> {b}</li>
-                                ))}
-                            </ul>
-                        </div>
-                        <div className="feature-card-visual">
-                            <FeatureMockup id={feat.id} />
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </div>
-    </section>
-);
 
 const StepMockup = ({ num }) => {
     if (num === 1) return (
@@ -1027,8 +1019,7 @@ const LandingPage = () => {
             <HeroSection handleStart={handleStart} loginLoading={loginLoading} />
             <TrustBar />
             <SampleCarousel />
-            <PainSection />
-            <FeatureShowcase />
+            <PainFeatureSection />
             <StepsSection />
             <CategoryGrid />
             <PersonaCards />
