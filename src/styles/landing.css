@@ -838,7 +838,8 @@
 
 /* ─── 4. Feature Showcase (Card Grid) ─────────────── */
 .landing-features {
-    background: var(--color-surface-hover);
+    --section-bg: #FAFAF8;
+    background: var(--section-bg);
     border-top: 1px solid var(--color-border);
     border-bottom: 1px solid var(--color-border);
 }
@@ -1534,8 +1535,9 @@
 
 /* ─── 7.5. Reviews Section ─────────────────────────── */
 .landing-reviews {
+    --section-bg: #FAFAF8;
     padding: 80px 0;
-    background: var(--color-surface-hover);
+    background: var(--section-bg);
     border-top: 1px solid var(--color-border);
     border-bottom: 1px solid var(--color-border);
 }
@@ -1942,9 +1944,10 @@
 
 /* ─── 11. Bottom CTA ──────────────────────────────── */
 .landing-bottom-cta {
+    --cta-gradient: linear-gradient(135deg, #FFF3ED, #FFE8D9);
     padding: 80px 0;
     text-align: center;
-    background: var(--color-surface-hover);
+    background: var(--cta-gradient);
     border-top: 1px solid var(--color-border);
 }
 
