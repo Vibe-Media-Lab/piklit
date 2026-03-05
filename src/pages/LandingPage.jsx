@@ -955,8 +955,8 @@ const LandingPage = () => {
             <TrustBar />
             <SampleCarousel />
             <PainFeatureSection />
-            <StepsSection />
             <ReviewsSection />
+            <StepsSection />
             <ComparisonTable />
             <PricingSection handleStart={handleStart} loginLoading={loginLoading} />
             <FAQSection />
