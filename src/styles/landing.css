@@ -189,6 +189,7 @@
     max-width: 1080px;
     margin: 0 auto;
     padding: 60px var(--spacing-lg) 40px;
+    background: linear-gradient(180deg, #FFF8F0 0%, #FFFFFF 100%);
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 48px;
