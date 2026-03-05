@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
     Loader2, Camera, Search, Sparkles, BarChart3,
-    ChevronDown, Zap, Grid3x3, Check, X, TrendingUp,
-    Upload, Copy, Rocket, Image, Bot, FileText, ArrowRight, Eye, Target
+    ChevronDown, Zap, Check, X, TrendingUp,
+    Upload, Rocket, Bot, FileText, ArrowRight, Target
 } from 'lucide-react';
 import '../styles/landing.css';
 
