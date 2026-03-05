@@ -208,12 +208,12 @@
 }
 
 .landing-hero-title {
-    font-size: 2.75rem;
+    font-size: 3.5rem;
     font-weight: 800;
-    line-height: 1.3;
+    line-height: 1.25;
     color: var(--color-text-main);
     margin-bottom: var(--spacing-md);
-    letter-spacing: -0.02em;
+    letter-spacing: -0.03em;
 }
 
 .landing-hero-title .highlight {
