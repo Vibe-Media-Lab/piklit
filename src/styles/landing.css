@@ -2318,7 +2318,7 @@
     }
 
     .landing-hero-title {
-        font-size: 2rem;
+        font-size: 2.5rem;
     }
 
     .landing-nav {
@@ -2397,6 +2397,25 @@
     .feat-mockup {
         max-width: 280px;
     }
+
+    .landing-mid-cta {
+        padding: 48px 0;
+    }
+
+    .mid-cta-title {
+        font-size: 1.5rem;
+    }
+
+    .mid-cta-button {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .landing-cta-primary,
+    .landing-cta-large {
+        width: 100%;
+        justify-content: center;
+    }
 }
 
 /* ─── Small (480px) ────────────────────────────────── */
@@ -2414,7 +2433,7 @@
     }
 
     .landing-hero-title {
-        font-size: 1.75rem;
+        font-size: 2rem;
     }
 
     .landing-hero-desc {
@@ -2454,5 +2473,18 @@
 
     .pricing-amount {
         font-size: 1.75rem;
+    }
+
+    .mid-cta-title {
+        font-size: 1.25rem;
+    }
+
+    .mid-cta-desc {
+        font-size: var(--font-size-sm);
+    }
+
+    .mid-cta-button {
+        padding: 14px 24px;
+        font-size: var(--font-size-sm);
     }
 }
