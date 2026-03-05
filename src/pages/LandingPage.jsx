@@ -52,17 +52,6 @@ const PAIN_POINTS = [
     { before: '맨날 같은 톤, 같은 구조', after: '카테고리별 맞춤 톤 자동 적용' },
 ];
 
-const COMPARISON = [
-    { feature: '네이버 SEO 특화', piklit: true, gadget: true, wordly: true, chatgpt: false, rytn: false },
-    { feature: '사진 분석 → 본문 반영', piklit: true, gadget: false, wordly: false, chatgpt: false, rytn: false },
-    { feature: '내장 에디터 (실시간 편집)', piklit: true, gadget: false, wordly: false, chatgpt: false, rytn: false },
-    { feature: '실시간 키워드 분석', piklit: true, gadget: false, wordly: false, chatgpt: false, rytn: true },
-    { feature: '경쟁 블로그 분석', piklit: true, gadget: false, wordly: false, chatgpt: false, rytn: false },
-    { feature: '12개 SEO 항목 코칭', piklit: true, gadget: false, wordly: false, chatgpt: false, rytn: false },
-    { feature: '카테고리별 맞춤 톤', piklit: true, gadget: true, wordly: true, chatgpt: false, rytn: true },
-    { feature: '최저가 BYOK', piklit: true, gadget: false, wordly: false, chatgpt: false, rytn: false },
-];
-
 const PRICING = [
     {
         name: '무료 체험',
@@ -203,15 +192,6 @@ const TRUST_NUMBERS = [
     { num: 12, suffix: '개', label: 'SEO 분석 항목' },
     { num: 16, suffix: '개', label: '카테고리 지원' },
     { num: 90, suffix: '%', label: '작성 시간 절약' },
-];
-
-const SAMPLES = [
-    { cat: '☕ 카페', title: '강남역 숨은 카페 탐방기', excerpt: '오늘은 강남역 골목 안쪽에 숨겨진 분위기 좋은 카페를 발견했어요. 시그니처 라떼가...', score: 94 },
-    { cat: '✈️ 여행', title: '제주도 3박 4일 가족여행 코스', excerpt: '아이들과 함께하는 제주도 여행, 어디를 가야 할지 고민이시죠? 이번에 저희 가족이...', score: 91 },
-    { cat: '🍳 레시피', title: '15분 완성 원팬 파스타 레시피', excerpt: '퇴근 후 간단하게 만들 수 있는 원팬 파스타! 프라이팬 하나로 크림 파스타를 만들어...', score: 88 },
-    { cat: '⭐ 솔직후기', title: '다이슨 에어랩 6개월 사용 후기', excerpt: '정가 60만원, 과연 그 값어치를 하는 걸까요? 6개월간 거의 매일 사용한 솔직한...', score: 92 },
-    { cat: '💻 테크', title: '맥북 프로 M4 실사용 리뷰', excerpt: '개발자가 맥북 프로 M4를 한 달간 사용해보았습니다. 배터리부터 성능까지 솔직하게...', score: 90 },
-    { cat: '🐾 반려동물', title: '골든리트리버 산책 코스 추천', excerpt: '대형견과 함께 걷기 좋은 서울 근교 산책로를 소개합니다. 반려견 동반 가능한...', score: 87 },
 ];
 
 /* ─── 서브 컴포넌트 ──────────────────────────────────── */
@@ -463,30 +443,6 @@ const TrustBar = () => (
             {TRUST_NUMBERS.map((item, i) => (
                 <CounterNumber key={i} {...item} />
             ))}
-        </div>
-    </section>
-);
-
-const SampleCarousel = () => (
-    <section className="landing-samples reveal-on-scroll">
-        <div className="landing-section-inner">
-            <span className="landing-section-badge">AI 생성 예시</span>
-            <h2 className="landing-section-title">실제로 이런 글이 5분 만에 나옵니다</h2>
-        </div>
-        <div className="samples-track-wrap">
-            <div className="samples-track">
-                {[...SAMPLES, ...SAMPLES].map((s, i) => (
-                    <div className="sample-card" key={i}>
-                        <span className="sample-cat">{s.cat}</span>
-                        <h4 className="sample-title">{s.title}</h4>
-                        <p className="sample-excerpt">{s.excerpt}</p>
-                        <div className="sample-footer">
-                            <span className="sample-score">SEO {s.score}점</span>
-                            <span className="sample-tag">AI 생성</span>
-                        </div>
-                    </div>
-                ))}
-            </div>
         </div>
     </section>
 );
@@ -743,41 +699,6 @@ const ReviewsSection = () => (
     </section>
 );
 
-const ComparisonTable = () => (
-    <section className="landing-comparison reveal-on-scroll">
-        <div className="landing-section-inner">
-            <span className="landing-section-badge">비교</span>
-            <h2 className="landing-section-title">다른 AI 도구와 비교해보세요</h2>
-            <div className="comparison-table-wrap">
-                <table className="comparison-table">
-                    <thead>
-                        <tr>
-                            <th>기능</th>
-                            <th className="comp-highlight">피클잇</th>
-                            <th>가제트AI</th>
-                            <th>워들리</th>
-                            <th>ChatGPT</th>
-                            <th>뤼튼</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {COMPARISON.map((row, i) => (
-                            <tr key={i}>
-                                <td>{row.feature}</td>
-                                <td className="comp-highlight">{row.piklit ? <Check size={18} /> : <X size={18} />}</td>
-                                <td>{row.gadget ? <Check size={18} /> : <X size={18} />}</td>
-                                <td>{row.wordly ? <Check size={18} /> : <X size={18} />}</td>
-                                <td>{row.chatgpt ? <Check size={18} /> : <X size={18} />}</td>
-                                <td>{row.rytn ? <Check size={18} /> : <X size={18} />}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </section>
-);
-
 const MidCTA = ({ handleStart, loginLoading }) => (
     <section className="landing-mid-cta reveal-on-scroll">
         <div className="landing-section-inner">
@@ -982,12 +903,10 @@ const LandingPage = () => {
             <StickyHeader handleStart={handleStart} loginLoading={loginLoading} />
             <HeroSection handleStart={handleStart} loginLoading={loginLoading} />
             <TrustBar />
-            <SampleCarousel />
             <PainFeatureSection />
             <ReviewsSection />
             <StepsSection />
             <MidCTA handleStart={handleStart} loginLoading={loginLoading} />
-            <ComparisonTable />
             <PricingSection handleStart={handleStart} loginLoading={loginLoading} />
             <FAQSection />
             <BottomCTA handleStart={handleStart} loginLoading={loginLoading} />
