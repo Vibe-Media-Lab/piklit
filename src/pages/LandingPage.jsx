@@ -778,6 +778,35 @@ const ComparisonTable = () => (
     </section>
 );
 
+const MidCTA = ({ handleStart, loginLoading }) => (
+    <section className="landing-mid-cta reveal-on-scroll">
+        <div className="landing-section-inner">
+            <div className="mid-cta-content">
+                <h2 className="mid-cta-title">
+                    아직도 블로그 글 쓰는 데 반나절을 쓰고 계신가요?
+                </h2>
+                <p className="mid-cta-desc">
+                    지금 바로 사진 한 장으로 SEO 최적화 글을 완성해 보세요.
+                </p>
+                <button
+                    className="mid-cta-button"
+                    onClick={handleStart}
+                    disabled={loginLoading}
+                >
+                    {loginLoading ? (
+                        <Loader2 size={18} className="spin" />
+                    ) : (
+                        <>
+                            무료로 시작하기
+                            <ArrowRight size={18} />
+                        </>
+                    )}
+                </button>
+            </div>
+        </div>
+    </section>
+);
+
 const PricingSection = ({ handleStart, loginLoading }) => (
     <section className="landing-pricing reveal-on-scroll" id="pricing">
         <div className="landing-section-inner">
@@ -957,6 +986,7 @@ const LandingPage = () => {
             <PainFeatureSection />
             <ReviewsSection />
             <StepsSection />
+            <MidCTA handleStart={handleStart} loginLoading={loginLoading} />
             <ComparisonTable />
             <PricingSection handleStart={handleStart} loginLoading={loginLoading} />
             <FAQSection />

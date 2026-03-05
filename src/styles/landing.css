@@ -1751,6 +1751,60 @@
     border-bottom: none;
 }
 
+/* ─── 8.5 Mid CTA ─────────────────────────────────── */
+.landing-mid-cta {
+    padding: 64px 0;
+    background: linear-gradient(135deg, #FFF3ED 0%, #FFE8D9 100%);
+}
+
+.mid-cta-content {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.mid-cta-title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--color-text-main);
+    margin-bottom: var(--spacing-sm);
+    letter-spacing: -0.02em;
+    line-height: 1.4;
+}
+
+.mid-cta-desc {
+    font-size: 1.125rem;
+    color: var(--color-text-sub);
+    margin-bottom: var(--spacing-lg);
+    line-height: 1.6;
+}
+
+.mid-cta-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 32px;
+    background: var(--color-brand);
+    color: white;
+    border: none;
+    border-radius: var(--radius-lg);
+    font-size: 1.063rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.mid-cta-button:hover {
+    background: var(--color-brand-dark);
+    transform: translateY(-1px);
+}
+
+.mid-cta-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
 /* ─── 9. Pricing ───────────────────────────────────── */
 .landing-pricing {
     background: var(--color-bg);
