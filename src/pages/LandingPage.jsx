@@ -3,10 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
     Loader2, Camera, Search, Sparkles, BarChart3,
-    ChevronDown, Zap, Grid3x3, Check, X, Store, TrendingUp, Users,
+    ChevronDown, Zap, Grid3x3, Check, X, TrendingUp,
     Upload, Copy, Rocket, Image, Bot, FileText, ArrowRight, Eye, Target
 } from 'lucide-react';
-import { CATEGORIES } from '../data/categories';
 import '../styles/landing.css';
 
 /* ─── 콘텐츠 데이터 ──────────────────────────────────── */
@@ -51,30 +50,6 @@ const PAIN_POINTS = [
     { before: '글 한 편 쓰는 데 반나절', after: '5분이면 발행 가능한 글 완성' },
     { before: '"SEO? 그게 뭔가요?"', after: 'AI가 SEO 90점 이상 자동 달성' },
     { before: '맨날 같은 톤, 같은 구조', after: '카테고리별 맞춤 톤 자동 적용' },
-];
-
-const PERSONAS = [
-    {
-        icon: Store,
-        title: '소상공인 / 자영업자',
-        desc: '대행사에 월 30만원 쓰시나요? 매장 사진만 올리면 5분 만에 홍보 포스팅이 완성됩니다.',
-        tag: '마케팅 비용 절감',
-        scenario: '"카페 사진 3장 → 5분 만에 홍보 포스팅 완성"',
-    },
-    {
-        icon: Users,
-        title: '초보 블로거',
-        desc: '처음이라도 괜찮아요. 사진만 올리면 AI가 키워드부터 SEO까지 전부 처리합니다.',
-        tag: '진입 장벽 제로',
-        scenario: '"첫 글인데 SEO 92점, 이웃 신청이 계속 와요"',
-    },
-    {
-        icon: TrendingUp,
-        title: '파워 블로거 / N잡러',
-        desc: '하루에 글 3개 이상 쓰시나요? 경쟁 분석 + AI 편집으로 포스팅 속도를 3배 올려드립니다.',
-        tag: '생산성 극대화',
-        scenario: '"하루 3개 포스팅도 거뜬, 작성 시간 90% 절약"',
-    },
 ];
 
 const COMPARISON = [
@@ -734,46 +709,6 @@ const StepsSection = () => (
     </section>
 );
 
-const CategoryGrid = () => (
-    <section className="landing-categories reveal-on-scroll">
-        <div className="landing-section-inner">
-            <span className="landing-section-badge">카테고리</span>
-            <h2 className="landing-section-title">어떤 주제든 전문가처럼 써 줍니다</h2>
-            <p className="landing-section-desc">
-                맛집, 여행, 육아, 테크… 카테고리별 톤과 키워드 전략이 자동 적용됩니다.
-            </p>
-            <div className="category-pills">
-                {CATEGORIES.map((cat) => (
-                    <span className="category-pill" key={cat.id}>
-                        <span className="category-pill-icon">{cat.icon}</span>
-                        {cat.label}
-                    </span>
-                ))}
-            </div>
-        </div>
-    </section>
-);
-
-const PersonaCards = () => (
-    <section className="landing-personas reveal-on-scroll">
-        <div className="landing-section-inner">
-            <span className="landing-section-badge">누구를 위한 서비스?</span>
-            <h2 className="landing-section-title">누가 쓰면 가장 효과적일까요?</h2>
-            <div className="persona-grid">
-                {PERSONAS.map((p, i) => (
-                    <div className="persona-card" key={i}>
-                        <div className="persona-icon"><p.icon size={28} /></div>
-                        <span className="persona-tag">{p.tag}</span>
-                        <h3>{p.title}</h3>
-                        <p>{p.desc}</p>
-                        <span className="persona-scenario">{p.scenario}</span>
-                    </div>
-                ))}
-            </div>
-        </div>
-    </section>
-);
-
 const ReviewsSection = () => (
     <section className="landing-reviews reveal-on-scroll">
         <div className="landing-section-inner">
@@ -1021,8 +956,6 @@ const LandingPage = () => {
             <SampleCarousel />
             <PainFeatureSection />
             <StepsSection />
-            <CategoryGrid />
-            <PersonaCards />
             <ReviewsSection />
             <ComparisonTable />
             <PricingSection handleStart={handleStart} loginLoading={loginLoading} />
