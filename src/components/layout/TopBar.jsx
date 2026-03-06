@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useLocation, useParams, NavLink, useNavigate } from 'react-router-dom';
+import { useLocation, useParams, NavLink } from 'react-router-dom';
 import { useEditor } from '../../context/EditorContext';
 import { copyToClipboard, exportAsMarkdown, exportAsHtml, exportAsText } from '../../utils/clipboard';
-import { Save, Copy, Download, Check, ChevronDown, Plus, User, Settings, LogOut } from 'lucide-react';
+import { Save, Copy, Download, Check, ChevronDown } from 'lucide-react';
 import SettingsModal from '../common/SettingsModal';
 
 const PAGE_TITLES = {
@@ -17,24 +17,20 @@ const TopBar = () => {
     const [copyStatus, setCopyStatus] = useState('idle');
     const [saveStatus, setSaveStatus] = useState('idle');
     const [exportOpen, setExportOpen] = useState(false);
-    const [profileOpen, setProfileOpen] = useState(false);
+    const [myMenuOpen, setMyMenuOpen] = useState(false);
     const [settingsOpen, setSettingsOpen] = useState(false);
     const exportRef = useRef(null);
-    const profileRef = useRef(null);
 
     useEffect(() => {
-        if (!exportOpen && !profileOpen) return;
+        if (!exportOpen) return;
         const handleClickOutside = (e) => {
-            if (exportOpen && exportRef.current && !exportRef.current.contains(e.target)) {
+            if (exportRef.current && !exportRef.current.contains(e.target)) {
                 setExportOpen(false);
-            }
-            if (profileOpen && profileRef.current && !profileRef.current.contains(e.target)) {
-                setProfileOpen(false);
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [exportOpen, profileOpen]);
+    }, [exportOpen]);
 
     const handleSave = () => {
         const success = savePost();
@@ -62,7 +58,6 @@ const TopBar = () => {
     };
 
     const isEditor = !!id;
-    const navigate = useNavigate();
 
     return (
         <div className="app-topbar">
@@ -76,25 +71,31 @@ const TopBar = () => {
                 <NavLink to="/dashboard" className={({ isActive }) => `topbar-mobile-nav-item${isActive ? ' active' : ''}`}>
                     리포트
                 </NavLink>
-                <button className="topbar-new-post-fab" onClick={() => navigate('/start')} aria-label="새 글 작성">
-                    <Plus size={18} />
+                <button
+                    className={`topbar-mobile-nav-item${myMenuOpen ? ' active' : ''}`}
+                    onClick={() => setMyMenuOpen(true)}
+                >
+                    마이
                 </button>
-                <div className="topbar-profile-wrapper" ref={profileRef}>
-                    <button className="topbar-profile-btn" onClick={() => setProfileOpen(prev => !prev)} aria-label="프로필 설정">
-                        <User size={18} />
-                    </button>
-                    {profileOpen && (
-                        <div className="topbar-profile-dropdown">
-                            <button onClick={() => { setSettingsOpen(true); setProfileOpen(false); }}>
-                                <Settings size={15} /> 설정
-                            </button>
-                            <button onClick={() => { setProfileOpen(false); }}>
-                                <LogOut size={15} /> 로그아웃
-                            </button>
-                        </div>
-                    )}
-                </div>
             </nav>
+
+            {/* 마이 메뉴 바텀시트 */}
+            {myMenuOpen && (
+                <div className="my-menu-overlay" onClick={() => setMyMenuOpen(false)}>
+                    <div className="my-menu-sheet" onClick={(e) => e.stopPropagation()}>
+                        <div className="my-menu-handle" />
+                        <button className="my-menu-item" onClick={() => { setSettingsOpen(true); setMyMenuOpen(false); }}>
+                            설정
+                        </button>
+                        <button className="my-menu-item" onClick={() => setMyMenuOpen(false)}>
+                            로그아웃
+                        </button>
+                        <button className="my-menu-cancel" onClick={() => setMyMenuOpen(false)}>
+                            닫기
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {isEditor && (
                 <div className="topbar-actions">

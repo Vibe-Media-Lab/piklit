@@ -7,6 +7,7 @@ import ErrorBoundary from './components/common/ErrorBoundary';
 import AppLayout from './components/layout/AppLayout';
 import BugReportButton from './components/common/BugReportButton';
 import BetaExpiredModal from './components/common/BetaExpiredModal';
+import MobileFab from './components/common/MobileFab';
 import { callBetaStatus } from './services/firebase';
 import { installConsoleCapture } from './utils/consoleCapture';
 import './styles/global.css';
@@ -143,6 +144,7 @@ function App() {
                 <EditorProvider>
                     <ToastProvider>
                         <AppRoutes />
+                        <MobileFab />
                         <BugReportButton />
                     </ToastProvider>
                 </EditorProvider>

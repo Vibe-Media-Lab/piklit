@@ -418,51 +418,12 @@
         border-radius: 1px;
     }
 
-    /* 새 글 FAB 버튼 */
-    .topbar-new-post-fab {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        background: var(--color-brand);
-        color: white;
+    /* 마이 탭 — button을 NavLink처럼 보이게 */
+    .topbar-mobile-nav button.topbar-mobile-nav-item {
+        background: none;
         border: none;
         cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 18px;
-        line-height: 1;
-        flex-shrink: 0;
-        min-width: 44px;
-        min-height: 44px;
-        transition: background 0.15s;
-    }
-
-    .topbar-new-post-fab:hover {
-        background: var(--color-brand-dark);
-    }
-
-    /* 프로필 아이콘 */
-    .topbar-profile-btn {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        background: var(--color-surface-hover);
-        border: none;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        min-width: 44px;
-        min-height: 44px;
-        padding: 0;
-    }
-
-    .topbar-profile-btn img {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
+        font: inherit;
     }
 
     .topbar-actions .topbar-btn span {
@@ -494,46 +455,98 @@
     }
 }
 
-/* 프로필 드롭다운 */
-.topbar-profile-wrapper {
-    position: relative;
-}
-
-.topbar-profile-dropdown {
-    position: absolute;
-    top: calc(100% + 6px);
-    right: 0;
-    min-width: 140px;
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    z-index: 100;
-    padding: 4px 0;
-}
-
-.topbar-profile-dropdown button {
-    width: 100%;
+/* 마이 메뉴 바텀시트 */
+.my-menu-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 15, 15, 0.4);
+    z-index: 300;
     display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 14px;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.my-menu-sheet {
+    width: 100%;
+    max-width: 500px;
+    background: var(--color-surface);
+    border-radius: 16px 16px 0 0;
+    padding: 8px 16px calc(16px + var(--safe-area-bottom));
+    animation: my-menu-slide-up 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes my-menu-slide-up {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}
+
+.my-menu-handle {
+    width: 36px;
+    height: 4px;
+    background: var(--color-border);
+    border-radius: 2px;
+    margin: 4px auto 16px;
+}
+
+.my-menu-item {
+    width: 100%;
+    padding: 14px 16px;
     border: none;
     background: none;
-    font-size: 0.85rem;
+    font-size: 0.95rem;
     color: var(--color-text-main);
+    text-align: left;
     cursor: pointer;
+    border-radius: 8px;
 }
 
-.topbar-profile-dropdown button:hover {
+.my-menu-item:hover {
     background: var(--color-bg-hover, #f5f5f5);
+}
+
+.my-menu-cancel {
+    width: 100%;
+    padding: 14px 16px;
+    border: none;
+    background: none;
+    font-size: 0.95rem;
+    color: var(--color-text-sub);
+    text-align: center;
+    cursor: pointer;
+    margin-top: 8px;
+    border-top: 1px solid var(--color-border);
+}
+
+/* 하단 플로팅 FAB (모바일 새 글 작성) */
+.mobile-fab {
+    position: fixed;
+    bottom: calc(20px + var(--safe-area-bottom));
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #FF6B35;
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.35);
+    z-index: 90;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.mobile-fab:active {
+    transform: scale(0.92);
+    box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
 }
 
 /* 모바일 네비 — 데스크톱에서 숨김 */
 @media (min-width: 769px) {
     .topbar-mobile-nav,
-    .topbar-new-post-fab,
-    .topbar-profile-wrapper {
-        display: none;
+    .my-menu-overlay,
+    .mobile-fab {
+        display: none !important;
     }
 }
