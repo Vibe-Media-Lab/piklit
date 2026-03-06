@@ -418,8 +418,8 @@
     display: flex;
     align-items: flex-start;
     gap: 0;
-    margin-bottom: 40px;
-    padding: 24px 0 8px;
+    margin-bottom: 24px;
+    padding: 16px 0 8px;
 }
 
 .wizard-step-item {
@@ -505,21 +505,27 @@
     .wizard-step-mobile {
         display: flex;
         flex-direction: column;
-        gap: 8px;
-        margin-bottom: 24px;
-        padding: 16px 0 8px;
+        gap: 6px;
+        margin-bottom: 16px;
+        padding: 8px 0 4px;
     }
 
     .wizard-step-mobile-label {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         font-weight: 600;
-        color: var(--color-text-main);
+        color: var(--color-brand);
     }
 
     .wizard-step-segments {
         display: flex;
         gap: 3px;
-        padding: 20px 0;
+        padding: 4px 0;
+    }
+
+    /* 모바일: 헤딩에서 스텝 번호 숨기고 타이틀만 표시 (StepIndicator와 중복 방지) */
+    .wizard-step-heading {
+        font-size: 1.2rem;
+        margin-bottom: 6px;
     }
 
     .wizard-step-segment {
@@ -1429,6 +1435,38 @@
 
 .wizard-step-meta strong {
     color: var(--color-text-primary);
+}
+
+/* 메타 뱃지 스타일 */
+.wizard-step-meta-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+.wizard-meta-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 14px;
+    background: var(--color-surface-hover, #F7F6F3);
+    border: 1px solid var(--color-border);
+    border-radius: 20px;
+    font-size: 0.85rem;
+    color: var(--color-text-main);
+}
+
+.wizard-meta-badge strong {
+    font-weight: 700;
+}
+
+/* 힌트 텍스트 (CTA 버튼 아래) */
+.wizard-hint-text {
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--color-text-sub);
+    margin-top: 10px;
 }
 
 .wizard-info-box {
@@ -2929,5 +2967,207 @@
     .beta-expired-badge {
         top: -8px;
         right: 8px;
+    }
+}
+
+/* ===== 생성 완료 축하 카드 (항목3) ===== */
+.completion-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1100;
+    animation: fadeIn 0.2s ease;
+}
+
+.completion-card {
+    background: white;
+    border-radius: 16px;
+    padding: 40px 36px;
+    max-width: 420px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    animation: slideUp 0.3s ease;
+}
+
+.completion-icon {
+    color: var(--color-brand);
+    margin-bottom: 12px;
+}
+
+.completion-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: 20px;
+}
+
+.completion-stats {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 24px;
+    padding: 16px;
+    background: #F7F6F3;
+    border-radius: 12px;
+}
+
+.completion-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.completion-stat strong {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--color-brand);
+}
+
+.completion-stat span {
+    font-size: 0.75rem;
+    color: var(--color-text-sub);
+}
+
+.completion-guide-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-text-sub);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 12px;
+}
+
+.completion-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 24px;
+    text-align: left;
+}
+
+.completion-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85rem;
+    color: var(--color-text-main);
+    padding: 8px 12px;
+    background: #FAFAF9;
+    border-radius: 8px;
+}
+
+.completion-step svg {
+    color: var(--color-brand);
+    flex-shrink: 0;
+}
+
+.completion-cta {
+    width: 100%;
+    padding: 14px;
+    background: var(--color-brand);
+    color: white;
+    border: none;
+    border-radius: var(--radius-lg);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.completion-cta:hover {
+    background: var(--color-brand-dark);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* ===== 에디터 온보딩 툴팁 (항목5) ===== */
+.editor-onboarding-tip {
+    position: fixed;
+    top: 80px;
+    right: 24px;
+    background: var(--color-primary);
+    color: white;
+    padding: 14px 18px;
+    border-radius: 12px;
+    max-width: 300px;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    z-index: 200;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    animation: slideDown 0.3s ease;
+}
+
+.editor-onboarding-tip::after {
+    content: '';
+    position: absolute;
+    top: -6px;
+    right: 20px;
+    width: 12px;
+    height: 12px;
+    background: var(--color-primary);
+    transform: rotate(45deg);
+}
+
+.editor-onboarding-tip p {
+    margin: 0 0 10px;
+}
+
+.editor-onboarding-tip strong {
+    color: #FFD6B8;
+}
+
+.editor-onboarding-tip button {
+    padding: 6px 16px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.editor-onboarding-tip button:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+@keyframes slideDown {
+    from { transform: translateY(-10px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+@media (max-width: 768px) {
+    .editor-onboarding-tip {
+        top: auto;
+        bottom: 80px;
+        right: 16px;
+        left: 16px;
+        max-width: none;
+    }
+    .editor-onboarding-tip::after {
+        display: none;
+    }
+    .completion-card {
+        padding: 32px 24px;
+    }
+    .completion-stats {
+        gap: 16px;
     }
 }

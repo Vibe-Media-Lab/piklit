@@ -44,7 +44,7 @@ const TopicStep = ({
             {renderStepIndicator()}
 
             <h2 className="wizard-step-heading">
-                <FolderOpen size={20} /> Step 1: 주제 선택
+                <FolderOpen size={20} /> 주제 선택
             </h2>
             <p className="wizard-step-desc">
                 카테고리를 선택하고 주제를 입력하세요. 다음 단계에서 키워드를 분석합니다.

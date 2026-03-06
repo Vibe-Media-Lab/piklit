@@ -276,6 +276,63 @@
     padding: 0 4px;
 }
 
+/* === AI Image Gen Floating Button (항목1: 인라인 스타일 제거) === */
+.image-gen-floating-btn {
+    position: fixed;
+    bottom: 80px;
+    right: 24px;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #FF6B35, #F7931E);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 16px rgba(255, 107, 53, 0.4);
+    cursor: pointer;
+    font-size: 1.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.image-gen-floating-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(255, 107, 53, 0.5);
+}
+
+/* 항목2: 이미지 SEO 버튼이 있을 때 위로 이동 */
+.image-gen-floating-btn.shift-up {
+    bottom: 140px;
+}
+
+/* 항목7: Pro 잠금 상태 */
+.image-gen-floating-btn.locked {
+    background: linear-gradient(135deg, #A0A0A0, #BDBDBD);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    position: relative;
+}
+
+.image-gen-floating-btn.locked:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.floating-lock-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #EF4444;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 /* === Drawer overlay === */
 .image-seo-drawer-overlay {
     position: fixed;

@@ -220,28 +220,41 @@ const KeywordStep = ({
             {renderStepIndicator()}
 
             <h2 className="wizard-step-heading">
-                <Search size={20} /> Step 2: 키워드 + 설정
+                <Search size={20} /> 키워드 분석
             </h2>
             <p className="wizard-step-desc">
                 AI가 SEO 키워드를 제안합니다. 키워드를 선택하고 설정을 조정하세요.
             </p>
-            <div className="wizard-step-meta">
-                <span>주제: <strong>{mainKeyword || '미설정'}</strong></span>
-                {selectedCategory && <span>카테고리: {selectedCategory.icon} <strong>{selectedCategory.label}</strong></span>}
+            <div className="wizard-step-meta-badges">
+                <span className="wizard-meta-badge">
+                    <strong>{mainKeyword || '미설정'}</strong>
+                </span>
+                {selectedCategory && (
+                    <span className="wizard-meta-badge">
+                        {selectedCategory.icon} {selectedCategory.label}
+                    </span>
+                )}
             </div>
 
             {/* ── 1단계: AI 키워드 분석 버튼 (분석 전에만 상단) ── */}
             {suggestedKeywords.length === 0 && selectedKeywords.length === 0 && (
-                <button
-                    onClick={handleAnalyzeKeywords}
-                    disabled={isAnalyzingKeywords}
-                    className="wizard-btn-accent"
-                >
-                    {isAnalyzingKeywords
-                        ? <><Loader2 size={16} className="spin" /> 키워드 분석 중...</>
-                        : <><Bot size={16} /> AI 키워드 분석하기</>
-                    }
-                </button>
+                <>
+                    <button
+                        onClick={handleAnalyzeKeywords}
+                        disabled={isAnalyzingKeywords}
+                        className="wizard-btn-accent"
+                    >
+                        {isAnalyzingKeywords
+                            ? <><Loader2 size={16} className="spin" /> 키워드 분석 중...</>
+                            : <><Bot size={16} /> AI 키워드 분석하기</>
+                        }
+                    </button>
+                    {!isAnalyzingKeywords && (
+                        <p className="wizard-hint-text">
+                            네이버 검색 데이터 기반으로 SEO 키워드를 추천받을 수 있습니다
+                        </p>
+                    )}
+                </>
             )}
 
             {/* 키워드 분석 프로그레스 */}
@@ -270,13 +283,6 @@ const KeywordStep = ({
                         </div>
                     </div>
                 </div>
-            )}
-
-            {/* 분석 전 가이드 */}
-            {suggestedKeywords.length === 0 && selectedKeywords.length === 0 && !isAnalyzingKeywords && (
-                <p className="wizard-info-box">
-                    <Search size={14} /> 위 버튼을 클릭하면 네이버 검색 데이터 기반으로 SEO 키워드를 추천받을 수 있습니다.
-                </p>
             )}
 
             {/* ── 2단계: 키워드 선택 카드 (분석 결과 후 노출) ── */}

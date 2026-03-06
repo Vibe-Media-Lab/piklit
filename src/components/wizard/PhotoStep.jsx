@@ -91,7 +91,7 @@ const PhotoStep = ({
             {renderStepIndicator()}
 
             <h2 className="wizard-step-heading">
-                <Camera size={20} /> Step 4: 이미지 업로드
+                <Camera size={20} /> 이미지 업로드
             </h2>
             <p className="wizard-step-desc">
                 이미지를 업로드하면 AI가 분석하여 본문 작성에 활용합니다.

@@ -89,7 +89,7 @@ const OutlineStep = ({
             {renderStepIndicator()}
 
             <h2 className="wizard-step-heading">
-                <Wand2 size={20} /> Step 5: 아웃라인 + 생성
+                <Wand2 size={20} /> 아웃라인 + 생성
             </h2>
             <p className="wizard-step-desc">
                 AI가 소제목 구조를 생성합니다. 수정 후 본문을 생성하세요.

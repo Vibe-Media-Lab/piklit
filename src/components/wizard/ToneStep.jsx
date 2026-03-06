@@ -84,7 +84,7 @@ const ToneStep = ({
             {renderStepIndicator()}
 
             <h2 className="wizard-step-heading">
-                <Sparkles size={20} /> Step 3: 스타일 설정
+                <Sparkles size={20} /> 스타일 설정
             </h2>
             <p className="wizard-step-desc">
                 경쟁 블로그를 분석하고 글의 분량과 문체를 설정하세요.
