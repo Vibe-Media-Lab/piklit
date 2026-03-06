@@ -31,7 +31,17 @@ export default async function handler(req, res) {
             const diffDays = (Date.now() - new Date(userData.betaActivatedAt).getTime()) / (1000 * 60 * 60 * 24);
             const daysLeft = Math.ceil(BETA_DAYS - diffDays);
             if (daysLeft <= 0) {
-                return res.status(200).json({ active: false, expired: true });
+                // 만료 시 사용 통계 포함
+                const usageData = await getDoc('usage', uid);
+                return res.status(200).json({
+                    active: false,
+                    expired: true,
+                    betaDays: Math.floor(diffDays),
+                    stats: {
+                        postsCreated: usageData?.monthlyCount || 0,
+                        aiActions: usageData?.totalAiActions || 0,
+                    },
+                });
             }
             return res.status(200).json({
                 active: true,
