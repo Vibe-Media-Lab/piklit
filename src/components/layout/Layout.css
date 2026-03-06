@@ -483,9 +483,14 @@
         gap: var(--spacing-sm);
     }
 
-    /* 분석 섹션: 모바일에서 숨김 (바텀시트로 대체 — Phase 1.5) */
+    /* 분석 섹션: 모바일에서 숨김 (바텀시트로 대체) */
     .analysis-section {
         display: none;
+    }
+
+    /* 하단 탭바 공간 확보 */
+    .main-container {
+        padding-bottom: calc(56px + var(--safe-area-bottom));
     }
 }
 
