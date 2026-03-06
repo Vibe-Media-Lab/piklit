@@ -22,6 +22,10 @@
 | `src/styles/components.css` | 위자드 간격 축소, meta 뱃지, 완성 카드, 에디터 온보딩 팁 스타일 |
 | `src/styles/ImageSeoGuide.css` | AI이미지 플로팅 버튼 CSS 클래스, Pro 잠금 스타일 |
 
+| `src/data/adminEmails.js` | 신규 — 마스터/관리자 이메일 목록 + isAdminEmail() 헬퍼 |
+| `src/context/AuthContext.jsx` | isAdmin 값 context에 추가 |
+| `src/pages/AdminBugsPage.jsx` | 하드코딩 ADMIN_EMAIL → useAuth().isAdmin 사용 |
+
 ## 현재 릴리즈 상태
-- 빌드: 정상 (1.90s)
-- 커밋: 04b911f — pushed to origin/main
+- 빌드: 정상 (1.92s)
+- 커밋: 78cdbb7 — pushed to origin/main
