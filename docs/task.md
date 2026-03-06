@@ -506,6 +506,27 @@
 - [x] `docs/setup-agents.sh` — 셋업 가이드 스크립트
 - [x] `.claude/commands/team.md` — `/team` 슬래시 커맨드
 
+## 완료된 작업 (2026-03-06) — 랜딩 CSS 복원 + 에이전트팀/스킬 확장
+
+### 랜딩페이지 CSS 복원
+- [x] 오토클로드가 삭제한 4개 섹션 CSS 복원 (Sample Carousel, Category Grid, Persona Cards, Comparison Table)
+- [x] 섹션 padding/center 규칙에 pain, categories, personas, comparison 복원
+- [x] 반응형 768px에 persona-grid 1열, comparison-table 축소 추가
+- [x] 미사용 Mid CTA CSS 제거 (JSX에 없는 코드 정리)
+
+### 에이전트팀 확장
+- [x] 디자인QA 에이전트 신규 — CSS 감사, 반응형 체크, 디자인 시스템 준수 검증
+- [x] `docs/agent-team.md` 업데이트 (4인 구성: 메인+QA+디자인QA+프롬프트)
+- [x] `.claude/commands/team.md` 업데이트 (디자인QA 탭 셋업 안내)
+
+### 스킬 신규 3개
+- [x] `/qa` — 변경 파일 수집 + QA 붙여넣기 메시지 자동 생성
+- [x] `/design-audit` — JSX vs CSS 클래스 불일치 검출
+- [x] `/deploy-check` — 배포 전 점검 (빌드+환경변수+라우팅+보안)
+
+### 문서
+- [x] `docs/commands-cheatsheet.md` 신규 — 전체 명령어·에이전트·훅·세션 흐름 치트시트
+
 ## 아이디어 보관함 (Icebox)
 
 > 당장 구현하지 않지만 나중에 재검토할 수 있는 아이디어
