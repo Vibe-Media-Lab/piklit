@@ -29,7 +29,13 @@ async function callVercelFunction(path, payload) {
         body: JSON.stringify(payload),
     });
 
-    const data = await response.json();
+    const text = await response.text();
+    let data;
+    try {
+        data = text ? JSON.parse(text) : {};
+    } catch {
+        throw new Error(`서버 응답 파싱 실패 (${response.status}): ${text.substring(0, 100)}`);
+    }
     if (!response.ok) {
         const error = new Error(data.error || `서버 오류 (${response.status})`);
         error.status = response.status;
