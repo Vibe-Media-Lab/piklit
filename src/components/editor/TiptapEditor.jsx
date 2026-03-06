@@ -1,8 +1,10 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useEditor as useEditorContext } from '../../context/EditorContext';
 import { useToast } from '../common/Toast';
 import { useEditor, EditorContent } from '@tiptap/react';
 import { BubbleMenu } from '@tiptap/react/menus';
+import BottomSheet from '../common/BottomSheet';
+import { Wand2, Minimize2, Zap, PenLine, MoreHorizontal } from 'lucide-react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Highlight from '@tiptap/extension-highlight';
@@ -168,6 +170,10 @@ const TiptapEditor = () => {
     const { showToast } = useToast();
     const [aiDropdownOpen, setAiDropdownOpen] = useState(false);
     const [aiLoading, setAiLoading] = useState(false);
+    const [mobileAiSheet, setMobileAiSheet] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
+    const [showParagraphBtn, setShowParagraphBtn] = useState(false);
+    const paragraphBtnRef = useRef(null);
     const [aiFooterEnabled, setAiFooterEnabled] = useState(() => {
         return localStorage.getItem('ai_footer_enabled') === 'true';
     });
@@ -265,6 +271,87 @@ const TiptapEditor = () => {
         }
     }, [editor, keywords, suggestedTone, showToast]);
 
+    // 모바일 감지
+    useEffect(() => {
+        const check = () => setIsMobile(window.innerWidth <= 768);
+        check();
+        window.addEventListener('resize', check);
+        return () => window.removeEventListener('resize', check);
+    }, []);
+
+    // 모바일: 커서 위치에 따라 문단 버튼 표시
+    useEffect(() => {
+        if (!editor || !isMobile) return;
+        const handleUpdate = () => {
+            const { $anchor } = editor.state.selection;
+            // 현재 블록 노드의 DOM 위치 찾기
+            const resolvedPos = $anchor;
+            const depth = resolvedPos.depth;
+            if (depth < 1) { setShowParagraphBtn(false); return; }
+
+            const nodeStart = resolvedPos.start(depth);
+            const dom = editor.view.nodeDOM(nodeStart - 1);
+            if (dom && paragraphBtnRef.current) {
+                const rect = dom.getBoundingClientRect();
+                const wrapperRect = paragraphBtnRef.current.parentElement?.getBoundingClientRect();
+                if (wrapperRect) {
+                    paragraphBtnRef.current.style.top = `${rect.top - wrapperRect.top + rect.height / 2 - 16}px`;
+                }
+                setShowParagraphBtn(true);
+            }
+        };
+        editor.on('selectionUpdate', handleUpdate);
+        editor.on('focus', handleUpdate);
+        return () => {
+            editor.off('selectionUpdate', handleUpdate);
+            editor.off('focus', handleUpdate);
+        };
+    }, [editor, isMobile]);
+
+    // 모바일: 문단 전체 선택 후 AI 재작성
+    const handleMobileAiRewrite = useCallback(async (mode) => {
+        if (!editor) return;
+        setMobileAiSheet(false);
+
+        // 현재 커서 위치의 블록 노드 전체 선택
+        const { $anchor } = editor.state.selection;
+        const depth = $anchor.depth;
+        if (depth < 1) return;
+        const from = $anchor.start(depth);
+        const to = $anchor.end(depth);
+
+        // 텍스트 선택 적용
+        editor.chain().focus().setTextSelection({ from, to }).run();
+
+        // 기존 handleAiRewrite 로직 재사용
+        const selectedText = editor.state.doc.textBetween(from, to, ' ');
+        if (!selectedText?.trim()) return;
+
+        const docText = editor.state.doc.textContent;
+        const beforeStart = Math.max(0, from - 200);
+        const afterEnd = Math.min(docText.length, to + 200);
+        const surroundingContext = docText.slice(beforeStart, afterEnd);
+
+        setAiLoading(true);
+        try {
+            const result = await AIService.rewriteSelection(
+                selectedText, surroundingContext,
+                keywords?.main || '', mode,
+                suggestedTone || 'friendly'
+            );
+            const rawText = result?.text || '';
+            if (rawText) {
+                const processed = humanizeText(`<p>${rawText}</p>`, suggestedTone || 'friendly')
+                    .replace(/^<p>/, '').replace(/<\/p>$/, '');
+                editor.chain().focus().insertContentAt({ from, to }, processed).run();
+            }
+        } catch (error) {
+            showToast('AI 재작성에 실패했습니다: ' + error.message, 'error');
+        } finally {
+            setAiLoading(false);
+        }
+    }, [editor, keywords, suggestedTone, showToast]);
+
     // Content Sync Logic: 외부(스트리밍 등)에서 content가 변경되면 에디터에 반영
     // emitUpdate=false로 onUpdate 콜백 미발생 → 무한 루프 방지
     useEffect(() => {
@@ -335,6 +422,62 @@ const TiptapEditor = () => {
             )}
 
             <EditorContent editor={editor} />
+
+            {/* 모바일: 문단 AI 버튼 (포커스 시 페이드인) */}
+            {isMobile && (
+                <button
+                    ref={paragraphBtnRef}
+                    className={`mobile-paragraph-ai-btn${showParagraphBtn ? ' visible' : ''}`}
+                    onClick={() => setMobileAiSheet(true)}
+                    aria-label="AI로 문단 개선"
+                >
+                    <MoreHorizontal size={18} />
+                </button>
+            )}
+
+            {/* 모바일: AI 재작성 바텀시트 */}
+            <BottomSheet
+                isOpen={mobileAiSheet}
+                onClose={() => setMobileAiSheet(false)}
+                snapPoints={[0.4, 0.75]}
+                title="이 문단을 AI로 개선"
+            >
+                <div className="mobile-ai-rewrite-list">
+                    <button onClick={() => handleMobileAiRewrite('expand')} disabled={aiLoading}>
+                        <Wand2 size={20} />
+                        <div>
+                            <strong>더 자세하게</strong>
+                            <span>선택한 문단을 확장합니다</span>
+                        </div>
+                    </button>
+                    <button onClick={() => handleMobileAiRewrite('condense')} disabled={aiLoading}>
+                        <Minimize2 size={20} />
+                        <div>
+                            <strong>더 간결하게</strong>
+                            <span>핵심만 남기고 축약합니다</span>
+                        </div>
+                    </button>
+                    <button onClick={() => handleMobileAiRewrite('factboost')} disabled={aiLoading}>
+                        <Zap size={20} />
+                        <div>
+                            <strong>팩트 보강</strong>
+                            <span>구체적 수치를 추가합니다</span>
+                        </div>
+                    </button>
+                    <button onClick={() => handleMobileAiRewrite('polish')} disabled={aiLoading}>
+                        <PenLine size={20} />
+                        <div>
+                            <strong>문장 다듬기</strong>
+                            <span>자연스럽게 다듬습니다</span>
+                        </div>
+                    </button>
+                </div>
+                {aiLoading && (
+                    <div className="mobile-ai-rewrite-loading">
+                        AI가 문단을 개선하고 있습니다...
+                    </div>
+                )}
+            </BottomSheet>
         </div>
     );
 };

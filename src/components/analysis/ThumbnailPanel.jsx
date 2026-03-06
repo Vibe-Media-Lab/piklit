@@ -216,6 +216,12 @@ const ThumbnailPanel = () => {
 
             {isOpen && (
                 <div className="thumbnail-panel-body">
+                    {/* 모바일 풀스크린 상단바 (CSS로 768px 이하에서만 표시) */}
+                    <div className="thumbnail-fullscreen-topbar">
+                        <button className="thumbnail-fullscreen-close" onClick={() => setIsOpen(false)}>닫기</button>
+                        <span style={{ fontWeight: 600 }}>썸네일 편집</span>
+                        <button className="thumbnail-fullscreen-done" onClick={() => setIsOpen(false)}>완료</button>
+                    </div>
                     {!hasPhotos ? (
                         <div className="thumbnail-preview-empty">
                             사진을 먼저 업로드하면<br />썸네일을 생성할 수 있습니다.
