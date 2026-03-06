@@ -18,12 +18,13 @@ import ToneStep from '../components/wizard/ToneStep';
 import PhotoStep from '../components/wizard/PhotoStep';
 import OutlineStep from '../components/wizard/OutlineStep';
 import { fileToBase64 } from '../utils/image';
+import { copyToClipboard } from '../utils/clipboard';
 import { CATEGORIES } from '../data/categories';
 import { callBetaStatus } from '../services/firebase';
 import { useAuth } from '../context/AuthContext';
 import {
     Search, CheckCircle, Tag,
-    Loader2, Sparkles
+    Loader2, Sparkles, Copy, Check
 } from 'lucide-react';
 import '../styles/components.css';
 import '../styles/ImageSeoGuide.css';
@@ -105,6 +106,7 @@ const EditorPage = () => {
     const [outlineItems, setOutlineItems] = useState([]); // [{level: 'h2'|'h3', title: '...'}]
     // 이미지 SEO 가이드 드로어 상태
     const [showSeoDrawer, setShowSeoDrawer] = useState(false);
+    const [mobileCopyStatus, setMobileCopyStatus] = useState('idle');
 
     // AI 이미지 생성 드로어 상태
     const [showImageGenDrawer, setShowImageGenDrawer] = useState(false);
@@ -477,8 +479,12 @@ const EditorPage = () => {
 
     // 카테고리별 placeholder
     // Progress Indicator — 외부 컴포넌트 사용
+    const handleStepClick = (step) => {
+        if (step < aiStep) setAiStep(step);
+    };
+
     const renderStepIndicator = () => (
-        <StepIndicator currentStep={aiStep} labels={STEP_LABELS} />
+        <StepIndicator currentStep={aiStep} labels={STEP_LABELS} onStepClick={handleStepClick} />
     );
 
     // AI 모드일 때 전체 페이지로 스텝 UI 렌더링
@@ -722,6 +728,20 @@ const EditorPage = () => {
                     </div>
                 </>
             )}
+
+            {/* 모바일 플로팅 복사 버튼 (768px 이하에서만 CSS로 표시) */}
+            <button
+                className="mobile-floating-copy-btn"
+                onClick={async () => {
+                    const ok = await copyToClipboard(title, content);
+                    if (ok) {
+                        setMobileCopyStatus('success');
+                        setTimeout(() => setMobileCopyStatus('idle'), 2000);
+                    }
+                }}
+            >
+                {mobileCopyStatus === 'success' ? <Check size={20} /> : <Copy size={20} />}
+            </button>
 
             {/* AI 이미지 생성 플로팅 버튼 + 드로어 (pro/beta 전용) */}
             {(userPlan === 'pro' || userPlan === 'beta') && (

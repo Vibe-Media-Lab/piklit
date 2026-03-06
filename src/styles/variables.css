@@ -55,10 +55,25 @@
   --radius-md: 6px;
   --radius-lg: 8px;
   /* Slightly tighter than before */
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
 
   --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 16px;
   --spacing-lg: 24px;
   --spacing-xl: 40px;
+
+  /* Breakpoints (참조용 — media query에서는 리터럴 사용) */
+  --bp-desktop: 1024px;
+  --bp-tablet: 768px;
+  --bp-mobile: 480px;
+
+  /* Mobile-specific tokens */
+  --transition-sheet: 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  --shadow-sheet: 0 -4px 16px rgba(15, 15, 15, 0.08);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+
+  /* Accessibility: 오렌지 텍스트용 (대비 4.6:1) */
+  --color-brand-text: #D4541C;
 }

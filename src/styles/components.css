@@ -383,6 +383,12 @@
     margin-bottom: 32px;
 }
 
+@media (max-width: 480px) {
+    .wizard-summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 .wizard-summary-card {
     padding: 16px;
     border: 1px solid var(--color-border, #E3E2E0);
@@ -484,6 +490,66 @@
 
 .wizard-step-connector.completed {
     background: var(--color-brand, #FF6B35);
+}
+
+/* 모바일 StepIndicator — 기본 숨김 */
+.wizard-step-mobile {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .wizard-step-desktop {
+        display: none;
+    }
+
+    .wizard-step-mobile {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 24px;
+        padding: 16px 0 8px;
+    }
+
+    .wizard-step-mobile-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--color-text-main);
+    }
+
+    .wizard-step-segments {
+        display: flex;
+        gap: 3px;
+        padding: 20px 0;
+    }
+
+    .wizard-step-segment {
+        flex: 1;
+        height: 4px;
+        border: none;
+        border-radius: 2px;
+        padding: 0;
+        cursor: default;
+        transition: background 0.2s;
+    }
+
+    .wizard-step-segment.completed {
+        background: var(--color-brand);
+        cursor: pointer;
+    }
+
+    .wizard-step-segment.active {
+        background: var(--color-brand);
+        animation: segmentPulse 1.5s ease-in-out infinite;
+    }
+
+    .wizard-step-segment.pending {
+        background: var(--color-border);
+    }
+
+    @keyframes segmentPulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+    }
 }
 
 /* Spin Animation */
@@ -610,6 +676,12 @@
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
     margin-bottom: 20px;
+}
+
+@media (max-width: 480px) {
+    .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
 .metric-card {
@@ -872,6 +944,13 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 16px;
+}
+
+@media (max-width: 480px) {
+    .competitor-stats-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
 }
 
 .competitor-stat {
@@ -1388,6 +1467,24 @@
     gap: 10px;
 }
 
+@media (max-width: 480px) {
+    .wizard-category-grid {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    }
+
+    .wizard-card-wrap {
+        padding: 20px;
+    }
+
+    .wizard-page {
+        padding: 20px 12px;
+    }
+
+    .wizard-nav {
+        margin-top: 24px;
+    }
+}
+
 .wizard-category-card {
     padding: 14px 12px;
     border-radius: 12px;
@@ -1536,7 +1633,7 @@
     align-items: center;
     gap: 6px;
     font-size: 0.9rem;
-    color: #FF6B35;
+    color: var(--color-brand-text);
 }
 
 /* Wizard Suggested Keywords */
@@ -1703,6 +1800,12 @@
     gap: 12px;
 }
 
+@media (max-width: 480px) {
+    .wizard-length-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 .wizard-length-option {
     padding: 14px 8px;
     border-radius: var(--radius-lg);
@@ -1722,7 +1825,7 @@
 .wizard-length-recommend {
     margin-top: 10px;
     font-size: 0.85rem;
-    color: #FF6B35;
+    color: var(--color-brand-text);
     background: #FFF3ED;
     padding: 8px 12px;
     border-radius: 8px;
@@ -2429,7 +2532,7 @@
 }
 
 /* 반응형 */
-@media (max-width: 640px) {
+@media (max-width: 480px) {
     .recommend-dropzone {
         padding: 24px 12px;
     }
@@ -2440,5 +2543,56 @@
 
     .recommend-card-topic {
         font-size: 0.95rem;
+    }
+
+    /* Step 2: 키워드 칩 축소 */
+    .wizard-keyword-chip {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+
+    /* Step 5: 아웃라인 액션 항상 표시 + h3 들여쓰기 축소 */
+    .outline-actions {
+        opacity: 1;
+    }
+
+    .outline-row.is-h3 {
+        padding-left: 20px;
+    }
+
+    /* 위자드 네비게이션 버튼 패딩 축소 */
+    .wizard-nav button {
+        padding: 12px 20px;
+    }
+}
+
+/* ===== 모바일 플로팅 복사 버튼 ===== */
+.mobile-floating-copy-btn {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .mobile-floating-copy-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        bottom: calc(24px + var(--safe-area-bottom));
+        right: 16px;
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        background: var(--color-brand);
+        color: white;
+        border: none;
+        box-shadow: 0 4px 16px rgba(255, 107, 53, 0.4);
+        cursor: pointer;
+        z-index: 90;
+        transition: transform 0.2s, background 0.2s;
+    }
+
+    .mobile-floating-copy-btn:active {
+        transform: scale(0.95);
+        background: var(--color-brand-dark);
     }
 }

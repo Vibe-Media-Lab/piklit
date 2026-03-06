@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useLocation, useParams } from 'react-router-dom';
+import { useLocation, useParams, NavLink, useNavigate } from 'react-router-dom';
 import { useEditor } from '../../context/EditorContext';
 import { copyToClipboard, exportAsMarkdown, exportAsHtml, exportAsText } from '../../utils/clipboard';
-import { Save, Copy, Download, Check, ChevronDown } from 'lucide-react';
+import { Save, Copy, Download, Check, ChevronDown, Plus, User } from 'lucide-react';
 
 const PAGE_TITLES = {
     '/posts': '내 글',
@@ -55,28 +55,45 @@ const TopBar = () => {
     };
 
     const isEditor = !!id;
+    const navigate = useNavigate();
 
     return (
         <div className="app-topbar">
             <h2 className="topbar-title">{getPageTitle()}</h2>
 
+            {/* 모바일 네비게이션 (768px 이하에서 표시) */}
+            <nav className="topbar-mobile-nav">
+                <NavLink to="/posts" className={({ isActive }) => `topbar-mobile-nav-item${isActive ? ' active' : ''}`}>
+                    내 글
+                </NavLink>
+                <NavLink to="/dashboard" className={({ isActive }) => `topbar-mobile-nav-item${isActive ? ' active' : ''}`}>
+                    리포트
+                </NavLink>
+                <button className="topbar-new-post-fab" onClick={() => navigate('/start')} aria-label="새 글 작성">
+                    <Plus size={18} />
+                </button>
+                <button className="topbar-profile-btn" aria-label="프로필 설정">
+                    <User size={18} />
+                </button>
+            </nav>
+
             {isEditor && (
                 <div className="topbar-actions">
                     <button className="topbar-btn" onClick={handleSave}>
                         {saveStatus === 'success'
-                            ? <><Check size={15} /> 저장됨</>
-                            : <><Save size={15} /> 저장</>
+                            ? <><Check size={15} /> <span>저장됨</span></>
+                            : <><Save size={15} /> <span>저장</span></>
                         }
                     </button>
                     <button className="topbar-btn topbar-btn-primary" onClick={handleCopy}>
                         {copyStatus === 'success'
-                            ? <><Check size={15} /> 복사됨</>
-                            : <><Copy size={15} /> 블로그로 복사</>
+                            ? <><Check size={15} /> <span>복사됨</span></>
+                            : <><Copy size={15} /> <span>블로그로 복사</span></>
                         }
                     </button>
                     <div className="export-dropdown" ref={exportRef}>
                         <button className="topbar-btn" onClick={() => setExportOpen(prev => !prev)}>
-                            <Download size={15} /> 내보내기 <ChevronDown size={14} />
+                            <Download size={15} /> <span>내보내기</span> <ChevronDown size={14} />
                         </button>
                         {exportOpen && (
                             <div className="export-dropdown-menu">

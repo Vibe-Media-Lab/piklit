@@ -501,7 +501,7 @@
 
 .intro-alt-strategy {
     font-size: 0.75rem;
-    color: #FF6B35;
+    color: var(--color-brand-text);
     font-weight: 600;
     margin-bottom: 6px;
 }
@@ -1084,4 +1084,29 @@
 .humanness-ai-card-applied .humanness-ai-original {
     text-decoration: line-through;
     opacity: 0.5;
+}
+
+/* ===== Mobile ===== */
+@media (max-width: 768px) {
+    /* BubbleMenu 숨김 (Phase 1.5에서 문단 버튼으로 대체) */
+    .bubble-menu {
+        display: none !important;
+    }
+
+    /* MenuBar 가로 스크롤 */
+    .editor-toolbar {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        gap: 8px;
+        padding: 8px;
+    }
+
+    .toolbar-btn {
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 }

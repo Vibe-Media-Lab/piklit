@@ -116,7 +116,7 @@
 .image-seo-row-label {
     font-size: 0.78rem;
     font-weight: 600;
-    color: #FF6B35;
+    color: var(--color-brand-text);
     min-width: 48px;
     flex-shrink: 0;
 }
@@ -352,8 +352,8 @@
     padding: 0;
 }
 
-/* === 반응형: 640px 이하 === */
-@media (max-width: 640px) {
+/* === 반응형: 480px 이하 === */
+@media (max-width: 480px) {
     .image-seo-photo-thumb {
         width: 72px;
         height: 72px;

@@ -1133,6 +1133,46 @@
     background: var(--color-brand-dark);
 }
 
+/* ===== Mobile 480px ===== */
+@media (max-width: 480px) {
+    /* 글 목록: 패딩 축소 */
+    .post-list-container {
+        padding: 16px 12px;
+    }
+
+    .post-card {
+        padding: 14px;
+    }
+
+    .post-card-title {
+        font-size: var(--font-size-base);
+    }
+
+    .post-card-meta {
+        font-size: 0.75rem;
+    }
+
+    .post-card-delete {
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    /* 히스토리: 요약 카드 1열 */
+    .summary-cards-3 {
+        grid-template-columns: 1fr;
+    }
+
+    /* 히트맵 가로 스크롤 */
+    .heatmap-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .history-container {
+        padding: 16px 12px;
+    }
+}
+
 /* Storage warning */
 .storage-warning {
     background: #FEF3C7;
