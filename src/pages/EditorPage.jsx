@@ -8,14 +8,19 @@ import { getTemplateById } from '../data/templates';
 import { AIService } from '../services/openai';
 import { formatParagraphs } from '../utils/analysis';
 import { humanizeText } from '../utils/humanness';
+import { buildStyleRules } from '../utils/wannabeStyle';
 import ImageGeneratorPanel from '../components/editor/ImageGeneratorPanel';
+import ImageSeoGuide from '../components/editor/ImageSeoGuide';
 import StepIndicator from '../components/wizard/StepIndicator';
 import TopicStep from '../components/wizard/TopicStep';
 import KeywordStep, { recommendLength, getKw } from '../components/wizard/KeywordStep';
+import ToneStep from '../components/wizard/ToneStep';
 import PhotoStep from '../components/wizard/PhotoStep';
 import OutlineStep from '../components/wizard/OutlineStep';
 import { fileToBase64 } from '../utils/image';
-import { CATEGORIES, getToneForCategory } from '../data/categories';
+import { CATEGORIES } from '../data/categories';
+import { callBetaStatus } from '../services/firebase';
+import { useAuth } from '../context/AuthContext';
 import {
     Search, CheckCircle, Tag,
     Loader2, Sparkles
@@ -80,6 +85,21 @@ const EditorPage = () => {
     // Step 3: 본문 설정 상태
     const [selectedLength, setSelectedLengthLocal] = useState(null);
     const [selectedTone, setToneState] = useState(null);
+    const [paragraphStyle, setParagraphStyle] = useState('normal');
+    const [selectedWannabeStyle, setSelectedWannabeStyle] = useState(null);
+    const [userPlan, setUserPlan] = useState('free');
+    const { user } = useAuth();
+
+    // 베타 테스터 상태 확인
+    useEffect(() => {
+        if (user) {
+            callBetaStatus()
+                .then(result => {
+                    if (result.data?.active) setUserPlan(result.data.plan || 'pro');
+                })
+                .catch(() => {});
+        }
+    }, [user]);
 
     // Step 4: 아웃라인 상태
     const [outlineItems, setOutlineItems] = useState([]); // [{level: 'h2'|'h3', title: '...'}]
@@ -281,15 +301,15 @@ const EditorPage = () => {
             return `</p><blockquote style="border-left: 4px solid #FF6B35; background: #FFF3ED; padding: 12px 16px; margin: 16px 0; border-radius: 0 8px 8px 0; color: #FF6B35; font-size: 0.9rem;">📸 <b>${label}</b> 사진을 추가하면 더 좋아요!</blockquote><p>`;
         });
 
-        // 2. [[VIDEO]] → 동영상 TIP 박스 변환 ([VIDEO] 단일 대괄호도 대응)
-        injectedHtml = injectedHtml.replace(/\[{1,2}VIDEO\]{1,2}/gi, '<blockquote>🎬 TIP: 동영상을 추가하면 더 좋아요!</blockquote>');
+        // 2. [[VIDEO]] / [[VIDEO:텍스트]] → 동영상 TIP 박스 변환 ([VIDEO] 단일 대괄호도 대응)
+        injectedHtml = injectedHtml.replace(/\[{1,2}VIDEO(?::[^\]]*?)?\]{1,2}/gi, '<blockquote style="border-left: 4px solid #2EAADC; background: #EBF7FC; padding: 12px 16px; margin: 16px 0; border-radius: 0 8px 8px 0; color: #2EAADC; font-size: 0.9rem;">🎬 <b>TIP</b> 동영상을 추가하면 체류 시간이 올라갑니다!</blockquote>');
 
         // 3. [대괄호 팁] → <blockquote> TIP 박스 변환
         injectedHtml = injectedHtml.replace(/\[([^\]]*사진[^\]]*추가[^\]]*)\]/g, '<blockquote>💡 TIP: $1</blockquote>');
         injectedHtml = injectedHtml.replace(/\[([^\]]*TIP[^\]]*)\]/gi, '<blockquote>💡 $1</blockquote>');
 
-        // 3. 후처리: 긴 문단 강제 분리 (AI가 규칙 안 따라도 보장)
-        injectedHtml = formatParagraphs(injectedHtml);
+        // 3. 후처리: 문단 스타일에 맞게 분리 (AI가 규칙 안 따라도 보장)
+        injectedHtml = formatParagraphs(injectedHtml, paragraphStyle || 'normal');
 
         // 3.5. AI 패턴 후처리: 금지 표현 자동 교정 + 종결어미 변환
         injectedHtml = humanizeText(injectedHtml, selectedTone || 'friendly');
@@ -392,7 +412,9 @@ const EditorPage = () => {
                 selectedLength || '1200~1800자',
                 photoAnalysis,
                 competitorData,
-                outlineItems.length > 0 ? outlineItems : null
+                outlineItems.length > 0 ? outlineItems : null,
+                buildStyleRules(selectedWannabeStyle),
+                paragraphStyle || 'normal'
             );
 
             console.log('[AI Generate] API 응답:', result);
@@ -451,26 +473,9 @@ const EditorPage = () => {
         }
     }, [id, posts, currentPostId, openPost, location.state, updateMainKeyword, setSuggestedTone, setContent]);
 
-    const STEP_LABELS = ['주제 선택', '키워드 + 설정', '이미지 업로드', '아웃라인 + 생성'];
+    const STEP_LABELS = ['주제 선택', '키워드 + 설정', '톤앤무드', '이미지 업로드', '아웃라인 + 생성'];
 
     // 카테고리별 placeholder
-    // "직접 작성" 전환 핸들러
-    const handleSwitchToDirect = () => {
-        if (selectedCategory) {
-            const template = getTemplateById(selectedCategory.templateId);
-            if (template) setContent(template.content);
-            updatePostMeta(id, {
-                mode: 'direct',
-                categoryId: selectedCategory.id,
-                tone: getToneForCategory(selectedCategory.id)
-            });
-        }
-        if (topicInput.trim()) {
-            updateMainKeyword(topicInput.trim());
-        }
-        setEditorMode('direct');
-    };
-
     // Progress Indicator — 외부 컴포넌트 사용
     const renderStepIndicator = () => (
         <StepIndicator currentStep={aiStep} labels={STEP_LABELS} />
@@ -500,27 +505,22 @@ const EditorPage = () => {
                                     }
                                     setAiStep(2);
                                 }}
-                                onSwitchToDirect={isNewPost ? handleSwitchToDirect : () => setEditorMode('direct')}
                                 canProceed={canProceedToStep1}
                                 postId={id}
                                 renderStepIndicator={renderStepIndicator}
                             />
                         )}
 
-                        {/* STEP 2: 키워드 분석 + 세부 설정 (점진적 노출) */}
+                        {/* STEP 2: 키워드 분석 + 세부 설정 */}
                         {aiStep === 2 && (
                             <KeywordStep
                                 mainKeyword={mainKeyword}
                                 selectedCategory={selectedCategory}
                                 selectedKeywords={selectedKeywords}
-                                selectedLength={selectedLength}
-                                selectedTone={selectedTone}
                                 competitorData={competitorData}
                                 categoryId={categoryId}
                                 wizardData={wizardData || location.state}
                                 setSelectedKeywords={setSelectedKeywords}
-                                setSelectedLength={setSelectedLength}
-                                setToneState={setToneState}
                                 setCompetitorData={setCompetitorData}
                                 onPrev={() => setAiStep(1)}
                                 onNext={() => setAiStep(3)}
@@ -529,8 +529,30 @@ const EditorPage = () => {
                             />
                         )}
 
-                        {/* STEP 3: 이미지 업로드 & 분석 */}
+                        {/* STEP 3: 스타일 설정 (경쟁분석 + 글자수 + 톤 + 워너비) */}
                         {aiStep === 3 && (
+                            <ToneStep
+                                mainKeyword={mainKeyword}
+                                selectedCategory={selectedCategory}
+                                selectedTone={selectedTone}
+                                selectedLength={selectedLength}
+                                paragraphStyle={paragraphStyle}
+                                competitorData={competitorData}
+                                setToneState={setToneState}
+                                setSelectedLength={setSelectedLength}
+                                setParagraphStyle={setParagraphStyle}
+                                setCompetitorData={setCompetitorData}
+                                selectedWannabeStyle={selectedWannabeStyle}
+                                setSelectedWannabeStyle={setSelectedWannabeStyle}
+                                userPlan={userPlan || 'free'}
+                                onPrev={() => setAiStep(2)}
+                                onNext={() => setAiStep(4)}
+                                renderStepIndicator={renderStepIndicator}
+                            />
+                        )}
+
+                        {/* STEP 4: 이미지 업로드 & 분석 */}
+                        {aiStep === 4 && (
                             <PhotoStep
                                 mainKeyword={mainKeyword}
                                 selectedCategory={selectedCategory}
@@ -546,14 +568,14 @@ const EditorPage = () => {
                                 setImageAlts={setImageAlts}
                                 setImageCaptions={setImageCaptions}
                                 setCachedPhotoAssets={setCachedPhotoAssets}
-                                onPrev={() => setAiStep(2)}
-                                onNext={() => setAiStep(4)}
+                                onPrev={() => setAiStep(3)}
+                                onNext={() => setAiStep(5)}
                                 renderStepIndicator={renderStepIndicator}
                             />
                         )}
 
-                        {/* STEP 4: 아웃라인 + 생성 */}
-                        {aiStep === 4 && (
+                        {/* STEP 5: 아웃라인 + 생성 */}
+                        {aiStep === 5 && (
                             <OutlineStep
                                 mainKeyword={mainKeyword}
                                 selectedCategory={selectedCategory}
@@ -565,7 +587,7 @@ const EditorPage = () => {
                                 photoData={photoData}
                                 categoryId={categoryId}
                                 setOutlineItems={setOutlineItems}
-                                onPrev={() => setAiStep(3)}
+                                onPrev={() => setAiStep(4)}
                                 onGenerate={handleAiGenerate}
                                 renderStepIndicator={renderStepIndicator}
                             />
@@ -701,62 +723,66 @@ const EditorPage = () => {
                 </>
             )}
 
-            {/* AI 이미지 생성 플로팅 버튼 + 드로어 */}
-            <button
-                className="image-gen-floating-btn"
-                onClick={() => setShowImageGenDrawer(true)}
-                title="AI 이미지 생성"
-                style={{
-                    position: 'fixed',
-                    bottom: hasUploadedImages ? '140px' : '80px',
-                    right: '24px',
-                    width: '52px', height: '52px',
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #FF6B35, #F7931E)',
-                    color: 'white',
-                    border: 'none',
-                    boxShadow: '0 4px 16px rgba(255, 107, 53, 0.4)',
-                    cursor: 'pointer',
-                    fontSize: '1.4rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 100,
-                    transition: 'transform 0.2s, box-shadow 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'scale(1.1)';
-                    e.currentTarget.style.boxShadow = '0 6px 20px rgba(108, 92, 231, 0.5)';
-                }}
-                onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'scale(1)';
-                    e.currentTarget.style.boxShadow = '0 4px 16px rgba(108, 92, 231, 0.4)';
-                }}
-            >
-                🎨
-            </button>
-
-            <div
-                className={`image-seo-drawer-overlay ${showImageGenDrawer ? 'open' : ''}`}
-                onClick={() => setShowImageGenDrawer(false)}
-            />
-            <div className={`image-seo-drawer ${showImageGenDrawer ? 'open' : ''}`}>
-                <div className="image-seo-drawer-header">
-                    <h3>🎨 AI 이미지 생성</h3>
+            {/* AI 이미지 생성 플로팅 버튼 + 드로어 (pro 전용) */}
+            {userPlan === 'pro' && (
+                <>
                     <button
-                        className="image-seo-drawer-close"
-                        onClick={() => setShowImageGenDrawer(false)}
+                        className="image-gen-floating-btn"
+                        onClick={() => setShowImageGenDrawer(true)}
+                        title="AI 이미지 생성"
+                        style={{
+                            position: 'fixed',
+                            bottom: hasUploadedImages ? '140px' : '80px',
+                            right: '24px',
+                            width: '52px', height: '52px',
+                            borderRadius: '50%',
+                            background: 'linear-gradient(135deg, #FF6B35, #F7931E)',
+                            color: 'white',
+                            border: 'none',
+                            boxShadow: '0 4px 16px rgba(255, 107, 53, 0.4)',
+                            cursor: 'pointer',
+                            fontSize: '1.4rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            zIndex: 100,
+                            transition: 'transform 0.2s, box-shadow 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'scale(1.1)';
+                            e.currentTarget.style.boxShadow = '0 6px 20px rgba(108, 92, 231, 0.5)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'scale(1)';
+                            e.currentTarget.style.boxShadow = '0 4px 16px rgba(108, 92, 231, 0.4)';
+                        }}
                     >
-                        ✕
+                        🎨
                     </button>
-                </div>
-                <div className="image-seo-drawer-body">
-                    <ImageGeneratorPanel
-                        mainKeyword={mainKeyword}
-                        onInsertImage={handleInsertAiImage}
+
+                    <div
+                        className={`image-seo-drawer-overlay ${showImageGenDrawer ? 'open' : ''}`}
+                        onClick={() => setShowImageGenDrawer(false)}
                     />
-                </div>
-            </div>
+                    <div className={`image-seo-drawer ${showImageGenDrawer ? 'open' : ''}`}>
+                        <div className="image-seo-drawer-header">
+                            <h3>🎨 AI 이미지 생성</h3>
+                            <button
+                                className="image-seo-drawer-close"
+                                onClick={() => setShowImageGenDrawer(false)}
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        <div className="image-seo-drawer-body">
+                            <ImageGeneratorPanel
+                                mainKeyword={mainKeyword}
+                                onInsertImage={handleInsertAiImage}
+                            />
+                        </div>
+                    </div>
+                </>
+            )}
         </div>
     );
 };

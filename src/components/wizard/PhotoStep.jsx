@@ -91,7 +91,7 @@ const PhotoStep = ({
             {renderStepIndicator()}
 
             <h2 className="wizard-step-heading">
-                <Camera size={20} /> Step 3: 이미지 업로드
+                <Camera size={20} /> Step 4: 이미지 업로드
             </h2>
             <p className="wizard-step-desc">
                 이미지를 업로드하면 AI가 분석하여 본문 작성에 활용합니다.
@@ -165,7 +165,7 @@ const PhotoStep = ({
                     onClick={onPrev}
                     className="wizard-btn-ghost"
                 >
-                    <ArrowLeft size={16} /> 이전: 키워드 + 설정
+                    <ArrowLeft size={16} /> 이전: 톤앤무드
                 </button>
                 <div className="wizard-nav-flex">
                     {!hasAnyPhotos && (

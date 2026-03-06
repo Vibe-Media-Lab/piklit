@@ -5,13 +5,18 @@ import { EditorProvider } from './context/EditorContext';
 import { ToastProvider } from './components/common/Toast';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import AppLayout from './components/layout/AppLayout';
+import BugReportButton from './components/common/BugReportButton';
+import { installConsoleCapture } from './utils/consoleCapture';
 import './styles/global.css';
 import './styles/components.css';
+
+installConsoleCapture();
 
 const LandingPage = React.lazy(() => import('./pages/LandingPage'));
 const PostListPage = React.lazy(() => import('./pages/PostListPage'));
 const EditorPage = React.lazy(() => import('./pages/EditorPage'));
 const HistoryPage = React.lazy(() => import('./pages/HistoryPage'));
+const AdminBugsPage = React.lazy(() => import('./pages/AdminBugsPage'));
 
 // 로그인 필요 라우트 보호 컴포넌트
 const ProtectedRoute = ({ children }) => {
@@ -66,6 +71,11 @@ function AppRoutes() {
                     </ErrorBoundary>
                 </ProtectedRoute>
             } />
+            <Route path="/admin/bugs" element={
+                <ProtectedRoute>
+                    <AdminBugsPage />
+                </ProtectedRoute>
+            } />
         </Routes>
         </Suspense>
     );
@@ -78,6 +88,7 @@ function App() {
                 <EditorProvider>
                     <ToastProvider>
                         <AppRoutes />
+                        <BugReportButton />
                     </ToastProvider>
                 </EditorProvider>
             </AuthProvider>

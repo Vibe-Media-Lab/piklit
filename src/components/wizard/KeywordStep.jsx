@@ -1,29 +1,15 @@
 import React, { useState } from 'react';
 import {
     Search, CheckCircle, Tag, Flame, Bot,
-    ArrowLeft, ArrowRight, ChevronDown,
-    Loader2, BarChart3, Settings,
-    Sparkles, RefreshCw, Plus, Edit3
+    ArrowLeft, ArrowRight,
+    Loader2, BarChart3,
+    RefreshCw, Plus, Edit3
 } from 'lucide-react';
 import { useEditor } from '../../context/EditorContext';
 import { useToast } from '../common/Toast';
 import { AIService } from '../../services/openai';
-import CompetitorAnalysis from '../analysis/CompetitorAnalysis';
 
 // ── 상수 ──
-
-const TONES = [
-    { id: 'friendly', label: '🥳 친근한 이웃형', emoji: '🥳', desc: '해요체, 이모지, 감탄사',
-      sample: '여기 진짜 숨은 맛집이에요 🍽️ 제가 3번이나 갔는데 매번 웨이팅 있더라고요. 근데 그만큼 맛은 보장된다는 뜻이겠죠?!' },
-    { id: 'professional', label: '🔎 전문 정보형', emoji: '🔎', desc: '합쇼체, 개조식 요약, 신뢰감',
-      sample: '이 제품의 핵심은 발열 성능입니다. 실측 결과 30분 만에 20도까지 상승했으며, 동급 제품 대비 15% 빠른 수치입니다.' },
-    { id: 'honest', label: '📝 내돈내산 솔직형', emoji: '📝', desc: '단호한 문체, 장단점 명확',
-      sample: '맛은 괜찮은데 가격이 좀 있어요. 1인분 15,000원이면 솔직히 이 동네 물가 감안해도 비싼 편. 근데 양은 넉넉해요.' },
-    { id: 'emotional', label: '☕️ 감성 에세이형', emoji: '☕️', desc: '평어체, 명조체 감성, 여백',
-      sample: '창밖으로 노을이 번졌다. 커피잔을 감싸 쥔 손끝이 따뜻했다. 이런 오후가 자주 오면 좋겠다고 생각했다.' },
-    { id: 'guide', label: '📚 단계별 가이드형', emoji: '📚', desc: '권유형, 번호표, 팁 박스',
-      sample: '먼저 재료를 준비하세요. 꿀팁: 양파는 반달 모양으로 썰면 식감이 살아요. 그다음 센 불에서 2분간 볶아주세요.' }
-];
 
 const LENGTH_OPTIONS = ['800~1200자', '1200~1800자', '1800~2500자', '2500~3000자'];
 const LENGTH_MIDPOINTS = [1000, 1500, 2150, 2750];
@@ -63,14 +49,10 @@ const KeywordStep = ({
     mainKeyword,
     selectedCategory,
     selectedKeywords,
-    selectedLength,
-    selectedTone,
     competitorData,
     categoryId,
     wizardData,
     setSelectedKeywords,
-    setSelectedLength,
-    setToneState,
     setCompetitorData,
     onPrev,
     onNext,
@@ -88,8 +70,6 @@ const KeywordStep = ({
     const [difficultyChecked, setDifficultyChecked] = useState(false);
     const [seasonKeywords, setSeasonKeywords] = useState([]);
     const [isAnalyzingSeason, setIsAnalyzingSeason] = useState(false);
-    const [isAnalyzingCompetitors, setIsAnalyzingCompetitors] = useState(false);
-    const [showSettings, setShowSettings] = useState(true);
 
     // ── 핸들러 ──
 
@@ -231,33 +211,6 @@ const KeywordStep = ({
             timing: seasonKw.timing
         }]);
         setSeasonKeywords(prev => prev.filter(sk => sk.keyword !== seasonKw.keyword));
-    };
-
-    const handleAnalyzeCompetitors = async () => {
-        if (!mainKeyword.trim()) return showToast('메인 키워드를 먼저 입력해주세요.', 'warning');
-        setIsAnalyzingCompetitors(true);
-        recordAiAction('competitorAnalysis');
-        try {
-            const result = await AIService.analyzeCompetitors(mainKeyword, selectedCategory?.id || 'daily');
-            if (result?.average) {
-                setCompetitorData(result);
-                if (result.average.charCount) {
-                    const recommended = recommendLength(result.average.charCount);
-                    if (recommended) setSelectedLength(recommended);
-                }
-            } else {
-                showToast('분석 결과 형식이 올바르지 않습니다. 다시 시도해주세요.', 'error');
-            }
-        } catch (e) {
-            console.error('경쟁 블로그 분석 오류:', e);
-            if (e.message?.includes('429')) {
-                showToast('API 호출 제한에 걸렸습니다. 잠시 후(약 30초) 다시 시도해주세요.', 'error');
-            } else {
-                showToast(`경쟁 블로그 분석 중 오류: ${e.message}`, 'error');
-            }
-        } finally {
-            setIsAnalyzingCompetitors(false);
-        }
     };
 
     // ── 렌더링 ──
@@ -512,88 +465,6 @@ const KeywordStep = ({
                 </div>
             )}
 
-            {/* ── 3단계: 경쟁 블로그 분석 (키워드 분석 후 노출) ── */}
-            {(suggestedKeywords.length > 0 || selectedKeywords.length > 0) && (
-                <div className="wizard-section-mt">
-                    <CompetitorAnalysis
-                        data={competitorData}
-                        loading={isAnalyzingCompetitors}
-                        onAnalyze={handleAnalyzeCompetitors}
-                    />
-                </div>
-            )}
-
-            {/* ── 4단계: 세부 설정 (경쟁 분석 완료 or 키워드 3개 이상 선택 시 노출) ── */}
-            {(competitorData || selectedKeywords.length >= 3) && (
-                <div className="wizard-section-mt">
-                    <button
-                        onClick={() => setShowSettings(!showSettings)}
-                        className="wizard-settings-toggle"
-                    >
-                        <span className="wizard-settings-toggle-label">
-                            <Settings size={16} /> 세부 설정 (톤앤무드 · 글자수)
-                        </span>
-                        <span className={`wizard-settings-chevron ${showSettings ? 'open' : ''}`}>
-                            <ChevronDown size={16} />
-                        </span>
-                    </button>
-
-                    {showSettings && (
-                        <div className="wizard-settings-panel">
-                            {/* 글자수 선택 */}
-                            <div className="wizard-section-mb">
-                                <label className="wizard-label">
-                                    <Edit3 size={16} /> 글자수 선택
-                                </label>
-                                <div className="wizard-length-grid">
-                                    {LENGTH_OPTIONS.map(l => (
-                                        <button
-                                            key={l}
-                                            className={`wizard-length-option ${selectedLength === l ? 'selected' : ''}`}
-                                            onClick={() => setSelectedLength(l)}
-                                        >
-                                            {l}
-                                        </button>
-                                    ))}
-                                </div>
-                                {competitorData?.average?.charCount && (
-                                    <p className="wizard-length-recommend">
-                                        <span>
-                                            <BarChart3 size={14} /> 경쟁 블로그 평균 {competitorData.average.charCount.toLocaleString()}자 기준으로 <strong>{recommendLength(competitorData.average.charCount)}</strong>를 추천합니다
-                                        </span>
-                                    </p>
-                                )}
-                            </div>
-
-                            {/* 톤앤무드 선택 */}
-                            <div>
-                                <label className="wizard-label">
-                                    <Sparkles size={16} /> 톤앤무드 선택
-                                </label>
-                                <div className="wizard-tone-grid">
-                                    {TONES.map(t => (
-                                        <div
-                                            key={t.id}
-                                            className={`wizard-tone-option ${selectedTone === t.id ? 'selected' : ''}`}
-                                            onClick={() => setToneState(t.id)}
-                                        >
-                                            <div className="wizard-tone-label">{t.label}</div>
-                                            <div className="wizard-tone-desc">{t.desc}</div>
-                                            {selectedTone === t.id && (
-                                                <div className="wizard-tone-sample">
-                                                    <div className="wizard-tone-sample-label">미리보기</div>
-                                                    <p className="wizard-tone-sample-text">{t.sample}</p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            )}
-
             <div className="wizard-nav">
                 <button
                     onClick={onPrev}
@@ -606,12 +477,12 @@ const KeywordStep = ({
                     disabled={!canProceed}
                     className="wizard-btn-primary"
                 >
-                    다음: 이미지 업로드 <ArrowRight size={16} />
+                    다음: 톤앤무드 <ArrowRight size={16} />
                 </button>
             </div>
         </div>
     );
 };
 
-export { TONES, LENGTH_OPTIONS, LENGTH_MIDPOINTS, recommendLength, getKw, getDifficulty, DifficultyBadge };
+export { LENGTH_OPTIONS, LENGTH_MIDPOINTS, recommendLength, getKw, getDifficulty, DifficultyBadge };
 export default KeywordStep;

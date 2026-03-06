@@ -1,5 +1,5 @@
 import React from 'react';
-import { FolderOpen, Edit3, ArrowLeft, ArrowRight } from 'lucide-react';
+import { FolderOpen, Edit3, ArrowRight } from 'lucide-react';
 import { useEditor } from '../../context/EditorContext';
 import { CATEGORIES, getToneForCategory } from '../../data/categories';
 
@@ -33,7 +33,6 @@ const TopicStep = ({
     setMainKeyword,
     setToneState,
     onNext,
-    onSwitchToDirect,
     canProceed,
     postId,
     renderStepIndicator,
@@ -115,13 +114,7 @@ const TopicStep = ({
                 </div>
             )}
 
-            <div className="wizard-nav">
-                <button
-                    onClick={onSwitchToDirect}
-                    className="wizard-btn-ghost"
-                >
-                    <ArrowLeft size={16} /> 직접 작성으로 전환
-                </button>
+            <div className="wizard-nav" style={{ justifyContent: 'flex-end' }}>
                 <button
                     onClick={onNext}
                     disabled={!canProceed}

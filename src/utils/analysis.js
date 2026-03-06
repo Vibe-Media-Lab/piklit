@@ -68,38 +68,55 @@ const splitLongSentence = (sentence) => {
 };
 
 /**
- * AI 생성 HTML 후처리: 긴 <p> 태그를 2문장 단위로 강제 분리 + 80자 초과 문장 분리
- * innerHTML 기반으로 <b> 등 HTML 태그 보존
+ * AI 생성 HTML 후처리: 긴 <p> 태그를 문단 스타일에 맞게 분리 + 80자 초과 문장 분리
+ * @param {string} html
+ * @param {'oneline'|'normal'|'long'} paragraphStyle
  */
-export const formatParagraphs = (html) => {
+export const formatParagraphs = (html, paragraphStyle = 'normal') => {
     return html.replace(/<p>([\s\S]*?)<\/p>/gi, (match, inner) => {
-        // 이미지/blockquote 포함 문단은 건드리지 않음
         if (inner.includes('<img')) return match;
 
-        // innerHTML을 문장 종결 부호(. ! ? …) + 공백 기준으로 분리 (HTML 태그 보존)
-        const parts = inner.split(/(?<=[.!?…])\s+/).filter(s => s.trim());
+        const parts = inner.split(/(?<=[.!?…])\s*(?=\S)/).filter(s => s.trim());
         if (parts.length === 0) return match;
 
-        // 각 문장에서 80자 초과 문장 분리
         const splitParts = [];
         for (const part of parts) {
             splitParts.push(...splitLongSentence(part));
         }
 
-        // 1~3문장 가변 그룹핑으로 <p> 생성 (자연스러운 문단 길이 변주)
-        if (splitParts.length <= 3) {
-            const joined = splitParts.join(' ').trim();
-            return `<p>${joined}</p>`;
+        // 한 줄 호흡: 1문장 = 1 <p>
+        if (paragraphStyle === 'oneline') {
+            return splitParts.map(s => `<p>${s.trim()}</p>`).join('');
         }
 
-        // 결정적 패턴: 자연스러운 리듬을 유지하면서 재생성 시 일관된 문단 구조
+        // 긴 호흡: 4~5문장씩 그룹핑
+        if (paragraphStyle === 'long') {
+            if (splitParts.length <= 5) {
+                return `<p>${splitParts.join(' ').trim()}</p>`;
+            }
+            const chunks = [];
+            let i = 0;
+            while (i < splitParts.length) {
+                const remaining = splitParts.length - i;
+                const groupSize = remaining <= 6 ? remaining : (i % 2 === 0 ? 4 : 5);
+                const chunk = splitParts.slice(i, i + groupSize).join(' ').trim();
+                if (chunk) chunks.push(`<p>${chunk}</p>`);
+                i += groupSize;
+            }
+            return chunks.join('');
+        }
+
+        // 보통 호흡 (기본): 1~3문장 가변 그룹핑
+        if (splitParts.length <= 3) {
+            return `<p>${splitParts.join(' ').trim()}</p>`;
+        }
+
         const GROUP_PATTERN = [2, 3, 1, 2, 3, 2, 1, 3];
         const chunks = [];
         let i = 0;
         let patternIdx = 0;
         while (i < splitParts.length) {
             const remaining = splitParts.length - i;
-            // 남은 문장이 1개면 이전 문단에 합류
             if (remaining === 1 && chunks.length > 0) {
                 const lastChunk = chunks.pop().replace(/<\/?p>/g, '');
                 chunks.push(`<p>${lastChunk} ${splitParts[i].trim()}</p>`);

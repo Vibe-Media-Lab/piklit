@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useEditor } from '../../context/EditorContext';
 import { useToast } from '../common/Toast';
 import { AIService } from '../../services/openai';
-import { TONES } from './KeywordStep';
+import { TONES } from './ToneStep';
 import { getKw } from './KeywordStep';
 import {
     Wand2, Bot, ClipboardList, ArrowLeft,
@@ -89,7 +89,7 @@ const OutlineStep = ({
             {renderStepIndicator()}
 
             <h2 className="wizard-step-heading">
-                <Wand2 size={20} /> Step 4: 아웃라인 + 생성
+                <Wand2 size={20} /> Step 5: 아웃라인 + 생성
             </h2>
             <p className="wizard-step-desc">
                 AI가 소제목 구조를 생성합니다. 수정 후 본문을 생성하세요.
@@ -227,7 +227,7 @@ const OutlineStep = ({
                         ))}
                     </div>
 
-                    {competitorData?.average?.headingCount && (
+                    {competitorData?.average?.headingCount > 0 && (
                         <div className={`outline-competitor-bar ${outlineItems.length >= competitorData.average.headingCount ? 'sufficient' : 'insufficient'}`}>
                             <BarChart3 size={14} />
                             경쟁 블로그 평균 소제목 {competitorData.average.headingCount}개 — 현재 {outlineItems.length}개

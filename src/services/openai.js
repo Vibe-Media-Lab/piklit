@@ -526,8 +526,14 @@ Output strictly a valid JSON:
     },
 
     // 공통 HTML 규칙 (본문 생성 프롬프트에서 공유)
-    _htmlRules(keyword) {
-        return `[HTML규칙] <p>당 1~3문장(길이 변주). <b>로 강조. <h2>/<h3> 계층 구조. 이미지([[IMAGE:...]])는 별도 <p>. h1 금지. "${keyword}" 본문 3~5회 반복, 첫 <p>에 필수 포함.
+    _paragraphRule(style) {
+        if (style === 'oneline') return '<p>당 1문장만. 한 줄에 한 문장씩 끊어서 작성. 파워블로거 스타일로 짧고 리듬감 있게.';
+        if (style === 'long') return '<p>당 4~5문장. 에세이처럼 깊이 있는 문단. 문장 간 연결이 자연스럽게.';
+        return '<p>당 1~3문장(길이 변주).';
+    },
+
+    _htmlRules(keyword, paragraphStyle = 'normal') {
+        return `[HTML규칙] ${this._paragraphRule(paragraphStyle)} <b>로 강조. <h2>/<h3> 계층 구조. 이미지([[IMAGE:...]])는 별도 <p>. h1 금지. "${keyword}" 본문 3~5회 반복, 첫 <p>에 필수 포함.
 [문장 규칙 — 필수!!!] 한 문장은 반드시 80자(한글 기준) 이내로 작성. 80자를 넘길 것 같으면 두 문장으로 나눠. 짧고 읽기 쉬운 문장이 핵심. 쉼표로 문장을 늘리지 말고 마침표로 끊어.
 [반복 금지] 동일한 표현·문구·문장 구조를 반복하지 마. 각 문단마다 다른 표현과 시작어를 사용. 같은 내용을 다른 말로 바꿔 쓰는 것도 반복임.
 [AI 패턴 표현 — 절대 금지!!!] 아래 단어·표현을 쓰면 안 돼. 반드시 대체 예시처럼 구체적으로 바꿔 써:
@@ -722,12 +728,12 @@ ${tree}
 [구조 변주] 매번 같은 순서(소개→메뉴→가격→위치)로 쓰지 마. 가장 기억에 남는 경험부터 시작하거나, 에피소드 중심으로 풀어. 첫 문단에서 바로 핵심 경험을 던져.`;
     },
 
-    async generateFullDraft(category, mainKeyword, tone, imageMetadata = {}, photoAssets = [], subKeywords = [], targetLength = '1200~1800자', photoAnalysis = null, competitorData = null, outline = null) {
+    async generateFullDraft(category, mainKeyword, tone, imageMetadata = {}, photoAssets = [], subKeywords = [], targetLength = '1200~1800자', photoAnalysis = null, competitorData = null, outline = null, wannabeStyleRules = '', paragraphStyle = 'normal') {
         if (category === 'cafe' || category === 'food' || category === '맛집' || category === '카페&맛집') {
-            return this.generateRestaurantDraft(mainKeyword, tone, imageMetadata, photoAssets, subKeywords, targetLength, photoAnalysis, competitorData, outline);
+            return this.generateRestaurantDraft(mainKeyword, tone, imageMetadata, photoAssets, subKeywords, targetLength, photoAnalysis, competitorData, outline, wannabeStyleRules, paragraphStyle);
         }
         if (category === 'shopping' || category === '쇼핑') {
-            return this.generateShoppingDraft(mainKeyword, tone, imageMetadata, photoAssets, subKeywords, targetLength, photoAnalysis, competitorData, outline);
+            return this.generateShoppingDraft(mainKeyword, tone, imageMetadata, photoAssets, subKeywords, targetLength, photoAnalysis, competitorData, outline, wannabeStyleRules, paragraphStyle);
         }
 
         // 카테고리별 슬롯 확인
@@ -741,9 +747,9 @@ ${tree}
 
         const toneBoost = this._categoryToneBoost(category, tone);
         const prompt = `너는 네이버 블로그 SEO 전문가야.
-${this._htmlRules(mainKeyword)}
+${this._htmlRules(mainKeyword, paragraphStyle)}
 주제: ${category} | 키워드: ${mainKeyword} | 글자수: ${targetLength}
-톤: ${this._toneMap[tone] || this._toneMap['friendly']}${toneBoost ? `\n[카테고리 맞춤 톤 보정] ${toneBoost}` : ''}
+톤: ${this._toneMap[tone] || this._toneMap['friendly']}${toneBoost ? `\n[카테고리 맞춤 톤 보정] ${toneBoost}` : ''}${wannabeStyleRules}
 ${this._subKeywordPrompt(subKeywords)}
 ${this._photoPrompt(photoAnalysis, photoAssets, category)}
 ${this._competitorPrompt(competitorData)}
@@ -800,7 +806,7 @@ Output strictly a valid JSON:
         return result;
     },
 
-    async generateRestaurantDraft(keyword, tone = 'friendly', imageMetadata = {}, photoAssets = [], subKeywords = [], targetLength = '1200~1800자', photoAnalysis = null, competitorData = null, outline = null) {
+    async generateRestaurantDraft(keyword, tone = 'friendly', imageMetadata = {}, photoAssets = [], subKeywords = [], targetLength = '1200~1800자', photoAnalysis = null, competitorData = null, outline = null, wannabeStyleRules = '', paragraphStyle = 'normal') {
         const { entrance = 0, parking = 0, menu = 0, interior = 0, food = 0, extra = 0 } = imageMetadata;
 
         const slots = [['entrance',entrance],['parking',parking],['menu',menu],['interior',interior],['food',food],['extra',extra]]
@@ -827,8 +833,8 @@ Output strictly a valid JSON:
 
         const toneBoost = this._categoryToneBoost('food', tone);
         const prompt = `너는 네이버 블로그 맛집 전문 블로거야.
-${this._htmlRules(keyword)}
-키워드: ${keyword} | 톤: ${this._toneMap[tone] || this._toneMap['friendly']}${toneBoost ? `\n[카테고리 맞춤 톤 보정] ${toneBoost}` : ''} | 글자수: ${targetLength}
+${this._htmlRules(keyword, paragraphStyle)}
+키워드: ${keyword} | 톤: ${this._toneMap[tone] || this._toneMap['friendly']}${toneBoost ? `\n[카테고리 맞춤 톤 보정] ${toneBoost}` : ''}${wannabeStyleRules} | 글자수: ${targetLength}
 사진: ${slots}
 ${this._subKeywordPrompt(subKeywords)}
 ${this._photoPrompt(photoAnalysis, photoAssets, 'food')}
@@ -877,7 +883,7 @@ Output strictly a valid JSON:
         }, '제품 정보 검색');
     },
 
-    async generateShoppingDraft(keyword, tone = 'friendly', imageMetadata = {}, photoAssets = [], subKeywords = [], targetLength = '1200~1800자', photoAnalysis = null, competitorData = null, outline = null) {
+    async generateShoppingDraft(keyword, tone = 'friendly', imageMetadata = {}, photoAssets = [], subKeywords = [], targetLength = '1200~1800자', photoAnalysis = null, competitorData = null, outline = null, wannabeStyleRules = '', paragraphStyle = 'normal') {
         const { unboxing = 0, product = 0, detail = 0, usage = 0, compare = 0, extra = 0 } = imageMetadata;
 
         const slots = [['unboxing',unboxing],['product',product],['detail',detail],['usage',usage],['compare',compare],['extra',extra]]
@@ -903,8 +909,8 @@ Output strictly a valid JSON:
 
         const toneBoost = this._categoryToneBoost('shopping', tone);
         const prompt = `너는 네이버 블로그 쇼핑 리뷰 전문 블로거야.
-${this._htmlRules(keyword)}
-키워드: ${keyword} | 톤: ${this._toneMap[tone] || this._toneMap['friendly']}${toneBoost ? `\n[카테고리 맞춤 톤 보정] ${toneBoost}` : ''} | 글자수: ${targetLength}
+${this._htmlRules(keyword, paragraphStyle)}
+키워드: ${keyword} | 톤: ${this._toneMap[tone] || this._toneMap['friendly']}${toneBoost ? `\n[카테고리 맞춤 톤 보정] ${toneBoost}` : ''}${wannabeStyleRules} | 글자수: ${targetLength}
 사진: ${slots}
 ${this._subKeywordPrompt(subKeywords)}
 ${this._photoPrompt(photoAnalysis, photoAssets, 'shopping')}
@@ -1567,6 +1573,147 @@ recommendations는 ${hasStats ? '5' : '3'}개.`;
             },
             '다음 글 추천'
         );
+    },
+
+    /**
+     * 워너비 블로그 스타일 분석
+     * URL(google_search) 또는 스크린샷(이미지 분석) 또는 둘 다로 스타일 프로필 생성
+     * @param {string|null} url - 블로그 URL (전체공개)
+     * @param {Array|null} screenshots - 스크린샷 base64 배열 [{base64, mimeType}]
+     * @returns {Promise<Object>} 스타일 프로필 (checklist 구조)
+     */
+    async analyzeWannabeStyle(url, screenshots = []) {
+        if (!url && (!screenshots || screenshots.length === 0)) {
+            throw new Error('URL 또는 스크린샷을 하나 이상 입력해주세요.');
+        }
+
+        const prompt = `너는 네이버 블로그 글쓰기 스타일 분석 전문가야.
+
+${url ? `아래 블로그 글을 구글 검색으로 읽고 스타일을 분석해줘.\nURL: ${url}` : ''}
+${screenshots?.length ? `첨부된 스크린샷 ${screenshots.length}장의 블로그 글 스타일을 분석해줘.` : ''}
+${url && screenshots?.length ? '(URL 내용과 스크린샷을 종합 분석할 것)' : ''}
+
+[분석 기준 — 아래 항목을 모두 분석하라]
+
+1. 톤 (tone) — 7개 축
+- speech (말투): "반말" / "존댓말(~합니다)" / "존댓말(~해요)" / "혼합"
+- energy (에너지): "차분한" / "보통" / "활기찬"
+- selfReveal (자기 노출): "관찰자 시점" / "보통" / "경험자 시점 (직접 체험 중심)"
+- humor (유머): "진지한" / "보통" / "위트 있는 (비유/드립)"
+- detail (디테일): "핵심만" / "보통" / "묘사 풍부 (오감 표현)"
+- readerRelation (독자 관계): "일방 전달" / "보통" / "대화형 (질문/공감 유도)"
+- confidence (확신도/리액션): "조심스러운" / "보통" / "단정적 + 과장 리액션"
+
+2. 구조 (structure)
+- introStyle (도입부 방식): "질문형" / "에피소드형" / "정보 요약형" / "공감 유도형"
+- headingStyle (소제목 스타일): "이모지+텍스트" / "번호형" / "질문형" / "텍스트만"
+- paragraphLength (문단 길이): "짧은 호흡 (1~2줄)" / "보통 (3~4줄)" / "긴 블록 (5줄+)"
+- imagePlace (이미지 배치): "문단 사이마다" / "섹션 끝에 모아서" / "혼합"
+
+3. 어휘 (vocabulary)
+- emojiUse (이모지 사용): "없음" / "적음 (섹션당 0~1개)" / "보통 (문단당 1~2개)" / "많음 (문장마다)"
+- colloquial (구어체 수준): "격식체" / "보통" / "구어체 (진짜, 대박, ㅋㅋ 등)"
+- jargon (전문용어): "쉬운 말 위주" / "적절히 혼합" / "전문 표현 다수"
+
+4. SEO
+- keywordPlacement (키워드 배치): "자연스럽게 분산" / "제목+도입부 집중" / "소제목마다 반복"
+- ctaStyle (CTA 스타일): "없음" / "부드러운 권유" / "직접 유도"
+
+[추가 지시]
+- summary: 이 블로거 스타일의 핵심 특징을 한 줄로 요약 (20자 내외)
+- sampleSentences: 이 블로거의 스타일을 대표하는 문장 3개를 원문에서 발췌
+
+Output strictly a valid JSON:
+{
+  "summary": "한 줄 요약",
+  "sampleSentences": ["문장1", "문장2", "문장3"],
+  "tone": {
+    "speech": "값",
+    "energy": "값",
+    "selfReveal": "값",
+    "humor": "값",
+    "detail": "값",
+    "readerRelation": "값",
+    "confidence": "값"
+  },
+  "structure": {
+    "introStyle": "값",
+    "headingStyle": "값",
+    "paragraphLength": "값",
+    "imagePlace": "값"
+  },
+  "vocabulary": {
+    "emojiUse": "값",
+    "colloquial": "값",
+    "jargon": "값"
+  },
+  "seo": {
+    "keywordPlacement": "값",
+    "ctaStyle": "값"
+  }
+}`;
+
+        const parts = [{ text: prompt }];
+
+        // 스크린샷 이미지 추가
+        if (screenshots?.length) {
+            screenshots.forEach(shot => {
+                parts.push({
+                    inline_data: {
+                        mime_type: shot.mimeType || 'image/jpeg',
+                        data: shot.base64,
+                    }
+                });
+            });
+        }
+
+        // google_search 사용 시 thinkingBudget 제외 (호환성 문제)
+        const options = url
+            ? { tools: [{ google_search: {} }] }
+            : { thinkingBudget: 2048 };
+
+        const result = await this.generateContent(parts, options, '워너비 스타일 분석');
+
+        // 결과를 체크리스트 형태로 변환
+        return this._toStyleChecklist(result);
+    },
+
+    /** 분석 결과를 체크리스트 구조로 변환 */
+    _toStyleChecklist(raw) {
+        const labels = {
+            tone: {
+                speech: '말투', energy: '에너지', selfReveal: '자기 노출',
+                humor: '유머', detail: '디테일', readerRelation: '독자 관계',
+                confidence: '확신도/리액션',
+            },
+            structure: {
+                introStyle: '도입부 방식', headingStyle: '소제목 스타일',
+                paragraphLength: '문단 길이', imagePlace: '이미지 배치',
+            },
+            vocabulary: {
+                emojiUse: '이모지 사용', colloquial: '구어체 수준',
+                jargon: '전문용어 수준',
+            },
+            seo: {
+                keywordPlacement: '키워드 배치', ctaStyle: 'CTA 스타일',
+            },
+        };
+
+        const checklist = {};
+        for (const [group, fields] of Object.entries(labels)) {
+            checklist[group] = Object.entries(fields).map(([key, label]) => ({
+                key,
+                label,
+                value: raw?.[group]?.[key] || '분석 불가',
+                checked: true, // 기본 전체 선택
+            }));
+        }
+
+        return {
+            summary: raw?.summary || '',
+            sampleSentences: raw?.sampleSentences || [],
+            checklist,
+        };
     }
 };
 
