@@ -1,7 +1,7 @@
 import {
     Camera, Search, Sparkles, BarChart3,
     Store, TrendingUp, Users,
-    Upload, Bot, Rocket,
+    Upload, Bot, Rocket, Palette,
 } from 'lucide-react';
 
 export const FEATURES = [
@@ -28,6 +28,14 @@ export const FEATURES = [
         title: '5분이면 발행 가능한 글이 완성됩니다',
         desc: '키워드, 사진, 경쟁 분석을 반영한 SEO 최적화 글을 자동 생성합니다.',
         bullets: ['카테고리별 맞춤 톤·구조 적용', '소제목·문단 자동 구성', 'AI 버블 메뉴로 실시간 편집'],
+    },
+    {
+        id: 'wannabe',
+        icon: Palette,
+        label: '워너비 스타일',
+        title: '좋아하는 블로거의 문체를 내 글에 입힙니다',
+        desc: '인기 블로거의 글을 AI가 분석하여 말투, 구조, 어휘 스타일을 추출하고 내 글에 자동 적용합니다.',
+        bullets: ['블로그 URL만 입력하면 스타일 분석', '말투·구조·어휘 3가지 축 분석', '프리셋 저장 후 원클릭 적용'],
     },
     {
         id: 'seo',

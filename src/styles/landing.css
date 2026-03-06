@@ -1178,6 +1178,90 @@
     color: #D97706;
 }
 
+/* Wannabe Style mockup */
+.feat-mockup-wannabe {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.fm-wannabe-url {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--color-surface-hover);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 0.75rem;
+}
+
+.fm-wannabe-icon {
+    flex-shrink: 0;
+}
+
+.fm-wannabe-input {
+    flex: 1;
+    color: var(--color-text-sub);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fm-wannabe-btn {
+    background: var(--color-brand);
+    color: white;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.fm-wannabe-result {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    background: white;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+}
+
+.fm-wannabe-axis {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.fm-wannabe-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--color-brand);
+    background: var(--color-brand-light);
+    padding: 2px 8px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    min-width: 36px;
+    text-align: center;
+}
+
+.fm-wannabe-value {
+    font-size: 0.72rem;
+    color: var(--color-text-main);
+    font-weight: 500;
+}
+
+.fm-wannabe-apply {
+    text-align: center;
+    background: var(--color-brand);
+    color: white;
+    border-radius: 8px;
+    padding: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
 /* ─── 5. Steps Section ─────────────────────────────── */
 .landing-steps {
     background: var(--color-bg);
