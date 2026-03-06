@@ -570,6 +570,39 @@
 - [x] 글로벌 `~/.claude/commands/wrap-up.md` 삭제 — skills 버전과 중복
 - [x] `/wrap-up` 스킬 수정 — `git add -A` → 특정 파일만 add (CLAUDE.md 규칙 준수)
 
+## 완료된 작업 (2026-03-07) — 이사회 감사 기반 /posts + /editor + 위자드 품질 개선
+
+### PostListPage 이사회 7개 항목
+- [x] Empty state → 3단계 온보딩 가이드 (사진→AI→발행)
+- [x] CTA 카드 dashed→solid + 브랜드 좌측 4px 보더
+- [x] 삭제 확인 커스텀 모달 (window.confirm 제거, ESC 지원)
+- [x] 삭제 버튼 hover-only 표시 (모바일은 항상 표시)
+- [x] 포스트 카드 미리보기 2줄 말줄임 (CSS line-clamp)
+- [x] 키워드를 메타 행에 인라인 통합
+- [x] UsageBar 80%+ 경고 스타일 + BYOK 업그레이드 CTA 버튼
+
+### EditorPage 이사회 7개 항목
+- [x] SLOT_CONFIG 150줄 → `data/slotConfig.js` 별도 파일 분리
+- [x] AI 이미지 버튼 인라인 스타일 20줄 → `.image-gen-floating-btn` CSS 클래스
+- [x] 플로팅 버튼 간격 정리 (`.shift-up` 조건부 위치)
+- [x] 생성 완료 축하 카드 + "다음 할 일" 3단계 안내 모달
+- [x] 에디터 첫 진입 온보딩 툴팁 (localStorage 기반 1회)
+- [x] 위자드 이탈 방지 (beforeunload 경고)
+- [x] Pro 기능 잠금 표시 (회색 버튼 + Lock 뱃지 + 안내 토스트)
+- [x] title 변수 EditorContext 구조분해 추가 (lint 에러 해결)
+
+### 위자드 UX 5개 항목
+- [x] "Step N:" 영어 → 한국어 타이틀 통일 (전 5개 스텝)
+- [x] StepIndicator↔헤딩 중복 해소 (모바일 여백 대폭 축소)
+- [x] 메타 정보 뱃지 스타일 (둥근 테두리 + 배경)
+- [x] 안내 박스 → CTA 아래 힌트 텍스트로 통합
+- [x] StepIndicator margin/padding 축소 (40→24px)
+
+### 남은 작업
+- [ ] 랜딩 페이지 이사회 CRO A+ 달성 (현재 A-)
+- [ ] 에디터 내 재생성 진입 경로 (위자드로 돌아가기)
+- [ ] 생성된 글 경쟁 블로그 대비 품질 비교 피드백
+
 ## 아이디어 보관함 (Icebox)
 
 > 당장 구현하지 않지만 나중에 재검토할 수 있는 아이디어
