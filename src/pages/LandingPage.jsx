@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import {
     Loader2, Sparkles,
     ChevronDown, Check, X, TrendingUp,
-    Upload, Rocket, FileText, ArrowRight, Target
+    Upload, Rocket, FileText, ArrowRight, Menu
 } from 'lucide-react';
 import { CATEGORIES } from '../data/categories';
 import {
@@ -36,10 +36,17 @@ const KakaoIcon = () => (
     </svg>
 );
 
-const LoginModal = ({ onClose, onLogin, loginLoading, loginProvider }) => (
-    <div className="login-modal-overlay" onClick={onClose}>
+const LoginModal = ({ onClose, onLogin, loginLoading, loginProvider }) => {
+    React.useEffect(() => {
+        const handleEsc = (e) => { if (e.key === 'Escape') onClose(); };
+        document.addEventListener('keydown', handleEsc);
+        return () => document.removeEventListener('keydown', handleEsc);
+    }, [onClose]);
+
+    return (
+    <div className="login-modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-label="로그인">
         <div className="login-modal" onClick={(e) => e.stopPropagation()}>
-            <button className="login-modal-close" onClick={onClose}>
+            <button className="login-modal-close" onClick={onClose} aria-label="닫기">
                 <X size={20} />
             </button>
             <div className="login-modal-header">
@@ -84,10 +91,12 @@ const LoginModal = ({ onClose, onLogin, loginLoading, loginProvider }) => (
             </div>
         </div>
     </div>
-);
+    );
+};
 
 const StickyHeader = ({ handleStart, loginLoading }) => {
     const [scrolled, setScrolled] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     useEffect(() => {
         const onScroll = () => setScrolled(window.scrollY > 20);
@@ -96,6 +105,7 @@ const StickyHeader = ({ handleStart, loginLoading }) => {
     }, []);
 
     const scrollTo = (id) => {
+        setMobileMenuOpen(false);
         document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
     };
 
@@ -112,6 +122,13 @@ const StickyHeader = ({ handleStart, loginLoading }) => {
                     <button onClick={() => scrollTo('faq')}>FAQ</button>
                 </nav>
                 <button
+                    className="landing-mobile-menu-btn"
+                    onClick={() => setMobileMenuOpen(prev => !prev)}
+                    aria-label={mobileMenuOpen ? '메뉴 닫기' : '메뉴 열기'}
+                >
+                    {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+                </button>
+                <button
                     className="landing-header-cta"
                     onClick={handleStart}
                     disabled={loginLoading}
@@ -122,22 +139,33 @@ const StickyHeader = ({ handleStart, loginLoading }) => {
                     }
                 </button>
             </div>
+            {mobileMenuOpen && (
+                <nav className="landing-mobile-nav">
+                    <button onClick={() => scrollTo('features')}>기능</button>
+                    <button onClick={() => scrollTo('pricing')}>요금</button>
+                    <button onClick={() => scrollTo('faq')}>FAQ</button>
+                    <button className="landing-mobile-nav-cta" onClick={() => { setMobileMenuOpen(false); handleStart(); }}>
+                        시작하기
+                    </button>
+                </nav>
+            )}
         </header>
     );
 };
 
 const HeroSection = ({ handleStart, loginLoading }) => (
+    <div className="landing-hero-wrap">
     <section className="landing-hero">
         <div className="landing-hero-content">
             <span className="landing-badge hero-anim" style={{ '--delay': '0s' }}>네이버 블로그 전문 AI</span>
-            <h2 className="landing-hero-title">
+            <h1 className="landing-hero-title">
                 <span className="hero-anim" style={{ '--delay': '0.1s' }}>사진만 올리면</span><br />
                 <span className="hero-anim" style={{ '--delay': '0.25s' }}>상위 노출 블로그 글이</span><br />
                 <span className="highlight hero-anim-typing">5분 만에 완성됩니다</span>
-            </h2>
+            </h1>
             <p className="landing-hero-desc hero-anim" style={{ '--delay': '0.7s' }}>
-                피클잇이 키워드 분석, 경쟁 조사, SEO 최적화까지 한 번에 처리합니다.<br />
-                당신은 사진만 올리세요.
+                ChatGPT, 뤼튼에는 없는 <strong>사진 분석 AI</strong>가<br />
+                키워드 분석, 경쟁 조사, SEO 최적화까지 한 번에 처리합니다.
             </p>
             <div className="hero-tags hero-anim" style={{ '--delay': '0.8s' }}>
                 <span>#사진_AI_분석</span>
@@ -208,6 +236,7 @@ const HeroSection = ({ handleStart, loginLoading }) => (
             </div>
         </div>
     </section>
+    </div>
 );
 
 const CounterNumber = ({ num, prefix = '', suffix, label }) => {
@@ -357,7 +386,6 @@ const FeatureMockup = ({ id }) => {
                 <div className="fm-editor-title-line" />
                 <div className="fm-editor-line w80" />
                 <div className="fm-editor-line w95" />
-                <div className="fm-editor-line w70" />
                 <div className="fm-bubble-menu">
                     <span>다듬기</span><span>늘리기</span><span>톤 변경</span>
                 </div>
@@ -374,7 +402,7 @@ const FeatureMockup = ({ id }) => {
             <div className="fm-wannabe-result">
                 <div className="fm-wannabe-axis">
                     <span className="fm-wannabe-label">말투</span>
-                    <span className="fm-wannabe-value">~했어요 (친근 존댓말)</span>
+                    <span className="fm-wannabe-value">~했어요 (친근체)</span>
                 </div>
                 <div className="fm-wannabe-axis">
                     <span className="fm-wannabe-label">구조</span>
@@ -382,10 +410,9 @@ const FeatureMockup = ({ id }) => {
                 </div>
                 <div className="fm-wannabe-axis">
                     <span className="fm-wannabe-label">어휘</span>
-                    <span className="fm-wannabe-value">감성적 묘사 + 이모지</span>
+                    <span className="fm-wannabe-value">감성 묘사 + 이모지</span>
                 </div>
             </div>
-            <div className="fm-wannabe-apply">적용하기</div>
         </div>
     );
     if (id === 'seo') return (
@@ -401,7 +428,6 @@ const FeatureMockup = ({ id }) => {
                 <div className="fm-seo-check done"><Check size={12} /> 키워드 밀도 적정</div>
                 <div className="fm-seo-check done"><Check size={12} /> 소제목 3개 이상</div>
                 <div className="fm-seo-check done"><Check size={12} /> 본문 1,500자+</div>
-                <div className="fm-seo-check warn"><Target size={12} /> 이미지 ALT 추가 권장</div>
             </div>
         </div>
     );
@@ -435,6 +461,24 @@ const FeatureShowcase = () => (
                     </div>
                 ))}
             </div>
+        </div>
+    </section>
+);
+
+const MidCTA = ({ handleStart, loginLoading }) => (
+    <section className="landing-mid-cta">
+        <div className="landing-section-inner">
+            <p className="mid-cta-text">지금 바로 체험해보세요 — 첫 달 모든 기능 무료</p>
+            <button
+                className="landing-cta-primary"
+                onClick={handleStart}
+                disabled={loginLoading}
+            >
+                {loginLoading
+                    ? <><Loader2 size={16} className="spin" /> 로그인 중...</>
+                    : '무료로 시작하기'
+                }
+            </button>
         </div>
     </section>
 );
@@ -512,8 +556,8 @@ const StepsSection = () => (
                 {STEPS.map((step, i) => (
                     <React.Fragment key={i}>
                         <div className={`step-row ${i % 2 === 1 ? 'reverse' : ''}`}>
+                            <div className="step-number">{step.num}</div>
                             <div className="step-text">
-                                <div className="step-number">{step.num}</div>
                                 <h3>{step.title}</h3>
                                 <p>{step.desc}</p>
                                 {step.substeps && (
@@ -546,7 +590,7 @@ const CategoryGrid = () => (
             <span className="landing-section-badge">카테고리</span>
             <h2 className="landing-section-title">어떤 주제든 전문가처럼 써 줍니다</h2>
             <p className="landing-section-desc">
-                맛집, 여행, 육아, 테크… 카테고리별 톤과 키워드 전략이 자동 적용됩니다.
+                맛집, 여행, 육아, 테크…{'\n'}카테고리별 톤과 키워드 전략이 자동 적용됩니다.
             </p>
             <div className="category-pills">
                 {CATEGORIES.map((cat) => (
@@ -583,12 +627,8 @@ const PersonaCards = () => (
 const ReviewsSection = () => (
     <section className="landing-reviews reveal-on-scroll">
         <div className="landing-section-inner">
-            <span className="landing-section-badge">사용자 후기</span>
-            <h2 className="landing-section-title">실제 사용자들의 솔직 후기</h2>
-            <div className="reviews-score">
-                <span className="reviews-star">&#9733; 4.9</span>
-                <span className="reviews-score-label">/ 5.0 사용자 만족도</span>
-            </div>
+            <span className="landing-section-badge">베타 테스터 후기</span>
+            <h2 className="landing-section-title">베타 테스터들의 솔직한 피드백</h2>
             <div className="reviews-grid">
                 {REVIEWS.map((r, i) => (
                     <div className="review-card" key={i}>
@@ -627,7 +667,6 @@ const ComparisonTable = () => (
                             <th className="comp-highlight">피클잇</th>
                             <th>가제트AI</th>
                             <th>워들리</th>
-                            <th>ChatGPT</th>
                             <th>뤼튼</th>
                         </tr>
                     </thead>
@@ -638,13 +677,30 @@ const ComparisonTable = () => (
                                 <td className="comp-highlight">{row.piklit ? <Check size={18} /> : <X size={18} />}</td>
                                 <td>{row.gadget ? <Check size={18} /> : <X size={18} />}</td>
                                 <td>{row.wordly ? <Check size={18} /> : <X size={18} />}</td>
-                                <td>{row.chatgpt ? <Check size={18} /> : <X size={18} />}</td>
                                 <td>{row.rytn ? <Check size={18} /> : <X size={18} />}</td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
             </div>
+        </div>
+    </section>
+);
+
+const MidCTA2 = ({ handleStart, loginLoading }) => (
+    <section className="landing-mid-cta">
+        <div className="landing-section-inner">
+            <p className="mid-cta-text">피클잇이 압도적입니다. 직접 확인해보세요</p>
+            <button
+                className="landing-cta-primary"
+                onClick={handleStart}
+                disabled={loginLoading}
+            >
+                {loginLoading
+                    ? <><Loader2 size={16} className="spin" /> 로그인 중...</>
+                    : '무료로 시작하기'
+                }
+            </button>
         </div>
     </section>
 );
@@ -704,6 +760,7 @@ const FAQSection = () => {
                             <button
                                 className="faq-question"
                                 onClick={() => setOpenIndex(openIndex === i ? null : i)}
+                                aria-expanded={openIndex === i}
                             >
                                 <span>{faq.q}</span>
                                 <ChevronDown size={20} />
@@ -722,9 +779,9 @@ const FAQSection = () => {
 const BottomCTA = ({ handleStart, loginLoading }) => (
     <section className="landing-bottom-cta">
         <div className="landing-section-inner">
-            <h2>오늘, 첫 번째 상위 노출 글을 만들어보세요</h2>
+            <h2>첫 상위 노출 글, 지금 만들어보세요</h2>
             <p className="bottom-cta-desc">
-                가입 첫 달 모든 기능 무료. 5분이면 SEO 90점 이상의 블로그 글이 완성됩니다.
+                첫 달 모든 기능 무료.{'\n'}5분이면 SEO 90점 이상 글이 완성됩니다.
             </p>
             <button
                 className="landing-cta-primary landing-cta-large"
@@ -736,7 +793,7 @@ const BottomCTA = ({ handleStart, loginLoading }) => (
                     : <><Rocket size={20} /> 30초 만에 시작하기 — 첫 달 무료</>
                 }
             </button>
-            <span className="bottom-cta-note">카드 등록 없음 · 네이버 · 카카오 · Google 계정으로 바로 시작</span>
+            <span className="bottom-cta-note">카드 등록 없음 · 간편 소셜 로그인</span>
         </div>
     </section>
 );
@@ -820,18 +877,20 @@ const LandingPage = () => {
     };
 
     return (
-        <div className="landing">
+        <main className="landing">
             <StickyHeader handleStart={handleStart} loginLoading={loginLoading} />
             <HeroSection handleStart={handleStart} loginLoading={loginLoading} />
             <TrustBar />
             <SampleCarousel />
             <PainSection />
             <FeatureShowcase />
+            <MidCTA handleStart={handleStart} loginLoading={loginLoading} />
             <StepsSection />
             <CategoryGrid />
             <PersonaCards />
             <ReviewsSection />
             <ComparisonTable />
+            <MidCTA2 handleStart={handleStart} loginLoading={loginLoading} />
             <PricingSection handleStart={handleStart} loginLoading={loginLoading} />
             <FAQSection />
             <BottomCTA handleStart={handleStart} loginLoading={loginLoading} />
@@ -844,7 +903,7 @@ const LandingPage = () => {
                     loginProvider={loginProvider}
                 />
             )}
-        </div>
+        </main>
     );
 };
 

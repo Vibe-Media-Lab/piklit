@@ -10,7 +10,7 @@ export const FEATURES = [
         icon: Camera,
         label: '사진 분석',
         title: '사진 한 장이 2,000자 블로그 글이 됩니다',
-        desc: '장소, 메뉴, 분위기를 AI가 자동 인식하고 SEO에 맞는 본문으로 바꿔줍니다.',
+        desc: '장소, 메뉴, 분위기를 AI가 자동 인식하고\nSEO에 맞는 본문으로 바꿔줍니다.',
         bullets: ['장소·음식·분위기 자동 인식', '사진별 SEO 설명 자동 생성', '본문 내 자연스러운 배치'],
     },
     {
@@ -18,7 +18,7 @@ export const FEATURES = [
         icon: Search,
         label: '키워드 분석',
         title: '감춰진 골든 키워드, 30초 만에 발굴',
-        desc: '네이버 상위 10개 블로그를 실시간 분석하여 검색량은 높고 경쟁은 낮은 키워드를 자동 추천합니다.',
+        desc: '네이버 상위 10개 블로그를 실시간 분석하여\n검색량 높고 경쟁 낮은 키워드를 자동 추천합니다.',
         bullets: ['실시간 검색 트렌드 분석', '경쟁 블로그 상위 노출 분석', '롱테일 키워드 자동 추천'],
     },
     {
@@ -26,7 +26,7 @@ export const FEATURES = [
         icon: Sparkles,
         label: 'AI 글 생성',
         title: '5분이면 발행 가능한 글이 완성됩니다',
-        desc: '키워드, 사진, 경쟁 분석을 반영한 SEO 최적화 글을 자동 생성합니다.',
+        desc: '키워드, 사진, 경쟁 분석을 반영한\nSEO 최적화 글을 자동 생성합니다.',
         bullets: ['카테고리별 맞춤 톤·구조 적용', '소제목·문단 자동 구성', 'AI 버블 메뉴로 실시간 편집'],
     },
     {
@@ -34,7 +34,7 @@ export const FEATURES = [
         icon: Palette,
         label: '워너비 스타일',
         title: '좋아하는 블로거의 문체를 내 글에 입힙니다',
-        desc: '인기 블로거의 글을 AI가 분석하여 말투, 구조, 어휘 스타일을 추출하고 내 글에 자동 적용합니다.',
+        desc: '인기 블로거의 말투·구조·어휘를 AI가 분석하고\n내 글에 자동 적용합니다.',
         bullets: ['블로그 URL만 입력하면 스타일 분석', '말투·구조·어휘 3가지 축 분석', '프리셋 저장 후 원클릭 적용'],
     },
     {
@@ -42,7 +42,7 @@ export const FEATURES = [
         icon: BarChart3,
         label: 'SEO 코칭',
         title: '발행 전 SEO 90점 이상을 보장합니다',
-        desc: '키워드 밀도, 소제목 구조, 본문 길이 등 12개 항목을 실시간 체크하고 개선점을 안내합니다.',
+        desc: '키워드 밀도, 소제목, 본문 길이 등 12개 항목을\n실시간 체크하고 개선점을 안내합니다.',
         bullets: ['12개 항목 실시간 분석', '개선 포인트 즉시 안내', '경쟁 글 대비 점수 비교'],
     },
 ];
@@ -58,35 +58,35 @@ export const PERSONAS = [
     {
         icon: Store,
         title: '소상공인 / 자영업자',
-        desc: '대행사에 월 30만원 쓰시나요? 매장 사진만 올리면 5분 만에 홍보 포스팅이 완성됩니다.',
+        desc: '대행사에 월 30만원 쓰시나요?\n매장 사진만 올리면 5분 만에 홍보 포스팅 완성.',
         tag: '마케팅 비용 절감',
         scenario: '"카페 사진 3장 → 5분 만에 홍보 포스팅 완성"',
     },
     {
         icon: Users,
         title: '초보 블로거',
-        desc: '처음이라도 괜찮아요. 사진만 올리면 AI가 키워드부터 SEO까지 전부 처리합니다.',
+        desc: '처음이라도 괜찮아요.\n사진만 올리면 키워드부터 SEO까지 전부 처리합니다.',
         tag: '진입 장벽 제로',
         scenario: '"첫 글인데 SEO 92점, 이웃 신청이 계속 와요"',
     },
     {
         icon: TrendingUp,
         title: '파워 블로거 / N잡러',
-        desc: '하루에 글 3개 이상 쓰시나요? 경쟁 분석 + AI 편집으로 포스팅 속도를 3배 올려드립니다.',
+        desc: '하루에 글 3개 이상 쓰시나요?\n경쟁 분석 + AI 편집으로 속도를 3배 올려드립니다.',
         tag: '생산성 극대화',
         scenario: '"하루 3개 포스팅도 거뜬, 작성 시간 90% 절약"',
     },
 ];
 
 export const COMPARISON = [
-    { feature: '네이버 SEO 특화', piklit: true, gadget: true, wordly: true, chatgpt: false, rytn: false },
-    { feature: '사진 분석 → 본문 반영', piklit: true, gadget: false, wordly: false, chatgpt: false, rytn: false },
-    { feature: '내장 에디터 (실시간 편집)', piklit: true, gadget: false, wordly: false, chatgpt: false, rytn: false },
-    { feature: '실시간 키워드 분석', piklit: true, gadget: false, wordly: false, chatgpt: false, rytn: true },
-    { feature: '경쟁 블로그 분석', piklit: true, gadget: false, wordly: false, chatgpt: false, rytn: false },
-    { feature: '12개 SEO 항목 코칭', piklit: true, gadget: false, wordly: false, chatgpt: false, rytn: false },
-    { feature: '카테고리별 맞춤 톤', piklit: true, gadget: true, wordly: true, chatgpt: false, rytn: true },
-    { feature: '최저가 BYOK', piklit: true, gadget: false, wordly: false, chatgpt: false, rytn: false },
+    { feature: '네이버 SEO 특화', piklit: true, gadget: true, wordly: true, rytn: false },
+    { feature: '사진 분석 → 본문', piklit: true, gadget: false, wordly: false, rytn: false },
+    { feature: '내장 에디터', piklit: true, gadget: false, wordly: false, rytn: false },
+    { feature: '실시간 키워드 분석', piklit: true, gadget: false, wordly: false, rytn: true },
+    { feature: '경쟁 블로그 분석', piklit: true, gadget: false, wordly: false, rytn: false },
+    { feature: 'SEO 코칭', piklit: true, gadget: false, wordly: false, rytn: false },
+    { feature: '맞춤 톤·구조', piklit: true, gadget: true, wordly: true, rytn: true },
+    { feature: '최저가 BYOK', piklit: true, gadget: false, wordly: false, rytn: false },
 ];
 
 export const PRICING = [
@@ -147,56 +147,44 @@ export const FAQS = [
         q: '내 데이터는 안전한가요?',
         a: '업로드한 사진과 작성한 글은 사용자 브라우저에 저장되며, 서버에 별도 보관하지 않습니다. AI 분석 요청은 암호화된 연결로 처리됩니다.',
     },
+    {
+        q: '다른 AI 글쓰기 도구와 뭐가 다른가요?',
+        a: '피클잇은 사진 분석, 실시간 키워드 조사, 경쟁 블로그 분석, SEO 코칭, 내장 에디터까지 네이버 블로그에 특화된 올인원 도구입니다. ChatGPT나 뤼튼처럼 단순히 글만 생성하는 것이 아니라, 상위 노출을 위한 전체 파이프라인을 제공합니다.',
+    },
 ];
 
 export const REVIEWS = [
     {
         name: '김OO님',
         role: '맛집 블로거',
-        period: '사용 3개월',
-        text: '사진만 올리면 글이 완성되니까 포스팅 시간이 반나절에서 15분으로 줄었어요. SEO 점수까지 알려주니 상위 노출도 훨씬 잘 돼요.',
-        metric: '작성 시간 90% 절약',
-        badge: 'BEST',
+        period: '베타 테스터',
+        text: '사진만 올리면 글이 완성되니까 포스팅 시간이 확 줄었어요.\nSEO 점수까지 실시간으로 알려주는 게 정말 편합니다.',
+        metric: '작성 시간 80% 단축',
+        badge: '베타',
     },
     {
         name: '이OO님',
         role: '초보 블로거',
-        period: '사용 1개월',
-        text: '블로그를 처음 시작했는데, 키워드 분석부터 본문 구조까지 AI가 다 잡아줘서 첫 글부터 이웃 수가 빠르게 늘었습니다.',
-        metric: '첫 달 이웃 50명 달성',
-        badge: '인기',
+        period: '베타 테스터',
+        text: '블로그를 처음 시작했는데, 키워드 분석부터 본문 구조까지\nAI가 다 잡아줘서 첫 글부터 자신감이 생겼어요.',
+        metric: '첫 글 SEO 92점 달성',
+        badge: '베타',
     },
     {
         name: '박OO님',
         role: '카페 사장님',
-        period: '사용 2개월',
-        text: '가게 사진 찍어서 올리기만 하면 홍보 글이 나와요. 블로그 마케팅 대행 맡기던 비용을 완전히 아끼게 됐습니다.',
-        metric: '마케팅 비용 100% 절감',
-        badge: '인증됨',
+        period: '베타 테스터',
+        text: '가게 사진 찍어서 올리기만 하면 홍보 글이 나와요.\n대행사에 맡기지 않아도 될 것 같습니다.',
+        metric: '월 30만원 대행비 절약',
+        badge: '베타',
     },
     {
         name: '정OO님',
         role: '여행 블로거',
-        period: '사용 4개월',
-        text: '여행 다녀와서 사진 정리하고 글 쓰는 게 제일 귀찮았는데, 피클잇 덕에 사진만 올리면 여행기가 완성돼요. 퀄리티도 만족합니다.',
-        metric: '월 포스팅 3배 증가',
-        badge: 'BEST',
-    },
-    {
-        name: '최OO님',
-        role: '육아 블로거',
-        period: '사용 2개월',
-        text: '아이 사진으로 육아 일기를 쓰는데 정말 편해요. 톤도 따뜻하게 잡아주고, 키워드도 알아서 넣어줘서 SEO 점수가 항상 90점 이상이에요.',
-        metric: 'SEO 평균 92점',
-        badge: '인기',
-    },
-    {
-        name: '한OO님',
-        role: '제품 리뷰어',
-        period: '사용 3개월',
-        text: '제품 사진 올리면 스펙 비교부터 사용 후기까지 짜임새 있게 나와요. 네이버 키워드 분석이 진짜 유용합니다.',
-        metric: '리뷰 조회수 2배 상승',
-        badge: '인증됨',
+        period: '베타 테스터',
+        text: '사진 정리하고 글 쓰는 게 제일 귀찮았는데,\n사진만 올리면 여행기가 완성돼요. 퀄리티도 괜찮아요.',
+        metric: '포스팅 속도 3배 향상',
+        badge: '베타',
     },
 ];
 
@@ -204,31 +192,31 @@ export const STEPS = [
     {
         num: 1,
         title: '사진을 올리세요. 나머지는 피클잇이 합니다',
-        desc: '드래그 앤 드롭으로 사진만 올리면 AI가 장소, 메뉴, 분위기를 알아서 파악합니다.',
+        desc: '사진만 올리면 AI가 장소·메뉴·분위기를 자동 파악합니다.',
         icon: Upload,
         substeps: ['사진 최대 10장 드래그 & 드롭', '16개 카테고리 중 선택', 'AI가 사진 속 정보 자동 인식'],
     },
     {
         num: 2,
         title: '키워드 분석부터 본문 완성까지, 자동으로',
-        desc: '버튼 하나로 키워드 분석, 경쟁 조사, SEO 최적화 본문까지 한 번에 완성됩니다.',
+        desc: '키워드·경쟁 조사·SEO 본문까지 버튼 하나로 완성됩니다.',
         icon: Bot,
         substeps: ['실시간 키워드 트렌드 분석', '경쟁 블로그 상위 10개 조사', 'SEO 최적화 본문 자동 생성'],
     },
     {
         num: 3,
         title: '복사 → 붙여넣기, 바로 네이버에 발행',
-        desc: 'SEO 점수를 확인하고, 복사 버튼 하나로 네이버 블로그에 바로 발행하세요.',
+        desc: 'SEO 점수 확인 후 복사 한 번으로 네이버에 바로 발행하세요.',
         icon: Rocket,
         substeps: ['12개 SEO 항목 실시간 체크', 'AI 편집 도구로 문장 다듬기', '클립보드 복사 → 네이버 발행'],
     },
 ];
 
 export const TRUST_NUMBERS = [
-    { num: 5, suffix: '분', label: '평균 작성 시간' },
+    { num: 5, suffix: '분', label: '목표 작성 시간' },
     { num: 12, suffix: '개', label: 'SEO 분석 항목' },
     { num: 16, suffix: '개', label: '카테고리 지원' },
-    { num: 90, suffix: '%', label: '작성 시간 절약' },
+    { num: 5, suffix: '단계', label: 'AI 자동화 파이프라인' },
 ];
 
 export const SAMPLES = [

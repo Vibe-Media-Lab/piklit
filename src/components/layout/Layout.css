@@ -423,7 +423,10 @@
         background: none;
         border: none;
         cursor: pointer;
-        font: inherit;
+        font-family: inherit;
+        font-size: var(--font-size-sm);
+        font-weight: 500;
+        color: var(--color-text-sub);
     }
 
     .topbar-actions .topbar-btn span {

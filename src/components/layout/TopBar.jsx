@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLocation, useParams, NavLink } from 'react-router-dom';
 import { useEditor } from '../../context/EditorContext';
+import { useAuth } from '../../context/AuthContext';
 import { copyToClipboard, exportAsMarkdown, exportAsHtml, exportAsText } from '../../utils/clipboard';
 import { Save, Copy, Download, Check, ChevronDown } from 'lucide-react';
 import SettingsModal from '../common/SettingsModal';
@@ -12,6 +13,7 @@ const PAGE_TITLES = {
 
 const TopBar = () => {
     const { title, content, savePost, currentPostId } = useEditor();
+    const { logout } = useAuth();
     const location = useLocation();
     const { id } = useParams();
     const [copyStatus, setCopyStatus] = useState('idle');
@@ -87,7 +89,7 @@ const TopBar = () => {
                         <button className="my-menu-item" onClick={() => { setSettingsOpen(true); setMyMenuOpen(false); }}>
                             설정
                         </button>
-                        <button className="my-menu-item" onClick={() => setMyMenuOpen(false)}>
+                        <button className="my-menu-item" onClick={() => { setMyMenuOpen(false); logout(); }}>
                             로그아웃
                         </button>
                         <button className="my-menu-cancel" onClick={() => setMyMenuOpen(false)}>
