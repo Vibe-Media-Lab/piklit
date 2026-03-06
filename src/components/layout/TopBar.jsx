@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useLocation, useParams, NavLink, useNavigate } from 'react-router-dom';
 import { useEditor } from '../../context/EditorContext';
 import { copyToClipboard, exportAsMarkdown, exportAsHtml, exportAsText } from '../../utils/clipboard';
-import { Save, Copy, Download, Check, ChevronDown, Plus, User } from 'lucide-react';
+import { Save, Copy, Download, Check, ChevronDown, Plus, User, Settings, LogOut } from 'lucide-react';
+import SettingsModal from '../common/SettingsModal';
 
 const PAGE_TITLES = {
     '/posts': '내 글',
@@ -16,18 +17,24 @@ const TopBar = () => {
     const [copyStatus, setCopyStatus] = useState('idle');
     const [saveStatus, setSaveStatus] = useState('idle');
     const [exportOpen, setExportOpen] = useState(false);
+    const [profileOpen, setProfileOpen] = useState(false);
+    const [settingsOpen, setSettingsOpen] = useState(false);
     const exportRef = useRef(null);
+    const profileRef = useRef(null);
 
     useEffect(() => {
-        if (!exportOpen) return;
+        if (!exportOpen && !profileOpen) return;
         const handleClickOutside = (e) => {
-            if (exportRef.current && !exportRef.current.contains(e.target)) {
+            if (exportOpen && exportRef.current && !exportRef.current.contains(e.target)) {
                 setExportOpen(false);
+            }
+            if (profileOpen && profileRef.current && !profileRef.current.contains(e.target)) {
+                setProfileOpen(false);
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [exportOpen]);
+    }, [exportOpen, profileOpen]);
 
     const handleSave = () => {
         const success = savePost();
@@ -72,9 +79,21 @@ const TopBar = () => {
                 <button className="topbar-new-post-fab" onClick={() => navigate('/start')} aria-label="새 글 작성">
                     <Plus size={18} />
                 </button>
-                <button className="topbar-profile-btn" aria-label="프로필 설정">
-                    <User size={18} />
-                </button>
+                <div className="topbar-profile-wrapper" ref={profileRef}>
+                    <button className="topbar-profile-btn" onClick={() => setProfileOpen(prev => !prev)} aria-label="프로필 설정">
+                        <User size={18} />
+                    </button>
+                    {profileOpen && (
+                        <div className="topbar-profile-dropdown">
+                            <button onClick={() => { setSettingsOpen(true); setProfileOpen(false); }}>
+                                <Settings size={15} /> 설정
+                            </button>
+                            <button onClick={() => { setProfileOpen(false); }}>
+                                <LogOut size={15} /> 로그아웃
+                            </button>
+                        </div>
+                    )}
+                </div>
             </nav>
 
             {isEditor && (
@@ -111,6 +130,7 @@ const TopBar = () => {
                     </div>
                 </div>
             )}
+            <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
         </div>
     );
 };
