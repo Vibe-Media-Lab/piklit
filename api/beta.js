@@ -1,7 +1,7 @@
 import { verifyFirebaseToken } from './lib/auth.js';
 import { getDoc, setDoc } from './lib/firestore.js';
 
-const BETA_CODE = process.env.BETA_CODE || 'PICKLEVIP';
+const BETA_CODE = process.env.BETA_CODE || 'PIKLIT-VIP';
 const BETA_MAX_USERS = 30;
 const BETA_DAYS = 7;
 

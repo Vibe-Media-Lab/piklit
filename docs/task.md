@@ -527,6 +527,41 @@
 ### 문서
 - [x] `docs/commands-cheatsheet.md` 신규 — 전체 명령어·에이전트·훅·세션 흐름 치트시트
 
+## 완료된 작업 (2026-03-06) — 5단계 위자드 + 베타 테스터 + 버그 리포트
+
+### 위자드 5단계 재구성
+- [x] 4단계→5단계: 주제 → 키워드 → 스타일설정 → 이미지 → 아웃라인+생성
+- [x] `ToneStep.jsx` 신규 — 경쟁분석+글자수+톤앤무드+문단호흡+워너비스타일 통합
+- [x] 워너비 스타일 분석/프리셋 기능 (`WannabeStylePanel.jsx`, `wannabeStyle.js`)
+- [x] 문단 호흡 선택 (한줄씩/보통/긴호흡) — 프롬프트+후처리 이중 적용
+- [x] 직접 작성 모드 제거 (BOD 승인)
+- [x] TONES 상수 KeywordStep→ToneStep 이동, OutlineStep import 수정
+
+### 베타 테스터 시스템
+- [x] `api/beta.js` — 코드 검증(PIKLIT-VIP) + 30명 선착순 + 7일 한정
+- [x] `SettingsModal.jsx` — 베타 코드 입력 UI + 활성 배지(D-day)
+- [x] `EditorPage.jsx` — userPlan 동적 연동 (free/beta/pro)
+- [x] AI 이미지 생성 pro 전용 제한 (beta 플랜 제외)
+
+### 버그 리포트 시스템
+- [x] `consoleCapture.js` — 콘솔 로그 자동 수집 (log/warn/error + 전역 에러)
+- [x] `BugReportButton.jsx` — 플로팅 버튼 + 스크린샷(html2canvas) + 로그 자동 첨부
+- [x] `api/bug-report.js` — 버그 저장/조회/상태변경 API
+- [x] `AdminBugsPage.jsx` — /admin/bugs 관리 페이지 (sylee@datable.co.kr 전용)
+- [x] 상태 관리: 신규/확인/해결 3단계
+
+### 버그 수정
+- [x] OutlineStep에서 headingCount 0이 화면에 "0"으로 렌더링 — `> 0 &&` 조건 수정
+- [x] ImageSeoGuide 미임포트 오류 수정
+- [x] 워너비 분석 실패 — google_search + thinkingBudget 비호환 해결
+- [x] [[VIDEO:text]] 태그 미변환 — 정규식 확장
+- [x] 느낌표(!) 뒤 줄바꿈 미동작 — 문장 분리 정규식 수정
+
+### 남은 작업
+- [ ] Vercel 환경변수 `BETA_CODE=PIKLIT-VIP` 추가 후 테스트
+- [ ] 베타 테스터 + 버그 리포트 실제 동작 검증
+- [ ] 랜딩 페이지에 워너비 스타일 기능 소개 추가
+
 ## 아이디어 보관함 (Icebox)
 
 > 당장 구현하지 않지만 나중에 재검토할 수 있는 아이디어
