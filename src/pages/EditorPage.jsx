@@ -723,8 +723,8 @@ const EditorPage = () => {
                 </>
             )}
 
-            {/* AI 이미지 생성 플로팅 버튼 + 드로어 (pro 전용) */}
-            {userPlan === 'pro' && (
+            {/* AI 이미지 생성 플로팅 버튼 + 드로어 (pro/beta 전용) */}
+            {(userPlan === 'pro' || userPlan === 'beta') && (
                 <>
                     <button
                         className="image-gen-floating-btn"

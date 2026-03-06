@@ -2,11 +2,19 @@ import { verifyFirebaseToken } from './lib/auth.js';
 import { getDoc, setDoc } from './lib/firestore.js';
 
 const PROMO_DAYS = 30;
+const BETA_DAYS = 7;
+const BETA_IMAGE_LIMIT = 5;
 
 function isWithinPromo(createdAt) {
     if (!createdAt) return false;
     const diffDays = (Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24);
     return diffDays <= PROMO_DAYS;
+}
+
+function isActiveBeta(userData) {
+    if (!userData?.betaActivatedAt) return false;
+    const diffDays = (Date.now() - new Date(userData.betaActivatedAt).getTime()) / (1000 * 60 * 60 * 24);
+    return diffDays <= BETA_DAYS;
 }
 
 export default async function handler(req, res) {
@@ -48,7 +56,18 @@ export default async function handler(req, res) {
                 userData.createdAt = new Date().toISOString();
             }
 
-            if (!isWithinPromo(userData.createdAt)) {
+            // 베타 테스터: 5장 한정
+            if (isActiveBeta(userData)) {
+                const used = userData.betaImageCount || 0;
+                if (used >= BETA_IMAGE_LIMIT) {
+                    return res.status(403).json({
+                        error: `베타 테스터 AI 이미지 생성 ${BETA_IMAGE_LIMIT}장이 소진되었습니다. Pro 플랜에서 무제한으로 사용할 수 있습니다.`,
+                        code: 'BETA_IMAGE_LIMIT',
+                    });
+                }
+                // 카운트 증가 (성공 전 선차감)
+                await setDoc('users', uid, { betaImageCount: used + 1 });
+            } else if (!isWithinPromo(userData.createdAt)) {
                 return res.status(403).json({
                     error: 'AI 이미지 생성은 API 키 등록 후 사용 가능합니다. 설정에서 API 키를 등록해주세요.',
                     code: 'BYOK_REQUIRED',
