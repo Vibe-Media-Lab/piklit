@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { onAuthStateChanged, signInWithPopup, signInWithCustomToken, updateProfile, signOut } from 'firebase/auth';
 import { auth, googleProvider } from '../services/firebase';
+import { isAdminEmail } from '../data/adminEmails';
 
 const AuthContext = createContext(null);
 
@@ -117,6 +118,8 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const isAdmin = isAdminEmail(user?.email);
+
     const value = {
         user,
         loading,
@@ -125,6 +128,7 @@ export const AuthProvider = ({ children }) => {
         loginWithKakao,
         logout,
         isLoggedIn: !!user,
+        isAdmin,
     };
 
     return (

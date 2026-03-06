@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { callListBugReports, callUpdateBugStatus } from '../services/firebase';
 
-const ADMIN_EMAIL = 'sylee@datable.co.kr';
-
 const STATUS_LABELS = {
     new: { label: '신규', color: '#EB5757', bg: '#FFF0F0' },
     checked: { label: '확인', color: '#E67E22', bg: '#FFF8F0' },
@@ -11,14 +9,12 @@ const STATUS_LABELS = {
 };
 
 const AdminBugsPage = () => {
-    const { user } = useAuth();
+    const { isAdmin } = useAuth();
     const [reports, setReports] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [expandedId, setExpandedId] = useState(null);
     const [screenshotId, setScreenshotId] = useState(null);
-
-    const isAdmin = user?.email === ADMIN_EMAIL;
 
     useEffect(() => {
         if (!isAdmin) return;

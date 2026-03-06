@@ -90,18 +90,21 @@ const EditorPage = () => {
     const [paragraphStyle, setParagraphStyle] = useState('normal');
     const [selectedWannabeStyle, setSelectedWannabeStyle] = useState(null);
     const [userPlan, setUserPlan] = useState('free');
-    const { user } = useAuth();
+    const { user, isAdmin } = useAuth();
 
-    // 베타 테스터 상태 확인
+    // 관리자/마스터 계정 또는 베타 테스터 상태 확인
     useEffect(() => {
-        if (user) {
-            callBetaStatus()
-                .then(result => {
-                    if (result.data?.active) setUserPlan(result.data.plan || 'pro');
-                })
-                .catch(() => {});
+        if (!user) return;
+        if (isAdmin) {
+            setUserPlan('pro');
+            return;
         }
-    }, [user]);
+        callBetaStatus()
+            .then(result => {
+                if (result.data?.active) setUserPlan(result.data.plan || 'pro');
+            })
+            .catch(() => {});
+    }, [user, isAdmin]);
 
     // Step 4: 아웃라인 상태
     const [outlineItems, setOutlineItems] = useState([]); // [{level: 'h2'|'h3', title: '...'}]
