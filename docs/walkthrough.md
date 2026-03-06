@@ -4,7 +4,7 @@
 네이버 블로그 SEO 최적화 AI 작성기 (React 19 + Vite 7 + TipTap + Google Gemini 2.5 Flash API)
 
 ## 이번 세션 요약
-5단계 위자드 재구성 + 베타 테스터 코드 시스템(PIKLIT-VIP) + 버그 리포트(콘솔 로그+스크린샷 자동 수집) + 관리 페이지
+스킬 시스템 정리 — `/skill-creator` 신규 + 글로벌 중복 스킬 삭제 + `/wrap-up` git add 규칙 수정
 
 ## 수정 파일
 

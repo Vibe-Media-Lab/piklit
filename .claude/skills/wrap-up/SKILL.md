@@ -25,8 +25,8 @@ npm run build
 
 ### 3. Git 커밋 (사용자 승인 후)
 ```
-git add -A
 git status  # 사용자에게 변경 파일 보여주기
+git add <변경 파일들>  # 특정 파일만 add (git add -A 지양)
 # 커밋 메시지 제안 후 사용자 승인 대기
 git commit -m "제안된 메시지"
 ```
