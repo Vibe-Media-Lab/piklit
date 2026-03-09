@@ -10,31 +10,41 @@
     flex-direction: column;
 }
 
-/* Toolbar: Minimal, top sticky or just clean */
+/* Toolbar: 에디터 하단 배치, CTA + AI 고지만 표시 */
 .editor-toolbar {
     background: var(--color-surface);
-    border-bottom: 1px solid var(--color-border);
-    padding: 10px 12px;
-    margin-bottom: 24px;
+    border-top: 1px solid var(--color-border);
+    padding: 8px 12px;
+    margin-top: 16px;
     display: flex;
     gap: 16px;
     flex-wrap: wrap;
-    position: sticky;
-    top: 0;
+    justify-content: space-between;
+    order: 10;
+    border-radius: 0 0 8px 8px;
     z-index: 40;
-    border-radius: 8px 8px 0 0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .toolbar-group {
     display: flex;
     gap: 4px;
     padding-right: 16px;
-    border-right: 1px solid var(--color-border);
+    border-right: none;
 }
 
 .toolbar-group:last-child {
     border-right: none;
+}
+
+/* 포맷팅 버튼 숨김 (AI 생성 콘텐츠 — 직접 작성 불필요) */
+.toolbar-template-group,
+.toolbar-group:not(.cta-toolbar-group):not(.ai-footer-group) {
+    display: none;
+}
+
+.tiptap-editor-wrapper {
+    display: flex;
+    flex-direction: column;
 }
 
 .toolbar-btn {
@@ -269,6 +279,67 @@
     background: var(--color-surface-hover);
 }
 
+/* Template Dropdown */
+.toolbar-template-group {
+    position: relative;
+    border-right: 1px solid var(--color-border);
+}
+
+.toolbar-btn-label {
+    /* Hidden on mobile via media query */
+}
+
+.template-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    background: white;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    box-shadow: var(--shadow-lg);
+    padding: 6px;
+    min-width: 220px;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.template-dropdown button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: none;
+    background: none;
+    border-radius: 6px;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s;
+}
+
+.template-dropdown button:hover {
+    background: #FFF8F0;
+}
+
+.template-dropdown-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.template-dropdown button strong {
+    display: block;
+    font-size: 0.88rem;
+    color: var(--color-text-main);
+}
+
+.template-dropdown button small {
+    display: block;
+    font-size: 0.75rem;
+    color: #999;
+    margin-top: 1px;
+}
+
 /* CTA Toolbar Dropdown */
 .cta-toolbar-group {
     position: relative;
@@ -281,8 +352,8 @@
 
 .cta-dropdown {
     position: absolute;
-    top: calc(100% + 6px);
-    right: 0;
+    bottom: calc(100% + 6px);
+    left: 0;
     background: white;
     border: 1px solid var(--color-border);
     border-radius: 10px;
@@ -343,13 +414,19 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 16px;
+    padding: 10px 14px;
     background: #FAFBFC;
     border: none;
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 600;
     color: var(--color-text-main);
+}
+
+.intro-optimizer-toggle span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .intro-optimizer-toggle:hover {
@@ -723,23 +800,28 @@
 
 .readability-suggestion-item {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 8px;
-    padding: 8px 10px;
-    border-radius: 6px;
-    margin-bottom: 6px;
-    font-size: 0.84rem;
-    line-height: 1.5;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--color-border);
+    border-radius: 0;
+    margin-bottom: 0;
+    font-size: 0.82rem;
+    line-height: 1.4;
+    background: none;
+    color: var(--color-text-main);
+}
+
+.readability-suggestion-item:last-child {
+    border-bottom: none;
 }
 
 .readability-suggestion-warning {
-    background: #FEF3C7;
-    color: #92400E;
+    color: var(--color-text-main);
 }
 
 .readability-suggestion-info {
-    background: #EEF2FF;
-    color: #3730A3;
+    color: var(--color-text-main);
 }
 
 .readability-suggestion-icon {
@@ -802,16 +884,17 @@
     font-size: 0.9rem;
 }
 
-/* 가독성 위치 하이라이트 애니메이션 */
+/* 가독성 위치 하이라이트 — 지속형 (clearLocateHighlight로 제거) */
 .tiptap-content-area .readability-locate-highlight {
-    animation: readability-flash 2.5s ease-out;
+    background: #FDE68A;
+    box-shadow: 0 0 0 4px #FDE68A;
     border-radius: 4px;
+    animation: readability-pulse 1.5s ease-in-out infinite;
 }
 
-@keyframes readability-flash {
-    0% { background: #FDE68A; box-shadow: 0 0 0 4px #FDE68A; }
-    30% { background: #FDE68A; box-shadow: 0 0 0 4px #FDE68A; }
-    100% { background: transparent; box-shadow: none; }
+@keyframes readability-pulse {
+    0%, 100% { box-shadow: 0 0 0 4px #FDE68A; }
+    50% { box-shadow: 0 0 0 6px #FCD34D; }
 }
 
 /* ===== Humanness Detection Panel ===== */
@@ -905,23 +988,27 @@
 
 .humanness-suggestion-item {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 8px;
-    padding: 8px 10px;
-    border-radius: 6px;
-    margin-bottom: 6px;
-    font-size: 0.84rem;
-    line-height: 1.5;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--color-border);
+    border-radius: 0;
+    margin-bottom: 0;
+    font-size: 0.82rem;
+    line-height: 1.4;
+    color: var(--color-text-main);
+}
+
+.humanness-suggestion-item:last-child {
+    border-bottom: none;
 }
 
 .humanness-suggestion-warning {
-    background: #FEF3C7;
-    color: #92400E;
+    color: var(--color-text-main);
 }
 
 .humanness-suggestion-info {
-    background: #EEF2FF;
-    color: #3730A3;
+    color: var(--color-text-main);
 }
 
 .humanness-suggestion-icon {
@@ -1156,21 +1243,52 @@
         display: none !important;
     }
 
+    /* 모바일 본문 사이즈 축소 + H2/H3 계층 */
+    .tiptap-content-area {
+        font-size: 0.9rem;
+    }
+
+    .tiptap-content-area h2 {
+        font-size: 1.05rem;
+        margin-top: 1.4em;
+    }
+
+    .tiptap-content-area h3 {
+        font-size: 1em;
+        margin-top: 1.1em;
+    }
+
     /* MenuBar 가로 스크롤 */
     .editor-toolbar {
         flex-wrap: nowrap;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
-        gap: 8px;
-        padding: 8px;
+        gap: 4px;
+        padding: 6px 8px;
+        margin-bottom: 16px;
+    }
+
+    .toolbar-group {
+        border-right: none;
+        padding-right: 8px;
+        gap: 2px;
     }
 
     .toolbar-btn {
-        min-width: 44px;
-        min-height: 44px;
+        min-width: 40px;
+        min-height: 40px;
         display: flex;
         align-items: center;
         justify-content: center;
+        font-size: 0.85rem;
+        padding: 4px 6px;
+    }
+
+    /* 모바일 툴바 간격 축소 */
+    .editor-toolbar {
+        padding: 6px 8px;
+        gap: 8px;
+        margin-top: 12px;
     }
 
     /* 문단 AI 버튼 */

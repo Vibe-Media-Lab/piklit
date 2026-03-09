@@ -78,14 +78,17 @@
 
 /* ── Bottom Note ── */
 .photo-upload-note {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.85rem;
-    color: var(--color-text-sub, #787774);
     margin: 0;
 }
 
+.photo-upload-note p {
+    margin: 0;
+    font-size: var(--font-size-xs, 0.75rem);
+    color: var(--color-text-sub, #787774);
+    line-height: 1.8;
+}
+
+/* ── Legacy photo-grid (kept for backwards compat) ── */
 .photo-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -93,12 +96,126 @@
     margin-bottom: 24px;
 }
 
+/* ── Compact Photo Grid ── */
+.photo-grid-compact {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.photo-slot-compact {
+    position: relative;
+    aspect-ratio: 1;
+    border: 1px dashed var(--color-border, #E3E2E0);
+    border-radius: var(--radius-md, 6px);
+    background: var(--color-surface-hover, #F7F6F3);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    overflow: hidden;
+}
+
+.photo-slot-compact:hover {
+    border-color: var(--color-brand, #FF6B35);
+    background: var(--color-brand-light, #FFF3ED);
+}
+
+.photo-slot-compact.has-image {
+    border-style: solid;
+    border-color: var(--color-border, #E3E2E0);
+}
+
+.slot-content-compact {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 4px;
+    padding: 8px;
+}
+
+.slot-icon-compact {
+    font-size: 1.4rem;
+}
+
+.slot-label-compact {
+    font-size: var(--font-size-xs, 0.75rem);
+    font-weight: 600;
+    color: var(--color-text-main, #37352F);
+    text-align: center;
+    line-height: 1.3;
+}
+
+/* Image preview in compact slot */
+.image-preview-wrapper-compact {
+    position: absolute;
+    inset: 0;
+}
+
+.image-preview-wrapper-compact .image-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.remove-btn-compact {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid var(--color-border, #E3E2E0);
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    font-size: 11px;
+    color: var(--color-text-sub, #787774);
+    transition: background 0.2s;
+}
+
+.remove-btn-compact:hover {
+    background: #ff4d4f;
+    color: white;
+    border-color: #ff4d4f;
+}
+
+.multi-image-count-compact {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    font-size: 0.7rem;
+    padding: 1px 6px;
+    border-radius: 10px;
+}
+
+.slot-label-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 2px 4px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    font-size: 0.65rem;
+    text-align: center;
+    font-weight: 600;
+}
+
 @media (max-width: 480px) {
-    .photo-grid {
-        grid-template-columns: repeat(2, 1fr);
+    .photo-grid-compact {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
     }
 }
 
+/* Legacy slots */
 .photo-slot {
     position: relative;
     aspect-ratio: 4 / 3;

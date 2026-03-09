@@ -94,10 +94,8 @@ const PageLoading = () => (
 function AppRoutes() {
     const { betaExpired, dismissBetaExpired } = useBetaExpired();
 
-    const handleBetaNavigate = (planId) => {
+    const handleBetaNavigate = () => {
         dismissBetaExpired();
-        // TODO: 결제 페이지 연동 시 planId별 라우팅 추가
-        // 현재는 모달 닫기만 처리
     };
 
     const protectedProps = {

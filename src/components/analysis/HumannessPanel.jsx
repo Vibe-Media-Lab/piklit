@@ -25,7 +25,7 @@ const GRADE_LABELS = {
 const HumannessPanel = () => {
     const { content, suggestedTone, keywords, recordAiAction, editorRef } = useEditor();
     const { showToast } = useToast();
-    const [isOpen, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(true);
     const [aiLoading, setAiLoading] = useState(false);
     const [aiSuggestions, setAiSuggestions] = useState(null);
     const [appliedIndices, setAppliedIndices] = useState(new Set());

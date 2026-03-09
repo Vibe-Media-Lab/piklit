@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ChevronDown, ChevronUp, Search } from 'lucide-react';
 import { useEditor } from '../../context/EditorContext';
 import { useToast } from '../common/Toast';
 import { AIService } from '../../services/openai';
@@ -112,8 +112,8 @@ const IntroOptimizer = () => {
                 className="intro-optimizer-toggle"
                 onClick={() => setOpen(prev => !prev)}
             >
-                <span>🔍 검색 미리보기 & 도입부 최적화</span>
-                <span style={{ fontSize: '0.8rem' }}>{open ? '▲' : '▼'}</span>
+                <span><Search size={14} /> 검색 미리보기 & 도입부</span>
+                {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
             </button>
 
             {open && (

@@ -168,22 +168,22 @@ export const analyzePost = (title, htmlContent, keywords, targetLength = 1500, c
 
     // 1. Title Analysis
     if (!mainKeyword) {
-        issues.push({ id: 'no_keyword', type: 'error', text: '먼저 메인 키워드를 설정해주세요.' });
+        issues.push({ id: 'no_keyword', type: 'error', text: '메인 키워드 미설정', metric: '' });
     } else {
         const cleanTitle = title.trim();
         if (cleanTitle.toLowerCase().startsWith(mainKeyword.toLowerCase())) {
             checks.titleKeyStart = true;
         } else {
-            issues.push({ id: 'title_start', type: 'warning', text: '제목은 메인 키워드로 시작해야 합니다.' });
+            issues.push({ id: 'title_start', type: 'warning', text: '제목 키워드 시작 필요', metric: '' });
         }
     }
 
     if (title.length >= 10 && title.length <= 30) {
         checks.titleLength = true;
     } else if (title.length > 30) {
-        issues.push({ id: 'title_long', type: 'warning', text: '제목이 너무 깁니다 (30자 이내 권장).' });
+        issues.push({ id: 'title_long', type: 'warning', text: '제목 길이 초과', metric: '30자 이내' });
     } else if (title.length < 10 && title.length > 0) {
-        issues.push({ id: 'title_short', type: 'warning', text: '제목이 너무 짧습니다.' });
+        issues.push({ id: 'title_short', type: 'warning', text: '제목 너무 짧음', metric: '' });
     }
 
     // Parse HTML Content
@@ -196,7 +196,7 @@ export const analyzePost = (title, htmlContent, keywords, targetLength = 1500, c
     if (totalChars >= targetLength) {
         checks.contentLength = true;
     } else {
-        issues.push({ id: 'length_short', type: 'info', text: `글자 수가 부족합니다 (${totalChars}/${targetLength} 자).` });
+        issues.push({ id: 'length_short', type: 'info', text: '글자 수 부족', metric: `${totalChars}/${targetLength}자` });
     }
 
     // 3. Keyword Density
@@ -209,7 +209,7 @@ export const analyzePost = (title, htmlContent, keywords, targetLength = 1500, c
         if (count >= 3 && count <= 5) {
             checks.mainKeyDensity = true;
         } else {
-            issues.push({ id: 'key_density', type: 'warning', text: `메인 키워드 반복 횟수: ${count}회 (목표: 3-5회).` });
+            issues.push({ id: 'key_density', type: 'warning', text: '키워드 반복 과다', metric: `${count}회 → 3~5회` });
         }
 
         // First Paragraph Check
@@ -217,7 +217,7 @@ export const analyzePost = (title, htmlContent, keywords, targetLength = 1500, c
         if (firstPara && firstPara.textContent.toLowerCase().includes(mainKeyword.toLowerCase())) {
             checks.mainKeyFirstPara = true;
         } else {
-            issues.push({ id: 'key_first', type: 'warning', text: '첫 문단에 메인 키워드가 포함되어야 합니다.' });
+            issues.push({ id: 'key_first', type: 'warning', text: '첫 문단 키워드 누락', metric: '' });
         }
     }
 
@@ -227,7 +227,7 @@ export const analyzePost = (title, htmlContent, keywords, targetLength = 1500, c
         if (missingSubs.length === 0) {
             checks.subKeyPresence = true;
         } else {
-            issues.push({ id: 'sub_missing', type: 'info', text: `누락된 서브 키워드: ${missingSubs.join(', ')}` });
+            issues.push({ id: 'sub_missing', type: 'info', text: '서브 키워드 누락', metric: `${missingSubs.length}개` });
         }
     } else {
         checks.subKeyPresence = true;
@@ -239,7 +239,7 @@ export const analyzePost = (title, htmlContent, keywords, targetLength = 1500, c
     if (hasH2 && hasH3) {
         checks.structure = true;
     } else {
-        issues.push({ id: 'structure_missing', type: 'info', text: 'H2와 H3 소제목을 모두 사용하여 구조화해주세요.' });
+        issues.push({ id: 'structure_missing', type: 'info', text: 'H2+H3 구조화 필요', metric: '' });
     }
 
     // 6. Image Count (5-15장 권장)
@@ -247,9 +247,9 @@ export const analyzePost = (title, htmlContent, keywords, targetLength = 1500, c
     if (imageCount >= 5 && imageCount <= 15) {
         checks.imageCount = true;
     } else if (imageCount < 5) {
-        issues.push({ id: 'img_count_low', type: 'warning', text: `📸 이미지가 부족합니다 (${imageCount}/5장 이상 권장).` });
+        issues.push({ id: 'img_count_low', type: 'warning', text: '이미지 부족', metric: `${imageCount}/5장` });
     } else if (imageCount > 15) {
-        issues.push({ id: 'img_count_high', type: 'info', text: `📸 이미지가 너무 많습니다 (${imageCount}장, 15장 이하 권장).` });
+        issues.push({ id: 'img_count_high', type: 'info', text: '이미지 과다', metric: `${imageCount}장 → 15장 이하` });
     }
 
     // 7. Video Presence (체류 시간 증가용)
@@ -267,7 +267,7 @@ export const analyzePost = (title, htmlContent, keywords, targetLength = 1500, c
     if (hasVideo) {
         checks.videoPresence = true;
     } else {
-        issues.push({ id: 'video_missing', type: 'info', text: '🎬 동영상을 추가하면 체류 시간이 증가합니다 (SEO 가점).' });
+        issues.push({ id: 'video_missing', type: 'info', text: '동영상 추가 권장', metric: '체류 시간↑' });
     }
 
     // 8. Heading Keywords — H2/H3 텍스트에 메인 키워드 포함 여부
@@ -280,13 +280,13 @@ export const analyzePost = (title, htmlContent, keywords, targetLength = 1500, c
         if (headingWithKeyword) {
             checks.headingKeywords = true;
         } else {
-            issues.push({ id: 'heading_keyword', type: 'warning', text: '소제목(H2/H3)에 메인 키워드를 포함하면 SEO에 유리합니다.' });
+            issues.push({ id: 'heading_keyword', type: 'warning', text: '소제목 키워드 미포함', metric: '' });
         }
     } else if (!mainKeyword) {
         // 키워드 없으면 체크 스킵 (패스 처리)
         checks.headingKeywords = true;
     } else {
-        issues.push({ id: 'heading_keyword', type: 'info', text: '소제목이 없어 키워드 포함 여부를 확인할 수 없습니다.' });
+        issues.push({ id: 'heading_keyword', type: 'info', text: '소제목 없음', metric: '' });
     }
 
     // 9. Keyword Density Percent — 글 길이 대비 키워드 밀도 (적정: 1~3%)
@@ -300,9 +300,9 @@ export const analyzePost = (title, htmlContent, keywords, targetLength = 1500, c
         if (keywordDensity >= 1 && keywordDensity <= 3) {
             checks.keywordDensityPercent = true;
         } else if (keywordDensity < 1) {
-            issues.push({ id: 'keyword_density_low', type: 'warning', text: `키워드 밀도가 낮습니다 (${keywordDensity}%, 적정: 1~3%).` });
+            issues.push({ id: 'keyword_density_low', type: 'warning', text: '키워드 밀도 낮음', metric: `${keywordDensity}% → 1~3%` });
         } else {
-            issues.push({ id: 'keyword_density_high', type: 'warning', text: `키워드 밀도가 높습니다 (${keywordDensity}%, 적정: 1~3%). 과최적화 주의.` });
+            issues.push({ id: 'keyword_density_high', type: 'warning', text: '키워드 밀도 과다', metric: `${keywordDensity}% → 1~3%` });
         }
     } else {
         checks.keywordDensityPercent = true; // 키워드 없으면 패스
@@ -320,10 +320,10 @@ export const analyzePost = (title, htmlContent, keywords, targetLength = 1500, c
             checks.imageAltText = true;
         } else {
             if (missingAlt > 0) {
-                issues.push({ id: 'img_alt_missing', type: 'warning', text: `${missingAlt}개 이미지에 Alt 텍스트가 없습니다.` });
+                issues.push({ id: 'img_alt_missing', type: 'warning', text: '이미지 Alt 누락', metric: `${missingAlt}개` });
             }
             if (hasDuplicates) {
-                issues.push({ id: 'img_alt_duplicate', type: 'info', text: '이미지 Alt 텍스트가 중복됩니다. 고유한 설명을 사용하세요.' });
+                issues.push({ id: 'img_alt_duplicate', type: 'info', text: 'Alt 텍스트 중복', metric: '' });
             }
         }
     } else {
@@ -337,9 +337,9 @@ export const analyzePost = (title, htmlContent, keywords, targetLength = 1500, c
     if (introLength >= introRange.min && introLength <= introRange.max) {
         checks.introParagraphLength = true;
     } else if (introLength > 0 && introLength < introRange.min) {
-        issues.push({ id: 'intro_short', type: 'info', text: `도입부가 짧습니다 (${introLength}자, 권장: ${introRange.min}~${introRange.max}자).` });
+        issues.push({ id: 'intro_short', type: 'info', text: '도입부 짧음', metric: `${introLength} → ${introRange.min}~${introRange.max}자` });
     } else if (introLength > introRange.max) {
-        issues.push({ id: 'intro_long', type: 'info', text: `도입부가 깁니다 (${introLength}자, 권장: ${introRange.min}~${introRange.max}자).` });
+        issues.push({ id: 'intro_long', type: 'info', text: '도입부 길음', metric: `${introLength} → ${introRange.min}~${introRange.max}자` });
     } else {
         checks.introParagraphLength = true; // 본문 없으면 패스
     }

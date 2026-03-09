@@ -4,6 +4,7 @@ import { useToast } from '../common/Toast';
 import { AIService } from '../../services/openai';
 import { generateThumbnail, THUMBNAIL_STYLES, CATEGORY_FONT_MAP } from '../../utils/thumbnail';
 import { loadGoogleFont, loadGoogleFonts } from '../../utils/fontLoader';
+import { Sparkles, Loader2 } from 'lucide-react';
 import '../../styles/ThumbnailPanel.css';
 
 const ThumbnailPanel = () => {
@@ -48,19 +49,16 @@ const ThumbnailPanel = () => {
 
     const debounceRef = useRef(null);
 
-    // 패널 열릴 때 카테고리 폰트 전체 미리 로딩
     useEffect(() => {
         if (isOpen && !fontsReady) {
             loadGoogleFonts(fontMap.fonts).then(() => setFontsReady(true));
         }
     }, [isOpen, fontMap.fonts, fontsReady]);
 
-    // 카테고리 변경 시 폰트 다시 로딩
     useEffect(() => {
         setFontsReady(false);
     }, [categoryId]);
 
-    // 폰트 드롭다운 바깥 클릭 시 닫기
     useEffect(() => {
         if (!fontDropdownOpen) return;
         const handleClick = (e) => {
@@ -72,27 +70,23 @@ const ThumbnailPanel = () => {
         return () => document.removeEventListener('mousedown', handleClick);
     }, [fontDropdownOpen]);
 
-    // 첫 사진 자동 선택
     useEffect(() => {
         if (photoPreviewUrls.length > 0 && !selectedPhoto) {
             setSelectedPhoto(photoPreviewUrls[0]);
         }
     }, [photoPreviewUrls, selectedPhoto]);
 
-    // 사진 변경 시 줌/오프셋 리셋
     useEffect(() => {
         setZoom(1);
         setOffsetX(0);
         setOffsetY(0);
     }, [selectedPhoto]);
 
-    // 카테고리 변경 시 기본 폰트 재설정
     useEffect(() => {
         const newDefault = (CATEGORY_FONT_MAP[categoryId] || CATEGORY_FONT_MAP.daily).fonts[0];
         setFontFamily(newDefault);
     }, [categoryId]);
 
-    // 썸네일 렌더링 (디바운스 200ms)
     const renderPreview = useCallback(() => {
         if (!selectedPhoto) {
             setPreviewUrl(null);
@@ -123,7 +117,7 @@ const ThumbnailPanel = () => {
         return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
     }, [isOpen, renderPreview]);
 
-    // ── 드래그 패닝 (마우스 + 터치) ──
+    // ── 드래그 패닝 ──
     const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
 
     const handlePointerDown = (e) => {
@@ -165,7 +159,6 @@ const ThumbnailPanel = () => {
         };
     }, [isOpen, handlePointerMove, handlePointerUp]);
 
-    // AI 텍스트 생성
     const handleGenerateText = async () => {
         if (!title) return showToast('제목을 먼저 입력해주세요.', 'warning');
         setIsGeneratingText(true);
@@ -181,7 +174,6 @@ const ThumbnailPanel = () => {
         }
     };
 
-    // 다운로드
     const handleDownload = () => {
         if (!previewUrl) return;
         const link = document.createElement('a');
@@ -191,7 +183,6 @@ const ThumbnailPanel = () => {
         showToast('썸네일이 다운로드되었습니다.', 'success');
     };
 
-    // 본문 삽입
     const handleInsert = () => {
         const editor = editorRef?.current;
         if (!editor || !previewUrl) return;
@@ -216,7 +207,6 @@ const ThumbnailPanel = () => {
 
             {isOpen && (
                 <div className="thumbnail-panel-body">
-                    {/* 모바일 풀스크린 상단바 (CSS로 768px 이하에서만 표시) */}
                     <div className="thumbnail-fullscreen-topbar">
                         <button className="thumbnail-fullscreen-close" onClick={() => setIsOpen(false)}>닫기</button>
                         <span style={{ fontWeight: 600 }}>썸네일 편집</span>
@@ -228,8 +218,7 @@ const ThumbnailPanel = () => {
                         </div>
                     ) : (
                         <>
-                            {/* ── 사진 섹션 ── */}
-                            <div className="thumbnail-section-label">사진</div>
+                            {/* 사진 선택 */}
                             <div className="thumbnail-photo-grid">
                                 {photoPreviewUrls.map((url, i) => (
                                     <div
@@ -241,6 +230,8 @@ const ThumbnailPanel = () => {
                                     </div>
                                 ))}
                             </div>
+
+                            {/* 미리보기 */}
                             <div
                                 ref={previewRef}
                                 className={`thumbnail-preview ${zoom > 1 ? 'thumbnail-preview-draggable' : ''}`}
@@ -253,6 +244,8 @@ const ThumbnailPanel = () => {
                                     <div className="thumbnail-preview-empty">미리보기 생성 중...</div>
                                 )}
                             </div>
+
+                            {/* 확대 */}
                             <div className="thumbnail-zoom-row">
                                 <label>확대</label>
                                 <input
@@ -266,18 +259,21 @@ const ThumbnailPanel = () => {
                                 <span className="thumbnail-zoom-value">{zoom.toFixed(1)}x</span>
                             </div>
 
-                            {/* ── 스타일 섹션 ── */}
-                            <div className="thumbnail-section-label">스타일</div>
-                            <div className="thumbnail-controls">
-                                <div className="thumbnail-control-row">
-                                    <label>스타일</label>
-                                    <select value={style} onChange={e => setStyle(e.target.value)}>
-                                        {THUMBNAIL_STYLES.map(s => (
-                                            <option key={s.id} value={s.id}>{s.label}</option>
-                                        ))}
-                                    </select>
-                                </div>
+                            {/* 스타일 칩 */}
+                            <div className="thumbnail-style-chips">
+                                {THUMBNAIL_STYLES.map(s => (
+                                    <button
+                                        key={s.id}
+                                        className={`thumbnail-style-chip ${style === s.id ? 'active' : ''}`}
+                                        onClick={() => setStyle(s.id)}
+                                        title={s.desc}
+                                    >
+                                        {s.label}
+                                    </button>
+                                ))}
                             </div>
+
+                            {/* 컬러 띠 옵션 (스타일 E) */}
                             {style === 'E' && (
                                 <div className="thumbnail-band-options">
                                     <div className="thumbnail-band-row">
@@ -314,11 +310,10 @@ const ThumbnailPanel = () => {
                                 </div>
                             )}
 
-                            {/* ── 텍스트 섹션 ── */}
+                            {/* 텍스트 입력 */}
                             {showTextControls && (
-                                <>
-                                    <div className="thumbnail-section-label">텍스트</div>
-                                    <div className="thumbnail-text-inputs">
+                                <div className="thumbnail-text-section">
+                                    <div className="thumbnail-input-wrap">
                                         <input
                                             type="text"
                                             value={mainText}
@@ -326,7 +321,9 @@ const ThumbnailPanel = () => {
                                             placeholder="메인 텍스트 (10자 이내)"
                                             maxLength={12}
                                         />
-                                        <div className="thumbnail-char-hint">{mainText.length}/10</div>
+                                        <span className="thumbnail-input-count">{mainText.length}/10</span>
+                                    </div>
+                                    <div className="thumbnail-input-wrap">
                                         <input
                                             type="text"
                                             value={subText}
@@ -334,84 +331,55 @@ const ThumbnailPanel = () => {
                                             placeholder="서브 텍스트 (15자 이내)"
                                             maxLength={17}
                                         />
-                                        <div className="thumbnail-char-hint">{subText.length}/15</div>
-                                        <button
-                                            className="thumbnail-btn-ai"
-                                            onClick={handleGenerateText}
-                                            disabled={isGeneratingText || !title}
-                                        >
-                                            {isGeneratingText ? 'AI 생성 중...' : '✦ AI 텍스트 생성'}
-                                        </button>
+                                        <span className="thumbnail-input-count">{subText.length}/15</span>
                                     </div>
-                                </>
+                                    <button
+                                        className="thumbnail-btn-ai"
+                                        onClick={handleGenerateText}
+                                        disabled={isGeneratingText || !title}
+                                    >
+                                        {isGeneratingText
+                                            ? <><Loader2 size={13} className="spin" /> 생성 중...</>
+                                            : <><Sparkles size={13} /> AI 텍스트 생성</>
+                                        }
+                                    </button>
+                                </div>
                             )}
 
-                            {/* ── 글꼴 & 스타일링 섹션 ── */}
+                            {/* 글꼴 & 스타일링 */}
                             {showTextControls && (
-                                <>
-                                    <div className="thumbnail-section-label">글꼴 &amp; 스타일링</div>
-                                    <div className="thumbnail-styling-section">
-                                        <div className="thumbnail-control-row">
-                                            <label>폰트</label>
-                                            <div className="thumbnail-font-dropdown" ref={fontDropdownRef}>
-                                                <button
-                                                    className="thumbnail-font-selected"
-                                                    onClick={() => setFontDropdownOpen(prev => !prev)}
-                                                    style={{ fontFamily: `"${fontFamily}", Pretendard, sans-serif` }}
-                                                >
-                                                    <span>{fontFamily}</span>
-                                                    <span className="thumbnail-font-arrow">{fontDropdownOpen ? '▲' : '▼'}</span>
-                                                </button>
-                                                {fontDropdownOpen && (
-                                                    <ul className="thumbnail-font-list">
-                                                        {fontMap.fonts.map(f => (
-                                                            <li
-                                                                key={f}
-                                                                className={f === fontFamily ? 'active' : ''}
-                                                                style={{ fontFamily: `"${f}", Pretendard, sans-serif` }}
-                                                                onClick={() => { setFontFamily(f); setFontDropdownOpen(false); }}
-                                                            >
-                                                                {f}
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                )}
-                                            </div>
+                                <div className="thumbnail-styling-section">
+                                    <div className="thumbnail-font-row">
+                                        <div className="thumbnail-font-dropdown" ref={fontDropdownRef}>
+                                            <button
+                                                className="thumbnail-font-selected"
+                                                onClick={() => setFontDropdownOpen(prev => !prev)}
+                                                style={{ fontFamily: `"${fontFamily}", Pretendard, sans-serif` }}
+                                            >
+                                                <span>{fontFamily}</span>
+                                                <span className="thumbnail-font-arrow">{fontDropdownOpen ? '▲' : '▼'}</span>
+                                            </button>
+                                            {fontDropdownOpen && (
+                                                <ul className="thumbnail-font-list">
+                                                    {fontMap.fonts.map(f => (
+                                                        <li
+                                                            key={f}
+                                                            className={f === fontFamily ? 'active' : ''}
+                                                            style={{ fontFamily: `"${f}", Pretendard, sans-serif` }}
+                                                            onClick={() => { setFontFamily(f); setFontDropdownOpen(false); }}
+                                                        >
+                                                            {f}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            )}
                                         </div>
-                                        <div className="thumbnail-slider-row">
-                                            <label>메인 크기</label>
+                                        <div className="thumbnail-color-picker">
                                             <input
-                                                type="range"
-                                                min="36"
-                                                max="96"
-                                                step="2"
-                                                value={mainFontSize}
-                                                onChange={e => setMainFontSize(Number(e.target.value))}
+                                                type="color"
+                                                value={fontColor || '#ffffff'}
+                                                onChange={e => setFontColor(e.target.value)}
                                             />
-                                            <span className="thumbnail-slider-value">{mainFontSize}px</span>
-                                        </div>
-                                        <div className="thumbnail-slider-row">
-                                            <label>서브 크기</label>
-                                            <input
-                                                type="range"
-                                                min="20"
-                                                max="56"
-                                                step="2"
-                                                value={subFontSize}
-                                                onChange={e => setSubFontSize(Number(e.target.value))}
-                                            />
-                                            <span className="thumbnail-slider-value">{subFontSize}px</span>
-                                        </div>
-                                        <div className="thumbnail-font-color-row">
-                                            <label>색상</label>
-                                            <div className="thumbnail-color-picker">
-                                                <input
-                                                    type="color"
-                                                    value={fontColor || '#ffffff'}
-                                                    onChange={e => setFontColor(e.target.value)}
-                                                />
-                                                <span>{fontColor || '자동'}</span>
-                                            </div>
                                             {fontColor && (
                                                 <button
                                                     className="thumbnail-color-reset"
@@ -422,10 +390,36 @@ const ThumbnailPanel = () => {
                                             )}
                                         </div>
                                     </div>
-                                </>
+                                    <div className="thumbnail-size-row">
+                                        <div className="thumbnail-size-col">
+                                            <label>메인</label>
+                                            <input
+                                                type="range"
+                                                min="36"
+                                                max="96"
+                                                step="2"
+                                                value={mainFontSize}
+                                                onChange={e => setMainFontSize(Number(e.target.value))}
+                                            />
+                                            <span className="thumbnail-slider-value">{mainFontSize}px</span>
+                                        </div>
+                                        <div className="thumbnail-size-col">
+                                            <label>서브</label>
+                                            <input
+                                                type="range"
+                                                min="20"
+                                                max="56"
+                                                step="2"
+                                                value={subFontSize}
+                                                onChange={e => setSubFontSize(Number(e.target.value))}
+                                            />
+                                            <span className="thumbnail-slider-value">{subFontSize}px</span>
+                                        </div>
+                                    </div>
+                                </div>
                             )}
 
-                            {/* 하단 내보내기 버튼 */}
+                            {/* 하단 버튼 */}
                             <div className="thumbnail-actions">
                                 <button
                                     className="thumbnail-btn-download"

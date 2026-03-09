@@ -157,15 +157,15 @@ const HeroSection = ({ handleStart, loginLoading }) => (
     <div className="landing-hero-wrap">
     <section className="landing-hero">
         <div className="landing-hero-content">
-            <span className="landing-badge hero-anim" style={{ '--delay': '0s' }}>네이버 블로그 전문 AI</span>
+            <span className="landing-badge hero-anim" style={{ '--delay': '0s' }}>네이버 블로그 글쓰기 AI</span>
             <h1 className="landing-hero-title">
                 <span className="hero-anim" style={{ '--delay': '0.1s' }}>사진만 올리면</span><br />
                 <span className="hero-anim" style={{ '--delay': '0.25s' }}>상위 노출 블로그 글이</span><br />
                 <span className="highlight hero-anim-typing">5분 만에 완성됩니다</span>
             </h1>
             <p className="landing-hero-desc hero-anim" style={{ '--delay': '0.7s' }}>
-                ChatGPT, 뤼튼에는 없는 <strong>사진 분석 AI</strong>가<br />
-                키워드 분석, 경쟁 조사, SEO 최적화까지 한 번에 처리합니다.
+                다른 서비스에는 없는 <strong>사진 분석 AI</strong>가<br />
+                키워드 분석, 경쟁 조사, SEO 최적화까지 한 번에 처리!
             </p>
             <div className="hero-tags hero-anim" style={{ '--delay': '0.8s' }}>
                 <span>#사진_AI_분석</span>
@@ -710,12 +710,12 @@ const PricingSection = ({ handleStart, loginLoading }) => (
         <div className="landing-section-inner">
             <span className="landing-section-badge">요금제</span>
             <h2 className="landing-section-title">블로그 대행 비용의 1/60</h2>
-            <p className="pricing-anchor">블로그 대행 월 30~50만원 vs 피클잇은 커피 한 잔 값도 안 듭니다</p>
+            <p className="pricing-anchor">블로그 대행 월 30~50만원 vs 피클잇<br />시작은 커피 한 잔 값도 안 듭니다</p>
             <div className="pricing-grid">
                 {PRICING.map((plan, i) => (
                     <div className={`pricing-card ${plan.highlighted ? 'highlighted' : ''}`} key={i}>
                         {plan.badge && <span className="pricing-badge">{plan.badge}</span>}
-                        <h3>{plan.name}</h3>
+                        <h3>{plan.name}{plan.name.includes('BYOK') && <><br /><span className="pricing-byok-sub">Bring Your Own Key</span></>}</h3>
                         <div className="pricing-price">
                             <span className="pricing-amount">{plan.price}</span>
                             <span className="pricing-period">/ {plan.period}</span>

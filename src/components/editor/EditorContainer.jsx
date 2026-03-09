@@ -8,15 +8,10 @@ const EditorContainer = () => {
     const { id } = useParams(); // Key to force remount
 
     return (
-        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+        <div className="editor-container">
             <TitleInput />
             <IntroOptimizer />
-            <div className="content-area">
-                <h3 style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '8px', marginBottom: '16px' }}>
-                    본문
-                </h3>
-                <TiptapEditor key={id} />
-            </div>
+            <TiptapEditor key={id} />
         </div>
     );
 };

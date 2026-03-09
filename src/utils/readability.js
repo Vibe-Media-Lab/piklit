@@ -256,11 +256,20 @@ export const locateSuggestion = (locateType) => {
     if (target) {
         target.classList.add('readability-locate-highlight');
         target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        // 2초 후 하이라이트 제거
-        setTimeout(() => {
-            target.classList.remove('readability-locate-highlight');
-        }, 2500);
     }
+
+    return !!target;
+};
+
+/**
+ * 에디터에서 위치 하이라이트 모두 제거
+ */
+export const clearLocateHighlight = () => {
+    const editor = document.querySelector('.tiptap-content-area');
+    if (!editor) return;
+    editor.querySelectorAll('.readability-locate-highlight').forEach(el => {
+        el.classList.remove('readability-locate-highlight');
+    });
 };
 
 // ──────────────────────────────────────────────
@@ -313,10 +322,10 @@ function analyzeSentenceLength(doc) {
 
     const suggestions = [];
     if (avg > 70) {
-        suggestions.push({ type: 'warning', text: `평균 문장 길이가 ${avg}자로 깁니다. 40~60자가 적정합니다.`, priority: 9, locateType: 'avgSentenceLength' });
+        suggestions.push({ type: 'warning', text: `문장 길이 과다 · ${avg}자 → 40~60자`, priority: 9, locateType: 'avgSentenceLength' });
     }
     if (longCount > 0) {
-        suggestions.push({ type: 'warning', text: `80자 이상 긴 문장이 ${longCount}개 있습니다. 나누어 주세요.`, priority: 8, locateType: 'longSentence' });
+        suggestions.push({ type: 'warning', text: `긴 문장 ${longCount}개 분리 필요 · 80자 이상`, priority: 8, locateType: 'longSentence' });
     }
 
     return { score, label: '문장 길이', maxScore: 25, avg, longCount, total: sentences.length, suggestions };
@@ -366,10 +375,10 @@ function analyzeParagraphStructure(doc) {
 
     const suggestions = [];
     if (avgSentences > 4) {
-        suggestions.push({ type: 'warning', text: `평균 문단 길이가 ${avgSentences}문장입니다. 2~3문장이 적정합니다.`, priority: 7, locateType: 'avgParagraphLength' });
+        suggestions.push({ type: 'warning', text: `문단 길이 과다 · ${avgSentences}문장 → 2~3문장`, priority: 7, locateType: 'avgParagraphLength' });
     }
     if (longParas > 0) {
-        suggestions.push({ type: 'info', text: `5문장 이상의 긴 문단이 ${longParas}개 있습니다. 분리를 권장합니다.`, priority: 5, locateType: 'longParagraph' });
+        suggestions.push({ type: 'info', text: `긴 문단 ${longParas}개 분리 권장 · 5문장 이상`, priority: 5, locateType: 'longParagraph' });
     }
 
     return { score, label: '문단 구조', maxScore: 20, avgSentences, longParas, suggestions };
@@ -390,12 +399,12 @@ function analyzeHeadingUsage(doc, totalChars) {
 
     if (headingCount === 0) {
         score = 2;
-        suggestions.push({ type: 'warning', text: 'H2/H3 소제목이 없습니다. 소제목으로 글을 구조화해주세요.', priority: 10, locateType: 'noHeading' });
+        suggestions.push({ type: 'warning', text: '소제목 없음 · 구조화 필요', priority: 10, locateType: 'noHeading' });
     } else {
         // H2 존재 (8점)
         if (h2Count >= 2) score += 8;
         else if (h2Count >= 1) score += 5;
-        else suggestions.push({ type: 'info', text: 'H2 소제목을 2개 이상 사용하면 구조가 명확해집니다.', priority: 6, locateType: 'noHeading' });
+        else suggestions.push({ type: 'info', text: 'H2 소제목 2개 이상 권장', priority: 6, locateType: 'noHeading' });
 
         // H3 존재 (6점)
         if (h3Count >= 2) score += 6;
@@ -409,7 +418,7 @@ function analyzeHeadingUsage(doc, totalChars) {
             score += 3;
         } else {
             if (avgGap > 800) {
-                suggestions.push({ type: 'info', text: `소제목 간격이 넓습니다 (평균 ${Math.round(avgGap)}자). 300~500자마다 소제목을 권장합니다.`, priority: 5, locateType: 'headingGap' });
+                suggestions.push({ type: 'info', text: `소제목 간격 넓음 · 평균 ${Math.round(avgGap)}자`, priority: 5, locateType: 'headingGap' });
             }
         }
     }
@@ -439,7 +448,7 @@ function analyzeVisualElements(doc, totalChars) {
     } else if (imageCount > 0) {
         score += 3;
     } else {
-        suggestions.push({ type: 'warning', text: '이미지가 없습니다. 시각적 요소를 추가하면 가독성이 높아집니다.', priority: 7, locateType: 'noImage' });
+        suggestions.push({ type: 'warning', text: '이미지 없음 · 시각 요소 추가 필요', priority: 7, locateType: 'noImage' });
     }
 
     // 인용/팁 박스 (5점)
@@ -447,13 +456,13 @@ function analyzeVisualElements(doc, totalChars) {
         score += 5;
     } else if (totalChars > 500) {
         score += 2;
-        suggestions.push({ type: 'info', text: 'TIP 박스(인용 블록)를 추가하면 시각적 변화를 줄 수 있습니다.', priority: 2, locateType: 'textDensity' });
+        suggestions.push({ type: 'info', text: 'TIP 박스 추가 권장 · 시각 변화↑', priority: 2, locateType: 'textDensity' });
     } else {
         score += 3;
     }
 
     if (imageCount > 0 && imageCount < idealImageCount) {
-        suggestions.push({ type: 'info', text: `이미지가 ${imageCount}개입니다. ${idealImageCount}개 이상이면 더 좋습니다.`, priority: 4, locateType: 'fewImages' });
+        suggestions.push({ type: 'info', text: `이미지 부족 · ${imageCount}/${idealImageCount}개`, priority: 4, locateType: 'fewImages' });
     }
 
     return { score, label: '시각 요소', maxScore: 15, imageCount, blockquoteCount, suggestions };
@@ -489,10 +498,10 @@ function analyzeTextDensity(doc) {
         score = 7;
     } else if (maxConsecutive <= 900) {
         score = 4;
-        suggestions.push({ type: 'info', text: `이미지/소제목 없이 ${maxConsecutive}자가 연속됩니다. 중간에 시각 요소를 추가해보세요.`, priority: 6, locateType: 'textDensity' });
+        suggestions.push({ type: 'info', text: `연속 텍스트 ${maxConsecutive}자 · 시각 요소 추가`, priority: 6, locateType: 'textDensity' });
     } else {
         score = 2;
-        suggestions.push({ type: 'warning', text: `텍스트가 ${maxConsecutive}자 이상 끊김 없이 이어집니다. 이미지나 소제목으로 분리해주세요.`, priority: 8, locateType: 'textDensity' });
+        suggestions.push({ type: 'warning', text: `텍스트 끊김 없음 · ${maxConsecutive}자 연속`, priority: 8, locateType: 'textDensity' });
     }
 
     return { score, label: '텍스트 밀도', maxScore: 10, maxConsecutive, suggestions };
@@ -517,11 +526,11 @@ function analyzeEmphasis(doc, totalChars) {
     } else if (emphasisTotal > 0) {
         score = 6;
         if (emphasisTotal > idealCount * 3) {
-            suggestions.push({ type: 'info', text: `강조가 ${emphasisTotal}개로 과도합니다. 핵심만 강조하면 효과적입니다.`, priority: 3, locateType: 'excessEmphasis' });
+            suggestions.push({ type: 'info', text: `강조 과다 · ${emphasisTotal}개 → 핵심만`, priority: 3, locateType: 'excessEmphasis' });
         }
     } else {
         score = 2;
-        suggestions.push({ type: 'info', text: '굵은 글씨(Bold)나 하이라이트를 사용하면 핵심 내용이 눈에 들어옵니다.', priority: 4, locateType: 'noEmphasis' });
+        suggestions.push({ type: 'info', text: '강조 없음 · Bold/하이라이트 권장', priority: 4, locateType: 'noEmphasis' });
     }
 
     return { score, label: '강조 표현', maxScore: 10, boldCount, highlightCount, suggestions };

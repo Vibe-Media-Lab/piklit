@@ -41,6 +41,7 @@ const CTA_TEMPLATES = {
 
 const MenuBar = ({ editor, tone, aiFooterEnabled, onToggleAiFooter }) => {
     const [ctaOpen, setCtaOpen] = useState(false);
+    const [templateOpen, setTemplateOpen] = useState(false);
 
     if (!editor) {
         return null;
@@ -59,39 +60,55 @@ const MenuBar = ({ editor, tone, aiFooterEnabled, onToggleAiFooter }) => {
         setCtaOpen(false);
     };
 
+    const applyTemplate = (key) => {
+        editor.commands.setContent(SEO_TEMPLATES[key].content);
+        setTemplateOpen(false);
+    };
+
     const btnClass = (active) => `toolbar-btn ${active ? 'is-active' : ''}`;
 
     return (
         <div className="editor-toolbar">
-            <div className="toolbar-group">
+            <div className="toolbar-group toolbar-template-group">
                 <button
                     className="toolbar-btn"
-                    onClick={() => editor.commands.setContent(SEO_TEMPLATES.A.content)}
-                    title="리뷰/방문형 템플릿 적용"
+                    onClick={() => { setTemplateOpen(prev => !prev); setCtaOpen(false); }}
+                    title="글 템플릿 선택"
                 >
-                    📝 리뷰
+                    📝 <span className="toolbar-btn-label">템플릿</span> ▾
                 </button>
-                <button
-                    className="toolbar-btn"
-                    onClick={() => editor.commands.setContent(SEO_TEMPLATES.B.content)}
-                    title="정보/전문형 템플릿 적용"
-                >
-                    ℹ️ 정보
-                </button>
-                <button
-                    className="toolbar-btn"
-                    onClick={() => editor.commands.setContent(SEO_TEMPLATES.C.content)}
-                    title="가이드/레시피형 템플릿 적용"
-                >
-                    🍳 가이드
-                </button>
-                <button
-                    className="toolbar-btn"
-                    onClick={() => editor.commands.setContent(SEO_TEMPLATES.D.content)}
-                    title="비교/후기형 템플릿 적용"
-                >
-                    🆚 비교
-                </button>
+                {templateOpen && (
+                    <div className="template-dropdown">
+                        <button onClick={() => applyTemplate('A')}>
+                            <span className="template-dropdown-icon">📝</span>
+                            <span>
+                                <strong>리뷰/방문형</strong>
+                                <small>맛집·카페·여행 방문 후기</small>
+                            </span>
+                        </button>
+                        <button onClick={() => applyTemplate('B')}>
+                            <span className="template-dropdown-icon">ℹ️</span>
+                            <span>
+                                <strong>정보/전문형</strong>
+                                <small>전문 정보·비교·분석</small>
+                            </span>
+                        </button>
+                        <button onClick={() => applyTemplate('C')}>
+                            <span className="template-dropdown-icon">🍳</span>
+                            <span>
+                                <strong>가이드/레시피형</strong>
+                                <small>단계별 가이드·레시피</small>
+                            </span>
+                        </button>
+                        <button onClick={() => applyTemplate('D')}>
+                            <span className="template-dropdown-icon">🆚</span>
+                            <span>
+                                <strong>비교/후기형</strong>
+                                <small>제품 비교·사용 후기</small>
+                            </span>
+                        </button>
+                    </div>
+                )}
             </div>
 
             <div className="toolbar-group">
@@ -105,19 +122,19 @@ const MenuBar = ({ editor, tone, aiFooterEnabled, onToggleAiFooter }) => {
                 <button onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} className={btnClass(editor.isActive('heading', { level: 3 }))}>H3</button>
             </div>
             <div className="toolbar-group">
-                <button onClick={() => editor.chain().focus().toggleBulletList().run()} className={btnClass(editor.isActive('bulletList'))}>• List</button>
-                <button onClick={() => editor.chain().focus().toggleOrderedList().run()} className={btnClass(editor.isActive('orderedList'))}>1. List</button>
+                <button onClick={() => editor.chain().focus().toggleBulletList().run()} className={btnClass(editor.isActive('bulletList'))} title="글머리 기호">•</button>
+                <button onClick={() => editor.chain().focus().toggleOrderedList().run()} className={btnClass(editor.isActive('orderedList'))} title="번호 매기기">1.</button>
             </div>
             <div className="toolbar-group">
-                <button onClick={addImage}>🖼 Image</button>
+                <button className="toolbar-btn" onClick={addImage} title="이미지 삽입">🖼</button>
             </div>
             <div className="toolbar-group cta-toolbar-group">
                 <button
                     className="toolbar-btn cta-toolbar-btn"
-                    onClick={() => setCtaOpen(prev => !prev)}
+                    onClick={() => { setCtaOpen(prev => !prev); setTemplateOpen(false); }}
                     title="CTA(독자 참여 유도) 블록 삽입"
                 >
-                    📣 CTA ▾
+                    📣 <span className="toolbar-btn-label">CTA</span> ▾
                 </button>
                 {ctaOpen && (
                     <div className="cta-dropdown">

@@ -59,7 +59,7 @@ const PostHistory = () => {
     }
 
     // Edit sessions
-    editSessions.forEach((session, i) => {
+    editSessions.forEach((session) => {
         const duration = formatDuration(session.startedAt, session.endedAt);
         const charDelta = (session.charsAfter || 0) - (session.charsBefore || 0);
         const seoDelta = (session.seoScoreAfter || 0) - (session.seoScoreBefore || 0);

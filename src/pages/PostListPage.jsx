@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useEditor } from '../context/EditorContext';
 import { useAuth } from '../context/AuthContext';
 import { callGetUsageInfo } from '../services/firebase';
-import { Upload, Bot, Rocket, Trash2, Plus, AlertTriangle, Sparkles } from 'lucide-react';
-import RecommendSection from '../components/common/RecommendSection';
+import { Upload, Bot, Rocket, Plus, AlertTriangle, Sparkles } from 'lucide-react';
 import '../styles/components.css';
 import '../styles/history.css';
 
@@ -48,7 +47,7 @@ const UsageBar = () => {
                 <div className="usage-bar-track">
                     <div className="usage-bar-fill promo" style={{ width: '100%' }} />
                 </div>
-                <span className="usage-bar-text" style={{ marginTop: '4px', display: 'block' }}>
+                <span className="usage-bar-text usage-bar-text-block">
                     무제한 글 생성 가능
                 </span>
             </div>
@@ -135,20 +134,41 @@ const PostListPage = () => {
         navigate(`/editor/${id}`);
     };
 
-    const handleDeleteClick = (e, id) => {
-        e.stopPropagation();
-        setDeleteTarget(id);
-    };
+    const longPressRef = useRef(null);
+
+    const handleLongPressStart = useCallback((id) => {
+        longPressRef.current = setTimeout(() => {
+            setDeleteTarget(id);
+        }, 600);
+    }, []);
+
+    const handleLongPressEnd = useCallback(() => {
+        if (longPressRef.current) {
+            clearTimeout(longPressRef.current);
+            longPressRef.current = null;
+        }
+    }, []);
 
     const handleDeleteConfirm = () => {
         if (deleteTarget) deletePost(deleteTarget);
         setDeleteTarget(null);
     };
 
-    const formatDate = (isoString) => {
+    const formatRelativeDate = (isoString) => {
         if (!isoString) return '-';
         const d = new Date(isoString);
-        return d.toLocaleDateString('ko-KR') + ' ' + d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+        const now = new Date();
+        const diffMs = now - d;
+        const diffMin = Math.floor(diffMs / 60000);
+        const diffHr = Math.floor(diffMs / 3600000);
+        const diffDay = Math.floor(diffMs / 86400000);
+
+        if (diffMin < 1) return '방금 전';
+        if (diffMin < 60) return `${diffMin}분 전`;
+        if (diffHr < 24) return `${diffHr}시간 전`;
+        if (diffDay === 1) return '어제';
+        if (diffDay < 7) return `${diffDay}일 전`;
+        return `${d.getMonth() + 1}/${d.getDate()}`;
     };
 
     const sortedPosts = [...posts].sort((a, b) =>
@@ -189,71 +209,52 @@ const PostListPage = () => {
                 </div>
             ) : (
                 <>
-                    {/* 새 글 CTA */}
-                    <div className="posts-cta" onClick={handleCreate}>
-                        <div className="posts-cta-icon">
-                            <Plus size={24} />
-                        </div>
-                        <div className="posts-cta-text">
-                            <span className="posts-cta-title">새 글 작성하기</span>
-                            <span className="posts-cta-desc">사진만 올리면 5분이면 완성</span>
-                        </div>
-                    </div>
-
-                    {/* 다음 글 추천 */}
-                    <RecommendSection />
-
-                    {/* 최근 글 */}
-                    <h3 className="post-list-section-title">최근 글</h3>
                     <div className="post-list-stack">
                         {sortedPosts.map(post => {
                             const plainText = stripHtml(post.content);
                             const charCount = plainText.length;
-                            const preview = plainText.slice(0, 120) + (plainText.length > 120 ? '…' : '');
-                            const subKeywords = (post.keywords?.sub || []).filter(k => k);
-
+                            const preview = plainText.slice(0, 80) + (plainText.length > 80 ? '…' : '');
+                            const seoClass = post.seoScore >= 70 ? 'score-high' : post.seoScore >= 40 ? 'score-mid' : 'score-muted';
                             return (
                                 <div
                                     key={post.id}
                                     className="post-card"
                                     onClick={() => handleEdit(post.id)}
+                                    onMouseDown={() => handleLongPressStart(post.id)}
+                                    onMouseUp={handleLongPressEnd}
+                                    onMouseLeave={handleLongPressEnd}
+                                    onTouchStart={() => handleLongPressStart(post.id)}
+                                    onTouchEnd={handleLongPressEnd}
                                 >
                                     <div className="post-card-body">
-                                        <h3 className={`post-card-title ${!post.title ? 'untitled' : ''}`}>
-                                            {post.title || '(제목 없음)'}
-                                        </h3>
+                                        <div className="post-card-top">
+                                            <h3 className={`post-card-title ${!post.title ? 'untitled' : ''}`}>
+                                                {post.title || '(제목 없음)'}
+                                            </h3>
+                                            {post.seoScore > 0 && (
+                                                <span className={`seo-badge-compact ${seoClass}`}>
+                                                    {post.seoScore}
+                                                </span>
+                                            )}
+                                        </div>
 
                                         {preview.trim() && (
                                             <p className="post-card-preview">{preview}</p>
                                         )}
 
                                         <div className="post-card-meta">
-                                            {post.seoScore > 0 && (
-                                                <span className={`seo-badge ${post.seoScore >= 70 ? 'score-high' : post.seoScore >= 40 ? 'score-mid' : 'score-low'}`}>
-                                                    SEO {post.seoScore}점
-                                                </span>
-                                            )}
-                                            {post.mode === 'ai' && (
-                                                <span className="post-card-ai-badge">AI</span>
-                                            )}
                                             {post.keywords?.main && (
                                                 <span className="post-card-keyword-inline">#{post.keywords.main}</span>
                                             )}
-                                            <span>{charCount.toLocaleString()}자</span>
-                                            <span>{formatDate(post.updatedAt)}</span>
+                                            {charCount > 0 && <span>{charCount.toLocaleString()}자</span>}
+                                            <span>{formatRelativeDate(post.updatedAt)}</span>
                                         </div>
                                     </div>
-                                    <button
-                                        className="post-card-delete"
-                                        onClick={(e) => handleDeleteClick(e, post.id)}
-                                        aria-label="삭제"
-                                    >
-                                        <Trash2 size={14} />
-                                    </button>
                                 </div>
                             );
                         })}
                     </div>
+
                 </>
             )}
 

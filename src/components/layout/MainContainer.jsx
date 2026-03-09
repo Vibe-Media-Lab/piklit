@@ -9,12 +9,12 @@ import HumannessPanel from '../analysis/HumannessPanel';
 import ThumbnailPanel from '../analysis/ThumbnailPanel';
 import AIAnalysisDashboard from '../analysis/AIAnalysisDashboard';
 
-const MobilePanelContent = ({ activeTab }) => {
+const MobilePanelContent = ({ activeTab, onLocate }) => {
     switch (activeTab) {
         case 'seo':
-            return <AIAnalysisDashboard />;
+            return <AIAnalysisDashboard onLocate={onLocate} compact />;
         case 'readability':
-            return <ReadabilityPanel />;
+            return <ReadabilityPanel onLocate={onLocate} />;
         case 'humanness':
             return <HumannessPanel />;
         case 'thumbnail':
@@ -42,7 +42,7 @@ const MainContainer = () => {
                 </aside>
             </main>
             <MobileAnalysisBar seoScore={seoScore}>
-                {(activeTab) => <MobilePanelContent activeTab={activeTab} />}
+                {(activeTab, onLocate) => <MobilePanelContent activeTab={activeTab} onLocate={onLocate} />}
             </MobileAnalysisBar>
         </>
     );

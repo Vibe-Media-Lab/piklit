@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useEditor } from '../context/EditorContext';
 import { loadHistory, getStreak } from '../utils/history';
 import { BarChart3 } from 'lucide-react';
+import RecommendSection from '../components/common/RecommendSection';
 import '../styles/history.css';
 
 const PERIOD_OPTIONS = [
@@ -14,6 +15,7 @@ const PERIOD_OPTIONS = [
 
 const AI_ACTION_LABELS = {
     keywordAnalysis: '키워드',
+    seasonKeywordAnalysis: '시즌 키워드',
     competitorAnalysis: '경쟁분석',
     fullDraft: '본문생성',
     introOptimize: '도입부',
@@ -32,28 +34,7 @@ const HistoryPage = () => {
     const [period, setPeriod] = useState('30d');
     const history = useMemo(() => loadHistory(), [posts]);
 
-    // 최소 글 수 가드
-    if (posts.length < MIN_POSTS_FOR_REPORT) {
-        return (
-            <div className="history-container">
-                <div className="dashboard-locked">
-                    <div className="dashboard-locked-icon">
-                        <BarChart3 size={48} strokeWidth={1} />
-                    </div>
-                    <h2 className="dashboard-locked-title">성장 리포트</h2>
-                    <p className="dashboard-locked-desc">
-                        글 {MIN_POSTS_FOR_REPORT}개 이상 작성하면<br />
-                        나의 성장 기록을 확인할 수 있어요
-                    </p>
-                    <Link to="/posts" className="history-empty-cta">
-                        글 작성하러 가기
-                    </Link>
-                </div>
-            </div>
-        );
-    }
-
-    // Filter posts by period
+    // Filter posts by period (Hook은 조건문 전에 선언)
     const filteredPosts = useMemo(() => {
         if (period === 'all') return posts;
         const days = { '7d': 7, '30d': 30, '90d': 90 }[period] || 30;
@@ -62,22 +43,17 @@ const HistoryPage = () => {
         return posts.filter(p => p.createdAt && new Date(p.createdAt) >= cutoff);
     }, [posts, period]);
 
-    // ===== Summary Cards Data (3개: 총 글 수, 평균 SEO, 연속 작성일) =====
     const summaryData = useMemo(() => {
         const totalPosts = filteredPosts.length;
-
-        // Average SEO score
         const postsWithScore = filteredPosts.filter(p => p.seoScore > 0);
         const avgSeo = postsWithScore.length > 0
             ? Math.round(postsWithScore.reduce((s, p) => s + p.seoScore, 0) / postsWithScore.length)
             : 0;
-
         return { totalPosts, avgSeo };
     }, [filteredPosts]);
 
     const streak = useMemo(() => getStreak(history.dailyStats), [history]);
 
-    // ===== SEO Trend Data =====
     const seoTrendData = useMemo(() => {
         const scores = history.weeklyScores || [];
         if (scores.length === 0) {
@@ -96,7 +72,6 @@ const HistoryPage = () => {
         }));
     }, [history, filteredPosts]);
 
-    // ===== AI Usage Data =====
     const aiUsageData = useMemo(() => {
         let aiCount = 0;
         let directCount = 0;
@@ -122,37 +97,59 @@ const HistoryPage = () => {
         return { aiCount, directCount, aiPercent, total, topActions, maxAction };
     }, [filteredPosts]);
 
+    // 최소 글 수 가드 (모든 Hook 선언 이후)
+    if (posts.length < MIN_POSTS_FOR_REPORT) {
+        return (
+            <div className="history-container">
+                <div className="dashboard-locked">
+                    <div className="dashboard-locked-icon">
+                        <BarChart3 size={48} strokeWidth={1} />
+                    </div>
+                    <h2 className="dashboard-locked-title">성장 리포트</h2>
+                    <p className="dashboard-locked-desc">
+                        글 {MIN_POSTS_FOR_REPORT}개 이상 작성하면<br />
+                        나의 성장 기록을 확인할 수 있어요
+                    </p>
+                    <Link to="/posts" className="history-empty-cta">
+                        글 작성하러 가기
+                    </Link>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="history-container">
-            {/* Header */}
-            <div className="history-header">
-                <h1>성장 리포트</h1>
-                <div className="period-filter">
-                    {PERIOD_OPTIONS.map(opt => (
-                        <button
-                            key={opt.key}
-                            className={`period-btn ${period === opt.key ? 'active' : ''}`}
-                            onClick={() => setPeriod(opt.key)}
-                        >
-                            {opt.label}
-                        </button>
-                    ))}
-                </div>
+            {/* 기간 필터 */}
+            <div className="period-filter">
+                {PERIOD_OPTIONS.map(opt => (
+                    <button
+                        key={opt.key}
+                        className={`period-btn ${period === opt.key ? 'active' : ''}`}
+                        onClick={() => setPeriod(opt.key)}
+                    >
+                        {opt.label}
+                    </button>
+                ))}
             </div>
 
             {/* Summary Cards — 3개 */}
             <div className="summary-cards summary-cards-3">
                 <div className="summary-card">
-                    <div className="summary-card-value">{summaryData.totalPosts}</div>
+                    <div className="summary-card-value">
+                        {summaryData.totalPosts}<span className="summary-card-unit">개</span>
+                    </div>
                     <div className="summary-card-label">총 글 수</div>
                 </div>
                 <div className="summary-card">
-                    <div className="summary-card-value">{summaryData.avgSeo}점</div>
+                    <div className="summary-card-value">
+                        {summaryData.avgSeo}<span className="summary-card-unit">점</span>
+                    </div>
                     <div className="summary-card-label">평균 SEO</div>
                 </div>
                 <div className="summary-card">
                     <div className="summary-card-value">
-                        {streak > 0 ? `${streak}일` : '-'}
+                        {streak > 0 ? <>{streak}<span className="summary-card-unit">일</span></> : '-'}
                     </div>
                     <div className="summary-card-label">연속 작성</div>
                 </div>
@@ -162,14 +159,14 @@ const HistoryPage = () => {
             {seoTrendData.length > 0 && (
                 <div className="history-section">
                     <h3>SEO 점수 추이</h3>
-                    <div className="dot-chart">
+                    <div className={`dot-chart${seoTrendData.length <= 3 ? ' dot-chart-compact' : ''}`}>
                         <div className="dot-chart-goal" style={{ bottom: '80%' }}>
-                            <span>목표 80점</span>
+                            <span>목표 80</span>
                         </div>
                         <div className="dot-chart-area">
                             {seoTrendData.map((d, i) => (
-                                <div key={i} className="dot-chart-col" style={{ height: '100%' }}>
-                                    <div style={{ flex: 1, display: 'flex', alignItems: 'flex-end', width: '100%', justifyContent: 'center' }}>
+                                <div key={i} className="dot-chart-col">
+                                    <div className="dot-chart-col-inner">
                                         <div
                                             className={`dot-chart-dot ${d.score >= 70 ? 'score-high' : d.score >= 40 ? 'score-mid' : 'score-low'}`}
                                             style={{ marginBottom: `${(d.score / 100) * 100}%` }}
@@ -186,7 +183,7 @@ const HistoryPage = () => {
 
             {/* AI Usage */}
             <div className="history-section">
-                <h3>AI 활용 비율</h3>
+                <h3>AI 활용</h3>
                 <div className="stacked-bar">
                     {aiUsageData.aiCount > 0 && (
                         <div
@@ -208,23 +205,21 @@ const HistoryPage = () => {
                 <div className="stacked-bar-legend">
                     <div className="stacked-bar-legend-item">
                         <div className="stacked-bar-legend-dot ai" />
-                        <span>AI 작성 {aiUsageData.aiCount}편</span>
+                        <span>AI {aiUsageData.aiCount}편</span>
                     </div>
                     <div className="stacked-bar-legend-item">
                         <div className="stacked-bar-legend-dot direct" />
-                        <span>직접 작성 {aiUsageData.directCount}편</span>
+                        <span>직접 {aiUsageData.directCount}편</span>
                     </div>
                 </div>
 
                 {aiUsageData.topActions.length > 0 && (
-                    <div style={{ marginTop: '20px' }}>
-                        <h4 style={{ fontSize: '0.85rem', color: 'var(--color-text-sub)', marginBottom: '10px' }}>
-                            AI 기능별 사용 횟수
-                        </h4>
+                    <div className="ai-action-section">
+                        <h4 className="ai-action-title">기능별 사용</h4>
                         <div className="hbar-list">
                             {aiUsageData.topActions.map(([action, count]) => (
                                 <div key={action} className="hbar-row">
-                                    <span className="hbar-label" style={{ flex: '0 0 80px' }}>
+                                    <span className="hbar-label">
                                         {AI_ACTION_LABELS[action] || action}
                                     </span>
                                     <div className="hbar-track">
@@ -240,6 +235,9 @@ const HistoryPage = () => {
                     </div>
                 )}
             </div>
+
+            {/* 다음 글 추천 */}
+            <RecommendSection />
         </div>
     );
 };

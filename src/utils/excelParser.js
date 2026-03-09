@@ -35,7 +35,7 @@ function extractMeta(rows) {
             else if (val.includes('월간')) meta.unit = '월간';
 
             // 기간 패턴: 2025.01.01 ~ 2025.01.31 또는 유사 형태
-            const periodMatch = val.match(/\d{4}[.\-/]\d{1,2}[.\-/]\d{1,2}\s*[~\-]\s*\d{4}[.\-/]\d{1,2}[.\-/]\d{1,2}/);
+            const periodMatch = val.match(/\d{4}[./-]\d{1,2}[./-]\d{1,2}\s*[~-]\s*\d{4}[./-]\d{1,2}[./-]\d{1,2}/);
             if (periodMatch) meta.period = periodMatch[0];
         }
     }

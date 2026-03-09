@@ -19,9 +19,9 @@ const GRADE_LABELS = {
     '-': '분석 대기'
 };
 
-const ReadabilityPanel = () => {
+const ReadabilityPanel = ({ onLocate }) => {
     const { content } = useEditor();
-    const [isOpen, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(true);
 
     const result = useMemo(() => analyzeReadability(content), [content]);
     const { score, grade, metrics, suggestions, isEmpty } = result;
@@ -30,9 +30,12 @@ const ReadabilityPanel = () => {
 
     const handleSuggestionClick = useCallback((suggestion) => {
         if (suggestion.locateType) {
-            locateSuggestion(suggestion.locateType);
+            const found = locateSuggestion(suggestion.locateType);
+            if (found && onLocate) {
+                onLocate(suggestion.text);
+            }
         }
-    }, []);
+    }, [onLocate]);
 
     return (
         <div className="readability-panel">

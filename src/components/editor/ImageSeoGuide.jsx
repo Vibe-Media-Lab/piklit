@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import { ChevronDown } from 'lucide-react';
 import '../../styles/ImageSeoGuide.css';
 
 const SLOT_LABELS = {
@@ -72,14 +73,31 @@ const parsePhotoAnalysis = (photoAnalysis) => {
 /** 마크다운 기호 제거 */
 const clean = (s) => s.replace(/\*{1,2}/g, '').replace(/^#+\s*/, '');
 
-/**
- * 통합 이미지 SEO 가이드 컴포넌트
- * 사진 1장 = 카드 1개, 왼쪽(AI 분석+SEO) + 오른쪽(사진 썸네일)
- */
-const ImageSeoGuide = ({ mainKeyword, imageAlts, imageCaptions = {}, photoMetadata, photoAnalysis, photoFiles }) => {
-    const [copiedKey, setCopiedKey] = useState(null);
+/** 분석 라인에서 한 줄 요약 추출 */
+const extractSummary = (group) => {
+    if (!group?.lines?.length) return '';
+    for (const line of group.lines) {
+        const text = clean(line.replace(/^\s*[*-]\s*/, '').trim());
+        const match = text.match(/^분위기[:：]\s*(.+)$/) || text.match(/^활용[:：]\s*(.+)$/);
+        if (match) return match[1].slice(0, 40);
+    }
+    const first = clean(group.lines[0].replace(/^\s*[*-]\s*/, '').trim());
+    const labelMatch = first.match(/^[^:：]+[:：]\s*(.+)$/);
+    return (labelMatch ? labelMatch[1] : first).slice(0, 40);
+};
 
-    // 업로드된 슬롯
+/**
+ * 초간결 이미지 SEO 가이드
+ * 기본: 한 줄 요약 + 파일명 복사. 상세 보기 토글로 전체 분석 펼침.
+ */
+const ImageSeoGuide = ({ mainKeyword, imageCaptions = {}, photoMetadata, photoAnalysis, photoFiles }) => {
+    const [copiedKey, setCopiedKey] = useState(null);
+    const [expandedCards, setExpandedCards] = useState({});
+
+    const toggleCard = (key) => {
+        setExpandedCards(prev => ({ ...prev, [key]: !prev[key] }));
+    };
+
     const uploadedSlots = useMemo(() =>
         Object.entries(photoMetadata)
             .filter(([, count]) => count > 0)
@@ -87,7 +105,6 @@ const ImageSeoGuide = ({ mainKeyword, imageAlts, imageCaptions = {}, photoMetada
         [photoMetadata]
     );
 
-    // 사진별 플랫 리스트: [{slot, index, file}, ...]
     const photoList = useMemo(() => {
         const list = [];
         uploadedSlots.forEach(({ slot, count }) => {
@@ -99,36 +116,27 @@ const ImageSeoGuide = ({ mainKeyword, imageAlts, imageCaptions = {}, photoMetada
         return list;
     }, [uploadedSlots, photoFiles]);
 
-    // 모든 사진의 blob URL 생성
     const thumbUrls = useMemo(() => {
         return photoList.map(({ file }) =>
             file ? URL.createObjectURL(file) : null
         );
     }, [photoList]);
 
-    // blob URL 정리
     useEffect(() => {
         return () => {
             thumbUrls.forEach(url => { if (url) URL.revokeObjectURL(url); });
         };
     }, [thumbUrls]);
 
-    // photoAnalysis 파싱
     const analysisGroups = useMemo(() => parsePhotoAnalysis(photoAnalysis), [photoAnalysis]);
 
-    // 번호 있는 분석 그룹 → 사진 순서대로 1:1 매핑
-    const { photoAnalysisMap, fallbackGroups, preambleGroups } = useMemo(() => {
+    const { photoAnalysisMap } = useMemo(() => {
         const numbered = analysisGroups.filter(g => g.num !== null);
-        const unnumbered = analysisGroups.filter(g => g.num === null);
         const map = {};
         if (numbered.length === photoList.length) {
             photoList.forEach((_, i) => { map[i] = numbered[i]; });
         }
-        return {
-            photoAnalysisMap: map,
-            fallbackGroups: Object.keys(map).length === 0 && analysisGroups.length > 0 ? analysisGroups : null,
-            preambleGroups: Object.keys(map).length > 0 && unnumbered.length > 0 ? unnumbered : null,
-        };
+        return { photoAnalysisMap: map };
     }, [analysisGroups, photoList]);
 
     const handleCopy = useCallback(async (text, key) => {
@@ -151,12 +159,7 @@ const ImageSeoGuide = ({ mainKeyword, imageAlts, imageCaptions = {}, photoMetada
     if (photoList.length === 0) return null;
 
     const totalImages = photoList.length;
-    const hasAnalysis = !!photoAnalysis;
-    const headerTitle = hasAnalysis
-        ? `📸 사진 분석 & SEO 가이드 (${totalImages}장)`
-        : `📸 이미지 SEO 가이드 (${totalImages}장)`;
 
-    // 전체 복사 텍스트
     const buildFullText = () => {
         const lines = [];
         photoList.forEach(({ slot, index }, seq) => {
@@ -166,33 +169,23 @@ const ImageSeoGuide = ({ mainKeyword, imageAlts, imageCaptions = {}, photoMetada
             lines.push(`\n${emoji} ${analysis?.title || `${slotKorean} ${index + 1}`}`);
             if (analysis) {
                 analysis.lines.forEach(l => {
-                    const text = clean(l.replace(/^\s*[\*\-]\s*/, '').trim());
+                    const text = clean(l.replace(/^\s*[*-]\s*/, '').trim());
                     if (text) lines.push(`  ${text}`);
                 });
             }
-            const filename = generateSeoFilename(mainKeyword, slot, index);
-            const altArr = imageAlts[slot] || [];
-            const alt = altArr[index] || `${mainKeyword} ${slotKorean}`;
             const captionArr = imageCaptions[slot] || [];
             const caption = captionArr[index] || '';
-            let seoLine = `파일명: ${filename} | ALT: ${alt}`;
-            if (caption) seoLine += ` | 캡션: ${caption}`;
-            lines.push(seoLine);
+            if (caption) lines.push(`사진 설명: ${caption}`);
         });
         return lines.join('\n');
     };
 
-    const handleCopyAll = () => {
-        handleCopy(buildFullText(), 'all');
-    };
-
-    /** 분석 라인 렌더 */
     const renderAnalysisLines = (group) => {
         if (!group?.lines) return null;
         return (
             <div className="image-seo-analysis">
                 {group.lines.map((line, j) => {
-                    let text = clean(line.replace(/^\s*[\*\-]\s*/, '').trim());
+                    let text = clean(line.replace(/^\s*[*-]\s*/, '').trim());
                     if (!text) return null;
                     const labelMatch = text.match(/^([^:]+)[:：]\s*(.+)$/);
                     if (labelMatch) {
@@ -211,119 +204,74 @@ const ImageSeoGuide = ({ mainKeyword, imageAlts, imageCaptions = {}, photoMetada
     return (
         <div className="image-seo-guide">
             <div className="image-seo-guide-header">
-                <h3>{headerTitle}</h3>
+                <span className="image-seo-guide-title">사진 분석 완료 · {totalImages}장</span>
                 <button
                     className={`image-seo-copy-all-btn ${copiedKey === 'all' ? 'copied' : ''}`}
-                    onClick={handleCopyAll}
+                    onClick={() => handleCopy(buildFullText(), 'all')}
                 >
-                    {copiedKey === 'all' ? '✅ 복사됨' : '📋 전체 복사'}
+                    {copiedKey === 'all' ? '✅ 복사됨' : '전체 복사'}
                 </button>
             </div>
 
             <div className="image-seo-guide-body">
-                {/* fallback: 분석 그룹 수 ≠ 사진 수일 때 전체 텍스트 상단 표시 */}
-                {fallbackGroups && (
-                    <div className="image-seo-fallback-analysis">
-                        {fallbackGroups.map((group, gi) => {
-                            if (group.num) {
-                                return (
-                                    <div key={gi} className="image-seo-analysis-group">
-                                        <h5 className="image-seo-analysis-group-title">
-                                            <span className="image-seo-analysis-num">{group.num}</span>
-                                            {group.title}
-                                        </h5>
-                                        {renderAnalysisLines(group)}
-                                    </div>
-                                );
-                            }
-                            return <p key={gi} className="image-seo-analysis-item">{clean(group.lines.join(' '))}</p>;
-                        })}
-                    </div>
-                )}
-
-                {/* preamble 텍스트 */}
-                {preambleGroups && (
-                    <div className="image-seo-preamble">
-                        {preambleGroups.map((g, i) => (
-                            <p key={i} className="image-seo-analysis-item">{clean(g.lines.join(' '))}</p>
-                        ))}
-                    </div>
-                )}
-
-                {/* 사진별 1:1 카드 */}
                 {photoList.map(({ slot, index }, seq) => {
                     const emoji = SLOT_EMOJI[slot] || '📷';
                     const slotKorean = SLOT_LABELS[slot] || slot;
-                    const altArr = imageAlts[slot] || [];
                     const captionArr = imageCaptions[slot] || [];
                     const analysis = photoAnalysisMap[seq];
                     const thumbUrl = thumbUrls[seq];
-                    const filename = generateSeoFilename(mainKeyword, slot, index);
-                    const alt = altArr[index] || `${mainKeyword} ${slotKorean}`;
                     const caption = captionArr[index] || '';
-                    const fnKey = `fn-${slot}-${index}`;
-                    const altKey = `alt-${slot}-${index}`;
-                    const capKey = `cap-${slot}-${index}`;
+                    const cardKey = `${slot}-${index}`;
+                    const isExpanded = expandedCards[cardKey];
+                    const summary = analysis ? extractSummary(analysis) : '';
 
                     return (
-                        <div key={`${slot}-${index}`} className="image-seo-photo-card">
-                            {/* 왼쪽: 텍스트 영역 */}
-                            <div className="image-seo-photo-card-left">
-                                <div className="image-seo-photo-card-title">
-                                    {emoji} {analysis?.title || `${slotKorean} ${index + 1}`}
-                                </div>
-
-                                {/* AI 분석 */}
-                                {analysis && renderAnalysisLines(analysis)}
-
-                                {/* 구분선 */}
-                                {analysis && <div className="image-seo-divider" />}
-
-                                {/* SEO 정보 */}
-                                <div className="image-seo-rows">
-                                    <div className="image-seo-row">
-                                        <span className="image-seo-row-label">파일명</span>
-                                        <span className="image-seo-row-value">{filename}</span>
-                                        <button
-                                            className={`image-seo-copy-btn ${copiedKey === fnKey ? 'copied' : ''}`}
-                                            onClick={() => handleCopy(filename, fnKey)}
-                                        >
-                                            {copiedKey === fnKey ? '✅' : '복사'}
-                                        </button>
-                                    </div>
-                                    <div className="image-seo-row">
-                                        <span className="image-seo-row-label">ALT</span>
-                                        <span className="image-seo-row-value">{alt}</span>
-                                        <button
-                                            className={`image-seo-copy-btn ${copiedKey === altKey ? 'copied' : ''}`}
-                                            onClick={() => handleCopy(alt, altKey)}
-                                        >
-                                            {copiedKey === altKey ? '✅' : '복사'}
-                                        </button>
-                                    </div>
-                                    {caption && (
-                                        <div className="image-seo-row">
-                                            <span className="image-seo-row-label">캡션</span>
-                                            <span className="image-seo-row-value">{caption}</span>
-                                            <button
-                                                className={`image-seo-copy-btn ${copiedKey === capKey ? 'copied' : ''}`}
-                                                onClick={() => handleCopy(caption, capKey)}
-                                            >
-                                                {copiedKey === capKey ? '✅' : '복사'}
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* 오른쪽: 사진 썸네일 */}
-                            {thumbUrl && (
-                                <div className="image-seo-photo-card-right">
+                        <div key={cardKey} className={`image-seo-compact-card ${isExpanded ? 'expanded' : ''}`}>
+                            {/* 컴팩트 요약 행 */}
+                            <div className="image-seo-compact-row">
+                                {thumbUrl && (
                                     <img
                                         src={thumbUrl}
-                                        alt={`${slotKorean} ${index + 1} 썸네일`}
-                                        className="image-seo-photo-thumb"
+                                        alt={`${slotKorean} ${index + 1}`}
+                                        className="image-seo-compact-thumb"
                                     />
+                                )}
+                                <div className="image-seo-compact-info">
+                                    <div className="image-seo-compact-title">
+                                        {emoji} {analysis?.title || `${slotKorean} ${index + 1}`}
+                                    </div>
+                                    {summary && (
+                                        <div className="image-seo-compact-summary">{summary}</div>
+                                    )}
+                                </div>
+                                <button
+                                    className={`image-seo-expand-btn ${isExpanded ? 'open' : ''}`}
+                                    onClick={() => toggleCard(cardKey)}
+                                    title="상세 보기"
+                                >
+                                    <ChevronDown size={16} />
+                                </button>
+                            </div>
+
+                            {/* 펼침 상세 영역 */}
+                            {isExpanded && (
+                                <div className="image-seo-detail">
+                                    {analysis && renderAnalysisLines(analysis)}
+
+                                    {caption && (
+                                        <div className="image-seo-detail-caption">
+                                            <span className="image-seo-detail-label">사진 설명</span>
+                                            <div className="image-seo-detail-caption-row">
+                                                <span className="image-seo-detail-value">{caption}</span>
+                                                <button
+                                                    className={`image-seo-copy-btn ${copiedKey === `dcap-${cardKey}` ? 'copied' : ''}`}
+                                                    onClick={() => handleCopy(caption, `dcap-${cardKey}`)}
+                                                >
+                                                    {copiedKey === `dcap-${cardKey}` ? '✅' : '복사'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -332,8 +280,7 @@ const ImageSeoGuide = ({ mainKeyword, imageAlts, imageCaptions = {}, photoMetada
             </div>
 
             <div className="image-seo-footer">
-                💡 위 파일명으로 이미지를 저장하고, ALT 텍스트는 대체 텍스트에,
-                캡션은 이미지 아래 설명에 입력하세요.
+                · 사진 설명은 네이버 에디터의 '사진 설명'에 입력하면 키워드 보강에 도움됩니다
             </div>
         </div>
     );

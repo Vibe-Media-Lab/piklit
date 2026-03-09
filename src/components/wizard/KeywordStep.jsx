@@ -3,7 +3,7 @@ import {
     Search, CheckCircle, Tag, Flame, Bot,
     ArrowLeft, ArrowRight,
     Loader2, BarChart3,
-    RefreshCw, Plus, Edit3
+    RefreshCw, Plus, Edit3, ChevronDown
 } from 'lucide-react';
 import { useEditor } from '../../context/EditorContext';
 import { useToast } from '../common/Toast';
@@ -40,7 +40,7 @@ const DifficultyBadge = ({ difficulty }) => {
         hard: { emoji: '🔴', label: '어려움' },
     };
     const d = map[difficulty] || map.medium;
-    return <span title={d.label} style={{ marginLeft: '4px', fontSize: '0.75rem' }}>{d.emoji}</span>;
+    return <span title={d.label} className="difficulty-badge">{d.emoji}</span>;
 };
 
 // ── KeywordStep 컴포넌트 ──
@@ -49,7 +49,6 @@ const KeywordStep = ({
     mainKeyword,
     selectedCategory,
     selectedKeywords,
-    competitorData,
     categoryId,
     wizardData,
     setSelectedKeywords,
@@ -70,6 +69,8 @@ const KeywordStep = ({
     const [difficultyChecked, setDifficultyChecked] = useState(false);
     const [seasonKeywords, setSeasonKeywords] = useState([]);
     const [isAnalyzingSeason, setIsAnalyzingSeason] = useState(false);
+    const [advancedOpen, setAdvancedOpen] = useState(false);
+    const [seasonShowAll, setSeasonShowAll] = useState(false);
 
     // ── 핸들러 ──
 
@@ -285,188 +286,170 @@ const KeywordStep = ({
                 </div>
             )}
 
-            {/* ── 2단계: 키워드 선택 카드 (분석 결과 후 노출) ── */}
+            {/* ── 2단계: 키워드 선택 (분석 결과 후 노출) ── */}
             {(suggestedKeywords.length > 0 || selectedKeywords.length > 0) && (
                 <div className="wizard-section-card">
-                    {/* 제안된 키워드 목록 */}
+                    {/* AI 제안 + 선택 통합 영역 (#4) */}
+                    <label className="wizard-label">
+                        <Tag size={16} /> 서브 키워드 ({selectedKeywords.length}/5)
+                        {selectedKeywords.length < 3 && (
+                            <span className="wizard-min-warning">최소 3개</span>
+                        )}
+                    </label>
+
+                    {/* 선택된 키워드 칩 + 직접 입력 인라인 (#4) */}
+                    <div className="wizard-chip-list">
+                        {selectedKeywords.map((kwObj, i) => (
+                            <span
+                                key={`sel-${i}`}
+                                onClick={() => handleRemoveSelectedKeyword(kwObj)}
+                                className={`wizard-keyword-chip ${kwObj.isCustom ? 'custom' : kwObj.isSeason ? 'season' : ''}`}
+                            >
+                                {kwObj.isSeason && <Flame size={13} />}{kwObj.isCustom && <Edit3 size={13} />}{getKw(kwObj)}
+                                {difficultyChecked && <DifficultyBadge difficulty={getDifficulty(kwObj)} />}
+                                <span className="chip-remove">×</span>
+                            </span>
+                        ))}
+                    </div>
+
+                    {/* AI 제안 키워드 */}
                     {suggestedKeywords.length > 0 && (
                         <div className="wizard-suggested-section">
-                            <label className="wizard-label">
-                                <Tag size={16} /> AI 제안 키워드 (클릭하여 선택)
-                            </label>
+                            <div className="wizard-suggested-divider">
+                                <span className="wizard-suggested-divider-line" />
+                                <span className="wizard-suggested-divider-label">AI 추천</span>
+                                <span className="wizard-suggested-divider-line" />
+                            </div>
                             <div className="wizard-chip-list">
                                 {suggestedKeywords.map((kwObj, i) => (
                                     <span
-                                        key={i}
+                                        key={`sug-${i}`}
                                         onClick={() => handleKeywordToggle(kwObj)}
                                         className={`wizard-suggested-chip ${selectedKeywords.length >= 5 ? 'disabled' : ''}`}
                                     >
-                                        + {getKw(kwObj)}
+                                        {getKw(kwObj)}
                                         {difficultyChecked && <DifficultyBadge difficulty={getDifficulty(kwObj)} />}
                                     </span>
                                 ))}
                             </div>
                             <button
-                                onClick={handleAnalyzeKeywords}
+                                onClick={isAnalyzingKeywords ? undefined : handleAnalyzeKeywords}
                                 disabled={isAnalyzingKeywords}
-                                className="wizard-btn-accent wizard-mt-8"
+                                className="wizard-more-btn"
                             >
                                 {isAnalyzingKeywords
-                                    ? <><Loader2 size={16} className="spin" /> 키워드 분석 중...</>
-                                    : <><RefreshCw size={16} /> 추가 키워드 더 받기</>
+                                    ? <><Loader2 size={14} className="spin" /> 분석 중</>
+                                    : <><RefreshCw size={14} /> 추천 더 받기</>
                                 }
                             </button>
                         </div>
                     )}
 
-                    {/* 선택된 키워드 */}
-                    <div className="wizard-selected-keywords">
-                        <label className="wizard-label">
-                            <CheckCircle size={16} /> 선택한 서브 키워드 ({selectedKeywords.length}/5)
-                            {selectedKeywords.length < 3 && (
-                                <span className="wizard-min-warning">최소 3개 선택 필요</span>
-                            )}
-                        </label>
-                        <div className="wizard-chip-list">
-                            {selectedKeywords.length === 0 ? (
-                                <span className="wizard-chip-placeholder">위 제안된 키워드를 클릭하여 선택하세요</span>
-                            ) : (
-                                selectedKeywords.map((kwObj, i) => (
-                                    <span
-                                        key={i}
-                                        onClick={() => handleRemoveSelectedKeyword(kwObj)}
-                                        className={`wizard-keyword-chip ${kwObj.isCustom ? 'custom' : kwObj.isSeason ? 'season' : ''}`}
-                                    >
-                                        {kwObj.isSeason && <Flame size={13} />}{kwObj.isCustom && <Edit3 size={13} />}{getKw(kwObj)}
-                                        {difficultyChecked && <DifficultyBadge difficulty={getDifficulty(kwObj)} />}
-                                        <span className="chip-remove">×</span>
-                                    </span>
-                                ))
-                            )}
-                        </div>
-
-                        {/* 키워드 직접 입력 */}
-                        <div className="wizard-custom-input-row">
-                            <input
-                                type="text"
-                                value={customKeywordInput}
-                                onChange={e => setCustomKeywordInput(e.target.value)}
-                                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustomKeyword(); } }}
-                                placeholder="키워드 직접 입력"
-                                disabled={selectedKeywords.length >= 5}
-                                className="wizard-custom-input"
-                            />
-                            <button
-                                onClick={handleAddCustomKeyword}
-                                disabled={!customKeywordInput.trim() || selectedKeywords.length >= 5}
-                                className="wizard-custom-add-btn"
-                            >
-                                <Plus size={14} /> 추가
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* 키워드 강도 확인 */}
-                    <div className="wizard-keyword-actions">
-                        {!difficultyChecked && (
-                            <button
-                                onClick={handleCheckDifficulty}
-                                disabled={isCheckingDifficulty}
-                                className="wizard-btn-secondary"
-                            >
-                                {isCheckingDifficulty
-                                    ? <><Loader2 size={16} className="spin" /> 확인 중...</>
-                                    : <><BarChart3 size={16} /> 키워드 강도 확인하기</>
-                                }
-                            </button>
-                        )}
-                        {difficultyChecked && (
-                            <span className="wizard-difficulty-done">
-                                <CheckCircle size={16} /> 강도 확인 완료
-                            </span>
-                        )}
-                    </div>
-
-                    {/* 시즌 트렌드 (키워드 카드 안에 배치 — 보조 옵션) */}
-                    <div className="wizard-season-section">
+                    {/* 직접 입력 인라인 (#4) */}
+                    <div className="wizard-custom-input-row">
+                        <input
+                            type="text"
+                            value={customKeywordInput}
+                            onChange={e => setCustomKeywordInput(e.target.value)}
+                            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustomKeyword(); } }}
+                            placeholder="키워드 직접 입력"
+                            disabled={selectedKeywords.length >= 5}
+                            className="wizard-custom-input"
+                        />
                         <button
-                            onClick={handleAnalyzeSeasonKeywords}
-                            disabled={isAnalyzingSeason || !mainKeyword.trim()}
-                            className="wizard-btn-accent"
+                            onClick={handleAddCustomKeyword}
+                            disabled={!customKeywordInput.trim() || selectedKeywords.length >= 5}
+                            className="wizard-custom-add-btn"
                         >
-                            {isAnalyzingSeason
-                                ? <><Loader2 size={16} className="spin" /> 시즌 트렌드를 분석하고 있습니다...</>
-                                : seasonKeywords.length > 0
-                                    ? <><RefreshCw size={16} /> 시즌 트렌드 키워드 다시 추천받기</>
-                                    : <><Flame size={16} /> 시즌 트렌드 키워드 추천받기</>
-                            }
+                            <Plus size={14} /> 추가
+                        </button>
+                    </div>
+
+                    {/* 고급 옵션 (접이식) */}
+                    <div className="wizard-advanced-section">
+                        <button
+                            className="wizard-advanced-toggle"
+                            onClick={() => setAdvancedOpen(prev => !prev)}
+                        >
+                            <span>고급 옵션</span>
+                            <ChevronDown size={16} className={`wizard-advanced-arrow ${advancedOpen ? 'open' : ''}`} />
                         </button>
 
-                        {isAnalyzingSeason && (
-                            <div className="ai-progress-card">
-                                <div className="ai-progress-header">
-                                    <Loader2 size={16} className="spin" />
-                                    시즌 트렌드 키워드를 분석하고 있습니다
-                                    <div className="ai-progress-dots"><span /><span /><span /></div>
-                                </div>
-                                <div className="ai-progress-bar-track">
-                                    <div className="ai-progress-bar-fill" />
-                                </div>
-                                <div className="ai-progress-steps">
-                                    <div className="ai-progress-step done">
-                                        <div className="ai-progress-step-icon"><CheckCircle size={14} /></div>
-                                        시즌 데이터 요청 완료
-                                    </div>
-                                    <div className="ai-progress-step active">
-                                        <div className="ai-progress-step-icon"><Loader2 size={14} /></div>
-                                        현재 시즌 트렌드 검색 중
-                                    </div>
-                                    <div className="ai-progress-step">
-                                        <div className="ai-progress-step-icon"><Flame size={14} /></div>
-                                        트렌드 키워드 추출
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+                        {advancedOpen && (
+                            <div className="wizard-advanced-body">
+                                <div className="wizard-keyword-actions">
+                                    {!difficultyChecked ? (
+                                        <button
+                                            onClick={handleCheckDifficulty}
+                                            disabled={isCheckingDifficulty}
+                                            className="wizard-btn-secondary wizard-btn-compact"
+                                        >
+                                            {isCheckingDifficulty
+                                                ? <><Loader2 size={16} className="spin" /> 확인 중...</>
+                                                : <><BarChart3 size={16} /> 키워드 강도 확인</>
+                                            }
+                                        </button>
+                                    ) : (
+                                        <span className="wizard-difficulty-done">
+                                            <CheckCircle size={16} /> 강도 확인 완료
+                                        </span>
+                                    )}
 
-                        {seasonKeywords.length > 0 && !isAnalyzingSeason && (
-                            <div className="wizard-season-panel">
-                                <label className="wizard-label">
-                                    <Flame size={16} /> 시즌 트렌드 키워드
-                                </label>
-                                <div className="wizard-season-list">
-                                    {seasonKeywords.map((sk, i) => (
-                                        <div key={i} className="wizard-season-card">
-                                            <div className="wizard-season-card-body">
-                                                <div className="wizard-season-card-title">
-                                                    <Flame size={14} /> {sk.keyword}
+                                    <button
+                                        onClick={handleAnalyzeSeasonKeywords}
+                                        disabled={isAnalyzingSeason || !mainKeyword.trim()}
+                                        className="wizard-btn-secondary wizard-btn-compact"
+                                    >
+                                        {isAnalyzingSeason
+                                            ? <><Loader2 size={16} className="spin" /> 분석 중...</>
+                                            : seasonKeywords.length > 0
+                                                ? <><RefreshCw size={16} /> 시즌 트렌드 재분석</>
+                                                : <><Flame size={16} /> 시즌 트렌드 추천</>
+                                        }
+                                    </button>
+                                </div>
+
+                                {/* #4: 시즌 프로그레스 간소화 — 버튼 인라인 로딩만 */}
+                                {isAnalyzingSeason && (
+                                    <p className="wizard-hint-text">
+                                        <Loader2 size={14} className="spin" /> 시즌 트렌드를 검색하고 있습니다...
+                                    </p>
+                                )}
+
+                                {/* #5: 시즌 카드 3개 기본 + 더 보기 */}
+                                {seasonKeywords.length > 0 && !isAnalyzingSeason && (
+                                    <div className="wizard-season-panel">
+                                        <label className="wizard-label">
+                                            <Flame size={16} /> 시즌 트렌드 키워드
+                                        </label>
+                                        <div className="wizard-season-list">
+                                            {(seasonShowAll ? seasonKeywords : seasonKeywords.slice(0, 3)).map((sk, i) => (
+                                                <div
+                                                    key={i}
+                                                    className={`wizard-season-card clickable ${selectedKeywords.length >= 5 ? 'disabled' : ''}`}
+                                                    onClick={() => selectedKeywords.length < 5 && handleAddSeasonKeyword(sk)}
+                                                >
+                                                    <div className="wizard-season-card-title">
+                                                        <Flame size={14} /> {sk.keyword}
+                                                    </div>
+                                                    <div className="wizard-season-card-meta">
+                                                        {sk.reason} · {sk.timing}
+                                                    </div>
                                                 </div>
-                                                <div className="wizard-season-card-meta">
-                                                    {sk.reason} · {sk.timing}
-                                                </div>
-                                            </div>
-                                            <button
-                                                onClick={() => handleAddSeasonKeyword(sk)}
-                                                disabled={selectedKeywords.length >= 5}
-                                                className="wizard-season-add-btn"
-                                            >
-                                                + 선택
-                                            </button>
+                                            ))}
                                         </div>
-                                    ))}
-                                </div>
+                                        {seasonKeywords.length > 3 && !seasonShowAll && (
+                                            <button
+                                                className="wizard-season-more"
+                                                onClick={() => setSeasonShowAll(true)}
+                                            >
+                                                + {seasonKeywords.length - 3}개 더 보기
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         )}
-                    </div>
-
-                    {/* 진행 상태 (키워드 카드 안에 배치) */}
-                    <div className={`wizard-info-box ${selectedKeywords.length >= 3 ? 'success' : ''}`}>
-                        <p>
-                            {selectedKeywords.length >= 3
-                                ? <><CheckCircle size={14} /> {selectedKeywords.length}개의 서브 키워드가 선택되었습니다. 다음 단계로 진행할 수 있습니다.</>
-                                : `${3 - selectedKeywords.length}개의 서브 키워드를 더 선택해주세요.`
-                            }
-                        </p>
                     </div>
                 </div>
             )}
@@ -476,14 +459,17 @@ const KeywordStep = ({
                     onClick={onPrev}
                     className="wizard-btn-ghost"
                 >
-                    <ArrowLeft size={16} /> 이전: 주제 선택
+                    <ArrowLeft size={16} /> 이전
                 </button>
                 <button
                     onClick={onNext}
                     disabled={!canProceed}
                     className="wizard-btn-primary"
                 >
-                    다음: 톤앤무드 <ArrowRight size={16} />
+                    {canProceed
+                        ? <>다음 ({selectedKeywords.length}/5) <ArrowRight size={16} /></>
+                        : <>{3 - selectedKeywords.length}개 더 선택 <ArrowRight size={16} /></>
+                    }
                 </button>
             </div>
         </div>

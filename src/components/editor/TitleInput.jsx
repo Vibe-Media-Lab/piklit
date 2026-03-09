@@ -2,15 +2,15 @@ import React, { useState } from 'react';
 import { useEditor } from '../../context/EditorContext';
 import { useToast } from '../common/Toast';
 import { AIService } from '../../services/openai';
+import { Bot, RefreshCw, AlertCircle } from 'lucide-react';
 
 const TitleInput = () => {
-    const { title, setTitle, keywords, content } = useEditor();
+    const { title, setTitle, keywords, content, suggestedTone, posts, currentPostId } = useEditor();
     const { showToast } = useToast();
     const [recommendations, setRecommendations] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    // Simple visual validation
     const mainKeyword = keywords.main.trim();
     const startsWithKeyword = mainKeyword && title.startsWith(mainKeyword);
 
@@ -22,7 +22,8 @@ const TitleInput = () => {
         setRecommendations([]);
 
         try {
-            const titles = await AIService.recommendTitles(mainKeyword, keywords.sub, content);
+            const currentCategory = posts.find(p => p.id === currentPostId)?.categoryId || 'daily';
+            const titles = await AIService.recommendTitles(mainKeyword, keywords.sub, content, suggestedTone, currentCategory);
             setRecommendations(titles);
         } catch (e) {
             setError(e.message);
@@ -33,98 +34,68 @@ const TitleInput = () => {
 
     const applyTitle = (newTitle) => {
         setTitle(newTitle);
-        setRecommendations([]); // Clear after selection to clean up UI
+        setRecommendations([]);
     };
 
     return (
-        <div className="input-group">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <label className="input-label" style={{ marginBottom: 0 }}>게시글 제목</label>
-                    <button
-                        onClick={handleRecommendToken}
-                        disabled={loading || !mainKeyword}
-                        style={{
-                            padding: '4px 8px',
-                            fontSize: '0.75rem',
-                            background: '#f0f0f0',
-                            border: '1px solid #ddd',
-                            borderRadius: '4px',
-                            cursor: mainKeyword ? 'pointer' : 'not-allowed',
-                            color: '#333',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px'
-                        }}
-                        title={!mainKeyword ? "메인 키워드를 먼저 설정해주세요" : "AI가 SEO 최적화 제목을 추천합니다"}
-                    >
-                        {loading ? '생성 중...' : '🤖 AI 제목 추천'}
-                    </button>
-                </div>
-                <span style={{
-                    fontSize: '0.875rem',
-                    color: title.length > 30 ? 'var(--color-warning)' : 'var(--color-text-sub)'
-                }}>
-                    {title.length} / 25 자
+        <div className="title-section">
+            <div className="title-header">
+                <button
+                    onClick={handleRecommendToken}
+                    disabled={loading || !mainKeyword}
+                    className="title-ai-btn"
+                    title={!mainKeyword ? "메인 키워드를 먼저 설정해주세요" : "AI가 SEO 최적화 제목을 추천합니다"}
+                >
+                    <Bot size={13} />
+                    {loading ? '생성 중...' : 'AI 추천'}
+                </button>
+                <span className={`title-counter ${title.length > 30 ? 'warning' : ''}`}>
+                    {title.length}/25
                 </span>
             </div>
 
-            {error && <div style={{ color: 'red', fontSize: '0.8rem', marginBottom: '8px' }}>⚠️ {error}</div>}
+            {error && (
+                <div className="title-error">
+                    <AlertCircle size={12} /> {error}
+                </div>
+            )}
 
             {recommendations.length > 0 && (
-                <div style={{ marginBottom: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.8rem', color: '#666' }}>추천 제목 (클릭하여 적용):</span>
+                <div className="title-rec-wrap">
+                    <div className="title-rec-header">
+                        <span className="title-rec-label">추천 제목 (탭하여 적용)</span>
                         <button
                             onClick={handleRecommendToken}
                             disabled={loading}
-                            style={{
-                                background: 'none', border: 'none', cursor: 'pointer',
-                                fontSize: '0.75rem', color: 'var(--color-accent)',
-                                display: 'flex', alignItems: 'center', gap: '4px'
-                            }}
+                            className="title-rec-refresh"
                         >
-                            🔄 다른 제목 추천
+                            <RefreshCw size={12} /> 다시
                         </button>
                     </div>
-                    {recommendations.map((rec, idx) => (
-                        <button
-                            key={idx}
-                            onClick={() => applyTitle(rec)}
-                            style={{
-                                textAlign: 'left',
-                                padding: '6px 10px',
-                                background: '#f8f9fa',
-                                border: '1px solid #eee',
-                                borderRadius: '6px',
-                                fontSize: '0.9rem',
-                                cursor: 'pointer',
-                                color: '#333',
-                                transition: 'all 0.2s'
-                            }}
-                            onMouseOver={(e) => e.currentTarget.style.background = '#e9ecef'}
-                            onMouseOut={(e) => e.currentTarget.style.background = '#f8f9fa'}
-                        >
-                            {rec}
-                        </button>
-                    ))}
+                    <div className="title-rec-list">
+                        {recommendations.map((rec, idx) => (
+                            <button
+                                key={idx}
+                                onClick={() => applyTitle(rec)}
+                                className="title-rec-item"
+                            >
+                                {rec}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             )}
 
             <input
                 className="text-input title-input"
                 type="text"
-                placeholder="[메인 키워드] + [구체적인 상황/타겟]"
+                placeholder={mainKeyword ? `${mainKeyword} + 구체적인 상황/타겟` : '제목을 입력하세요'}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                style={{
-                    borderColor: startsWithKeyword ? 'var(--color-success)' : ''
-                }}
+                style={startsWithKeyword ? { borderColor: 'var(--color-success)' } : undefined}
             />
             {!startsWithKeyword && mainKeyword && (
-                <p style={{ color: 'var(--color-warning)', fontSize: '0.875rem', marginTop: '4px' }}>
-                    💡 팁: 제목은 메인 키워드 "{mainKeyword}"(으)로 시작하는 것이 좋습니다.
-                </p>
+                <p className="title-tip">메인 키워드로 시작하면 검색 노출에 유리해요</p>
             )}
         </div>
     );

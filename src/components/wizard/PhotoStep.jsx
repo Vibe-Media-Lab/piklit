@@ -96,10 +96,6 @@ const PhotoStep = ({
             <p className="wizard-step-desc">
                 이미지를 업로드하면 AI가 분석하여 본문 작성에 활용합니다.
             </p>
-            <div className="wizard-step-meta">
-                <span>주제: <strong>{mainKeyword || '미설정'}</strong></span>
-                {selectedCategory && <span>카테고리: {selectedCategory.icon} <strong>{selectedCategory.label}</strong></span>}
-            </div>
 
             <PhotoUploader
                 keyword={mainKeyword}
@@ -107,43 +103,25 @@ const PhotoStep = ({
                 categoryId={categoryId}
             />
 
-            <div className="wizard-section-mt">
-                <button
-                    onClick={handleAnalyzePhotos}
-                    disabled={isAnalyzingPhotos || !hasAnyPhotos}
-                    className="wizard-btn-accent"
-                >
-                    {isAnalyzingPhotos
-                        ? <><Loader2 size={16} className="spin" /> 사진 분석 중...</>
-                        : <><Bot size={16} /> 사진 AI 분석하기</>
-                    }
-                </button>
-            </div>
+            {hasAnyPhotos && (
+                <div className="wizard-section-mt">
+                    <button
+                        onClick={handleAnalyzePhotos}
+                        disabled={isAnalyzingPhotos}
+                        className="wizard-btn-accent"
+                    >
+                        {isAnalyzingPhotos
+                            ? <><Loader2 size={16} className="spin" /> 사진 분석 중...</>
+                            : <><Bot size={16} /> 사진 AI 분석하기</>
+                        }
+                    </button>
+                </div>
+            )}
 
             {isAnalyzingPhotos && (
-                <div className="ai-progress-card wizard-mt-16">
-                    <div className="ai-progress-header">
-                        <Loader2 size={16} className="spin" />
-                        업로드한 사진을 AI가 분석하고 있습니다
-                        <div className="ai-progress-dots"><span /><span /><span /></div>
-                    </div>
-                    <div className="ai-progress-bar-track">
-                        <div className="ai-progress-bar-fill" />
-                    </div>
-                    <div className="ai-progress-steps">
-                        <div className="ai-progress-step done">
-                            <div className="ai-progress-step-icon"><CheckCircle size={14} /></div>
-                            이미지 전송 완료
-                        </div>
-                        <div className="ai-progress-step active">
-                            <div className="ai-progress-step-icon"><Loader2 size={14} /></div>
-                            사진 내용 분석 중
-                        </div>
-                        <div className="ai-progress-step">
-                            <div className="ai-progress-step-icon"><Camera size={14} /></div>
-                            블로그 활용 가이드 생성
-                        </div>
-                    </div>
+                <div className="ai-progress-inline wizard-mt-16">
+                    <Loader2 size={16} className="spin" />
+                    <span>업로드한 사진을 AI가 분석 중입니다</span>
                 </div>
             )}
 
@@ -165,24 +143,14 @@ const PhotoStep = ({
                     onClick={onPrev}
                     className="wizard-btn-ghost"
                 >
-                    <ArrowLeft size={16} /> 이전: 톤앤무드
+                    <ArrowLeft size={16} /> 이전
                 </button>
-                <div className="wizard-nav-flex">
-                    {!hasAnyPhotos && (
-                        <button
-                            onClick={onNext}
-                            className="wizard-btn-secondary"
-                        >
-                            사진 없이 진행하기 <ArrowRight size={16} />
-                        </button>
-                    )}
-                    <button
-                        onClick={onNext}
-                        className="wizard-btn-primary"
-                    >
-                        다음: 아웃라인 + 생성 <ArrowRight size={16} />
-                    </button>
-                </div>
+                <button
+                    onClick={onNext}
+                    className="wizard-btn-primary"
+                >
+                    {hasAnyPhotos ? '다음' : '건너뛰기'} <ArrowRight size={16} />
+                </button>
             </div>
         </div>
     );

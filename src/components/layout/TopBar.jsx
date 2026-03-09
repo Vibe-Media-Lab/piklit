@@ -12,7 +12,7 @@ const PAGE_TITLES = {
 };
 
 const TopBar = () => {
-    const { title, content, savePost, currentPostId } = useEditor();
+    const { title, content, savePost, posts } = useEditor();
     const { logout } = useAuth();
     const location = useLocation();
     const { id } = useParams();
@@ -68,7 +68,7 @@ const TopBar = () => {
             {/* 모바일 네비게이션 (768px 이하에서 표시) */}
             <nav className="topbar-mobile-nav">
                 <NavLink to="/posts" className={({ isActive }) => `topbar-mobile-nav-item${isActive ? ' active' : ''}`}>
-                    내 글
+                    내 글{posts.length > 0 && <span className="topbar-nav-badge">{posts.length}</span>}
                 </NavLink>
                 <NavLink to="/dashboard" className={({ isActive }) => `topbar-mobile-nav-item${isActive ? ' active' : ''}`}>
                     리포트

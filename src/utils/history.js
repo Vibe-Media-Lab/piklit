@@ -269,7 +269,7 @@ export const rebuildHistory = (posts) => {
 export const getStorageUsage = () => {
     let total = 0;
     for (const key in localStorage) {
-        if (localStorage.hasOwnProperty(key)) {
+        if (Object.prototype.hasOwnProperty.call(localStorage, key)) {
             total += localStorage.getItem(key).length * 2; // UTF-16
         }
     }

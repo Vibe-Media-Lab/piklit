@@ -22,7 +22,7 @@ const SidebarGroup = ({ title, defaultOpen = false, children }) => {
     );
 };
 
-const AIAnalysisDashboard = () => {
+const AIAnalysisDashboard = ({ onLocate, compact }) => {
     const { analysis, content, recordAiAction } = useEditor();
     const { checks, issues, keywordDensity, introLength, headingCount } = analysis;
     const score = Object.values(checks).filter(Boolean).length;
@@ -131,20 +131,15 @@ const AIAnalysisDashboard = () => {
                         <ul className="dashboard-issues">
                             {issues.map((issue, idx) => (
                                 <li key={idx} className={`dashboard-issue dashboard-issue-${issue.type}`}>
-                                    <span>{issue.type === 'error' ? '❌' : issue.type === 'warning' ? '⚠️' : 'ℹ️'}</span>
-                                    {issue.text}
+                                    <span className="dashboard-issue-icon">{issue.type === 'error' ? '❌' : issue.type === 'warning' ? '⚠' : 'ℹ'}</span>
+                                    <span className="dashboard-issue-text">{issue.text}</span>
+                                    {issue.metric && <span className="dashboard-issue-metric">{issue.metric}</span>}
                                 </li>
                             ))}
                         </ul>
                     )}
                 </div>
 
-                {/* 가독성 */}
-                <ReadabilityPanel />
-            </SidebarGroup>
-
-            {/* 그룹 2: AI 도구 */}
-            <SidebarGroup title="AI 도구" defaultOpen={false}>
                 {/* 태그 추출 */}
                 <div className="dashboard-tag-section">
                     <button
@@ -179,17 +174,61 @@ const AIAnalysisDashboard = () => {
                     </div>
                 )}
 
-                {/* AI 감지 분석 */}
-                <HumannessPanel />
-
-                {/* 썸네일 생성 */}
-                <ThumbnailPanel />
+                {/* 가독성 */}
+                {!compact && <ReadabilityPanel onLocate={onLocate} />}
             </SidebarGroup>
 
-            {/* 그룹 3: 히스토리 */}
-            <SidebarGroup title="작성 히스토리" defaultOpen={false}>
-                <PostHistory />
-            </SidebarGroup>
+            {!compact && (
+                <>
+                    {/* 그룹 2: AI 도구 */}
+                    <SidebarGroup title="AI 도구" defaultOpen={false}>
+                        {/* 태그 추출 */}
+                        <div className="dashboard-tag-section">
+                            <button
+                                onClick={handleExtractTags}
+                                disabled={loading}
+                                className="dashboard-tag-btn"
+                            >
+                                {loading ? <span className="btn-loading-spinner"><Loader2 size={14} className="spin" /> 분석 중...</span> : '# 블로그 태그 추출'}
+                            </button>
+                        </div>
+
+                        {extractedTags.length > 0 && (
+                            <div className="dashboard-tag-result">
+                                <div className="dashboard-tag-header">
+                                    <h4 className="dashboard-section-title">추출된 태그</h4>
+                                    <button onClick={handleCopyTags} className={`dashboard-copy-btn ${copiedAll ? 'copied' : ''}`}>
+                                        {copiedAll ? '복사됨!' : '전체 복사'}
+                                    </button>
+                                </div>
+                                <p className="dashboard-tag-hint">클릭하면 개별 복사됩니다</p>
+                                <div className="dashboard-tag-chips">
+                                    {extractedTags.map((tag, i) => (
+                                        <span
+                                            key={i}
+                                            onClick={() => handleCopySingleTag(tag)}
+                                            className={`dashboard-tag-chip ${copiedTag === tag ? 'copied' : ''}`}
+                                        >
+                                            {copiedTag === tag ? '복사됨!' : `#${tag}`}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* AI 감지 분석 */}
+                        <HumannessPanel />
+
+                        {/* 썸네일 생성 */}
+                        <ThumbnailPanel />
+                    </SidebarGroup>
+
+                    {/* 그룹 3: 히스토리 */}
+                    <SidebarGroup title="작성 히스토리" defaultOpen={false}>
+                        <PostHistory />
+                    </SidebarGroup>
+                </>
+            )}
         </div>
     );
 };

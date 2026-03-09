@@ -401,18 +401,12 @@ const PhotoUploader = ({ keyword, onUpdate, categoryId }) => {
 
     return (
         <div className="photo-uploader-container">
-            <div className="photo-upload-banner">
-                <Camera size={18} />
-                <span>사진을 드래그하거나 클릭해서 넣어주세요</span>
-                <span className="photo-upload-banner-sub">· 자동 리사이징 · AI 이미지 생성 가능</span>
-            </div>
-
             <div className={`photo-progress-guide ${isSufficient ? 'sufficient' : ''}`}>
                 <div className="photo-progress-text">
                     {isSufficient ? (
-                        <><CheckCircle size={15} /> 권장 {recommendedCount}장 · 현재 {totalUploaded}장 — 충분해요!</>
+                        <><CheckCircle size={15} /> {totalUploaded}장 업로드 — 충분해요!</>
                     ) : (
-                        <>📸 권장 {recommendedCount}장 · 현재 {totalUploaded}장</>
+                        <>📸 {totalUploaded}/{recommendedCount}장</>
                     )}
                 </div>
                 <div className="photo-progress-bar">
@@ -420,7 +414,7 @@ const PhotoUploader = ({ keyword, onUpdate, categoryId }) => {
                 </div>
             </div>
 
-            <div className="photo-grid">
+            <div className="photo-grid-compact">
                 {slots.map(slot => {
                     const hasImage = (files[slot.id] || []).length > 0;
                     const previewUrl = previews[slot.id];
@@ -429,7 +423,7 @@ const PhotoUploader = ({ keyword, onUpdate, categoryId }) => {
                     return (
                         <div
                             key={slot.id}
-                            className={`photo-slot ${hasImage ? 'has-image' : ''}`}
+                            className={`photo-slot-compact ${hasImage ? 'has-image' : ''}`}
                             onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
                             onDrop={(e) => handleDrop(e, slot.id)}
                             onClick={() => document.getElementById(`file-input-${slot.id}`).click()}
@@ -444,35 +438,27 @@ const PhotoUploader = ({ keyword, onUpdate, categoryId }) => {
                             />
 
                             {hasImage ? (
-                                <>
-                                    <div className="image-preview-wrapper">
-                                        <img src={previewUrl} alt={slot.label} className="image-preview" />
-                                        <button className="remove-btn" onClick={(e) => removeFile(e, slot.id)}>✕</button>
-                                        {count > 1 && <span className="multi-image-count">+{count - 1}</span>}
-                                    </div>
-                                </>
+                                <div className="image-preview-wrapper-compact">
+                                    <img src={previewUrl} alt={slot.label} className="image-preview" />
+                                    <button className="remove-btn-compact" onClick={(e) => removeFile(e, slot.id)}>✕</button>
+                                    {count > 1 && <span className="multi-image-count-compact">+{count - 1}</span>}
+                                    <span className="slot-label-overlay">{slot.label.split(' ').slice(1).join(' ')}</span>
+                                </div>
                             ) : (
-                                <>
-                                    <div className="slot-icon">{slot.label.split(' ')[0]}</div>
-                                    <div className="slot-label">{slot.label.split(' ').slice(1).join(' ')}</div>
-                                    <div className="slot-desc">{slot.desc}</div>
-                                    <button
-                                        className="ai-gen-btn"
-                                        onClick={(e) => openAiModal(e, slot.id, slot.label)}
-                                    >
-                                        AI 생성
-                                    </button>
-                                </>
+                                <div className="slot-content-compact">
+                                    <span className="slot-icon-compact">{slot.label.split(' ')[0]}</span>
+                                    <span className="slot-label-compact">{slot.label.split(' ').slice(1).join(' ')}</span>
+                                </div>
                             )}
                         </div>
                     );
                 })}
             </div>
 
-            <p className="photo-upload-note">
-                <Info size={14} />
-                사진이 있는 항목은 AI가 본문에 <b>[이미지 삽입]</b> 위치를 잡아줍니다.
-            </p>
+            <div className="photo-upload-note">
+                <p>· 클릭하거나 드래그하여 사진을 업로드해 주세요</p>
+                <p>· 업로드한 사진은 AI가 본문에 자동 배치합니다</p>
+            </div>
 
             {/* AI Image Generation Modal */}
             {aiModal.open && (

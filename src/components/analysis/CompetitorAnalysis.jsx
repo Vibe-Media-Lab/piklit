@@ -1,10 +1,12 @@
-import React from 'react';
-import { BarChart3, Search, CheckCircle, Loader2, AlertTriangle } from 'lucide-react';
+import React, { useState } from 'react';
+import { BarChart3, CheckCircle, Loader2, AlertTriangle, ChevronDown } from 'lucide-react';
 
-const CompetitorAnalysis = ({ data, loading, onAnalyze }) => {
+const CompetitorAnalysis = ({ data, loading, onAnalyze, compact }) => {
+    const [expanded, setExpanded] = useState(false);
+
     if (!data && !loading) {
         return (
-            <button onClick={onAnalyze} className="wizard-btn-accent">
+            <button onClick={onAnalyze} className={compact ? 'competitor-compact-btn' : 'wizard-btn-accent'}>
                 <BarChart3 size={16} /> 경쟁 블로그 분석하기
             </button>
         );
@@ -12,35 +14,33 @@ const CompetitorAnalysis = ({ data, loading, onAnalyze }) => {
 
     if (loading) {
         return (
-            <div className="ai-progress-card">
-                <div className="ai-progress-header">
-                    <Loader2 size={16} className="spin" />
-                    경쟁 블로그를 분석하고 있습니다
-                    <div className="ai-progress-dots"><span /><span /><span /></div>
-                </div>
-                <div className="ai-progress-bar-track">
-                    <div className="ai-progress-bar-fill" />
-                </div>
-                <div className="ai-progress-steps">
-                    <div className="ai-progress-step done">
-                        <div className="ai-progress-step-icon"><CheckCircle size={14} /></div>
-                        검색 요청 전달 완료
-                    </div>
-                    <div className="ai-progress-step active">
-                        <div className="ai-progress-step-icon"><Loader2 size={14} /></div>
-                        상위 블로그 데이터 수집 중
-                    </div>
-                    <div className="ai-progress-step">
-                        <div className="ai-progress-step-icon"><BarChart3 size={14} /></div>
-                        평균 데이터 추출
-                    </div>
-                </div>
+            <div className={compact ? 'competitor-compact-loading' : 'ai-progress-card'}>
+                <Loader2 size={16} className="spin" />
+                <span>경쟁 블로그 분석 중...</span>
             </div>
         );
     }
 
     const { average = {} } = data;
     const insufficient = !average.charCount && !average.headingCount;
+
+    if (compact) {
+        return (
+            <div className="competitor-compact">
+                {insufficient ? (
+                    <div className="competitor-compact-empty">
+                        <BarChart3 size={14} />
+                        <span>경쟁 블로그 데이터 부족 — 이미지는 카테고리 기준 권장값</span>
+                    </div>
+                ) : (
+                    <div className="competitor-compact-result">
+                        <BarChart3 size={14} />
+                        <span>상위 블로그 평균 <strong>{(average.charCount || 0).toLocaleString()}</strong>자 · <strong>{average.headingCount || 0}</strong>소제목 · <strong>{average.imageCount || 0}</strong>이미지</span>
+                    </div>
+                )}
+            </div>
+        );
+    }
 
     return (
         <div className="competitor-panel">

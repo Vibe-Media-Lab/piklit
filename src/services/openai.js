@@ -58,12 +58,12 @@ export const AIService = {
      */
     _tryParseJson(text) {
         // 전략 1: 직접 파싱
-        try { return JSON.parse(text); } catch (e) { /* 계속 */ }
+        try { return JSON.parse(text); } catch { /* 계속 */ }
 
         // 전략 2: {...} 또는 [...] 패턴 추출
         const jsonMatch = text.match(/\{[\s\S]*\}/) || text.match(/\[[\s\S]*\]/);
         if (jsonMatch) {
-            try { return JSON.parse(jsonMatch[0]); } catch (e) { /* 계속 */ }
+            try { return JSON.parse(jsonMatch[0]); } catch { /* 계속 */ }
         }
 
         // 전략 3: "html": "..." 패턴에서 값 직접 추출 (줄바꿈으로 JSON 깨진 경우)
@@ -291,10 +291,11 @@ ${excludeList}
 [규칙]
 - 각 키워드는 3~5어절의 구체적인 롱테일 키워드
 - 일반 사용자가 실제로 검색할 법한 표현
-- 각 키워드에 추천 이유(reason)와 검색 피크 시기(timing) 포함
+- reason은 반드시 15자 이내 한 줄 요약 (예: "벚꽃 시즌 검색 급증")
+- timing은 "3월 초~4월 말" 형태로 간결하게
 
 Output strictly a valid JSON:
-{"seasonKeywords":[{"keyword":"시즌 키워드","reason":"추천 이유","timing":"검색 피크 시기"},{"keyword":"시즌 키워드","reason":"추천 이유","timing":"검색 피크 시기"},{"keyword":"시즌 키워드","reason":"추천 이유","timing":"검색 피크 시기"},{"keyword":"시즌 키워드","reason":"추천 이유","timing":"검색 피크 시기"},{"keyword":"시즌 키워드","reason":"추천 이유","timing":"검색 피크 시기"}]}`;
+{"seasonKeywords":[{"keyword":"시즌 키워드","reason":"15자 이내 요약","timing":"3월~4월"},{"keyword":"시즌 키워드","reason":"15자 이내 요약","timing":"3월~4월"},{"keyword":"시즌 키워드","reason":"15자 이내 요약","timing":"3월~4월"},{"keyword":"시즌 키워드","reason":"15자 이내 요약","timing":"3월~4월"},{"keyword":"시즌 키워드","reason":"15자 이내 요약","timing":"3월~4월"}]}`;
 
         // 1차 시도: google_search + thinkingBudget 0
         let result = await this.generateContent([{ text: prompt }], {
@@ -310,13 +311,14 @@ Output strictly a valid JSON:
             const formatPrompt = `아래는 "${topic}" 관련 시즌/트렌드 키워드 분석 결과야.
 이 내용을 기반으로 시즌 키워드 5개를 JSON으로 정리해.
 원문의 키워드와 분석 내용을 그대로 활용하고, 임의로 새 키워드를 만들지 마.
+reason은 반드시 15자 이내 한 줄 요약으로 작성해.
 
 ---
 ${rawText.slice(0, 3000)}
 ---
 
 Output strictly a valid JSON:
-{"seasonKeywords":[{"keyword":"시즌 키워드","reason":"추천 이유","timing":"검색 피크 시기"},{"keyword":"시즌 키워드","reason":"추천 이유","timing":"검색 피크 시기"},{"keyword":"시즌 키워드","reason":"추천 이유","timing":"검색 피크 시기"},{"keyword":"시즌 키워드","reason":"추천 이유","timing":"검색 피크 시기"},{"keyword":"시즌 키워드","reason":"추천 이유","timing":"검색 피크 시기"}]}`;
+{"seasonKeywords":[{"keyword":"시즌 키워드","reason":"15자 이내 요약","timing":"3월~4월"},{"keyword":"시즌 키워드","reason":"15자 이내 요약","timing":"3월~4월"},{"keyword":"시즌 키워드","reason":"15자 이내 요약","timing":"3월~4월"},{"keyword":"시즌 키워드","reason":"15자 이내 요약","timing":"3월~4월"},{"keyword":"시즌 키워드","reason":"15자 이내 요약","timing":"3월~4월"}]}`;
             result = await this.generateContent([{ text: formatPrompt }], {
                 generationConfig: { responseMimeType: 'application/json' },
                 thinkingBudget: 0
@@ -427,33 +429,29 @@ Output strictly a valid JSON:
             throw new Error('분석할 사진이 없습니다.');
         }
 
-        const prompt = `
-            너는 블로그 사진 분석 전문가야.
+        const prompt = `너는 블로그 사진 분석 전문가야.
+주제: "${mainKeyword}"
+첨부된 ${photoAssets.length}장의 사진을 분석해줘.
 
-            주제: "${mainKeyword}"
+[분석 항목]
+- 주요 요소: 사진에서 보이는 핵심 요소
+- 분위기: 색상, 분위기, 특징적인 부분
+- 활용 방안: 블로그 글에서 어떻게 활용하면 좋을지
 
-            첨부된 ${photoAssets.length}장의 사진을 분석해줘.
+간결하고 실용적으로 한국어로 분석 결과를 작성해줘.
+각 사진별로 2-3문장으로 요약해.
 
-            [분석 항목]
-            - 주요 요소: 사진에서 보이는 핵심 요소
-            - 분위기: 색상, 분위기, 특징적인 부분
-            - 활용 방안: 블로그 글에서 어떻게 활용하면 좋을지
+반드시 아래 형식으로 출력해:
 
-            간결하고 실용적으로 한국어로 분석 결과를 작성해줘.
-            각 사진별로 2-3문장으로 요약해.
+### 사진 1: 제목
+주요 요소: ...
+분위기: ...
+활용 방안: "..."
 
-            반드시 아래 형식으로 출력해:
-
-            ### 사진 1: 제목
-            주요 요소: ...
-            분위기: ...
-            활용 방안: "..."
-
-            ### 사진 2: 제목
-            주요 요소: ...
-            분위기: ...
-            활용 방안: "..."
-        `;
+### 사진 2: 제목
+주요 요소: ...
+분위기: ...
+활용 방안: "..."`;
 
         const parts = [{ text: prompt }];
         photoAssets.forEach(asset => {
@@ -549,6 +547,10 @@ Output strictly a valid JSON:
 - "핵심적인" → "가장 중요한 한 가지" / "이것만 알면 되는"
 - "필수적인" → "빠지면 안 되는" / "이건 꼭 챙겨야 하는"
 - "최적의" → "가성비가 가장 좋은" / "이 조건에 딱 맞는"
+- "한층 더" → "확실히" / "눈에 띄게"
+- "그야말로" → 삭제하거나 구체적 수치·비유로 대체
+- "무엇보다" → "가장 좋았던 건" / "제일 먼저 눈에 들어온 건"
+- "안성맞춤" → "딱 맞는" / "이 상황에 제격인"
 [금지 문형] "살펴보겠습니다", "알아보겠습니다", "소개해 드리겠습니다", "결론적으로", "종합적으로", "이번 포스팅에서는" — 모두 금지. 바로 본론으로 들어갈 것.`;
     },
 
@@ -688,9 +690,10 @@ ${blogSummary}
     async generateOutline(mainKeyword, subKeywords = [], tone = 'friendly', category = 'daily', competitorData = null) {
         const headingTarget = competitorData?.average?.headingCount
             ? `경쟁 블로그 평균 소제목 ${competitorData.average.headingCount}개 이상 확보할 것.`
-            : 'H2 3~5개, 각 H2 아래 H3 1~3개 배치.';
+            : 'H2 3~5개 배치.';
 
         const prompt = `너는 네이버 블로그 SEO 전문가야.
+구글 검색으로 "${mainKeyword}" 관련 상위 블로그 글의 소제목 구조를 참고해서 아웃라인을 생성해줘.
 
 키워드: ${mainKeyword}
 서브 키워드: ${subKeywords.join(', ') || '없음'}
@@ -698,20 +701,24 @@ ${blogSummary}
 톤: ${this._toneMap[tone] || this._toneMap['friendly']}
 
 [작업]
-"${mainKeyword}" 주제로 블로그 글의 소제목 아웃라인(H2/H3 구조)을 생성해줘.
+"${mainKeyword}" 주제로 블로그 글의 소제목 아웃라인(H2/H3 계층 구조)을 생성해줘.
 
 [규칙]
 1. ${headingTarget}
-2. H2는 글의 큰 섹션, H3는 H2 아래 세부 항목
-3. 메인 키워드를 H2에 1~2회 자연스럽게 포함
-4. 서브 키워드도 소제목에 적절히 반영
-5. 독자가 훑어보기 좋은 논리적 흐름 유지
-6. 각 소제목은 10~25자 이내
+2. **반드시 H2와 H3를 모두 사용할 것. H2만으로 구성하지 말 것.**
+3. 각 H2 아래에 H3를 최소 1개 이상 배치 (필수)
+4. H2는 글의 큰 섹션, H3는 H2 아래 세부 항목
+5. 메인 키워드를 H2에 1~2회 자연스럽게 포함
+6. 서브 키워드도 소제목에 적절히 반영
+7. 독자가 훑어보기 좋은 논리적 흐름 유지
+8. 각 소제목은 10~25자 이내
+9. 검색 결과의 상위 블로그 소제목 패턴을 참고하되 그대로 복사하지 말 것
 
 Output strictly a valid JSON:
-{"outline":[{"level":"h2","title":"소제목"},{"level":"h3","title":"소제목"}]}`;
+{"outline":[{"level":"h2","title":"큰 주제"},{"level":"h3","title":"세부 항목1"},{"level":"h3","title":"세부 항목2"},{"level":"h2","title":"큰 주제2"},{"level":"h3","title":"세부 항목3"}]}`;
 
         return this.generateContent([{ text: prompt }], {
+            tools: [{ google_search: {} }],
             thinkingBudget: 0
         }, '아웃라인 생성');
     },
@@ -814,7 +821,7 @@ Output strictly a valid JSON:
 
         // 업로드된 슬롯만 필수 이미지로 지정
         const uploadedSlots = [['entrance',entrance],['parking',parking],['menu',menu],['interior',interior],['food',food],['extra',extra]]
-            .filter(([_, count]) => count > 0)
+            .filter(([, count]) => count > 0)
             .map(([s]) => s);
         const imageInstructions = uploadedSlots.length > 0
             ? uploadedSlots.map(s => `[[IMAGE:${s}]]`).join(', ')
@@ -875,12 +882,24 @@ Output strictly a valid JSON: {"html": "..."}`;
         const prompt = `구글 검색으로 "${keyword}"의 실제 제품 정보를 찾아줘.
 Output strictly a valid JSON:
 {"brand":"브랜드명","productName":"제품명","price":"가격","specs":"주요 스펙","whereToBuy":"구매처","releaseDate":"출시일"}
-못 찾은 항목은 "정보 확인 필요"로 채워.`;
+규칙:
+- 가격은 반드시 숫자,숫자원 형식 (예: 39,800원). 마침표(.) 사용 금지.
+- 못 찾은 항목은 "정보 확인 필요"로 채워.`;
 
-        return this.generateContent([{ text: prompt }], {
+        const result = await this.generateContent([{ text: prompt }], {
             tools: [{ google_search: {} }],
             thinkingBudget: 0
         }, '제품 정보 검색');
+
+        // 가격 포맷 후처리: "39.800" → "39,800" 등
+        if (result && result.price) {
+            result.price = result.price
+                .replace(/(\d)[,.][\s]*\.(\d)/g, '$1,$2')
+                .replace(/(\d)\.(\d{3})/g, '$1,$2')
+                .replace(/(\d),\s+(\d)/g, '$1,$2');
+        }
+
+        return result;
     },
 
     async generateShoppingDraft(keyword, tone = 'friendly', imageMetadata = {}, photoAssets = [], subKeywords = [], targetLength = '1200~1800자', photoAnalysis = null, competitorData = null, outline = null, wannabeStyleRules = '', paragraphStyle = 'normal') {
@@ -890,7 +909,7 @@ Output strictly a valid JSON:
             .map(([s,c]) => `${s}:${c > 0 ? 'O' : 'X'}`).join(' ');
 
         const uploadedSlots = [['unboxing',unboxing],['product',product],['detail',detail],['usage',usage],['compare',compare],['extra',extra]]
-            .filter(([_, count]) => count > 0)
+            .filter(([, count]) => count > 0)
             .map(([s]) => s);
         const imageInstructions = uploadedSlots.length > 0
             ? uploadedSlots.map(s => `[[IMAGE:${s}]]`).join(', ')
@@ -948,31 +967,30 @@ Output strictly a valid JSON: {"html": "..."}`;
     /**
      * Flow 1: Direct Write Refinement (Expand manual draft using Search)
      */
-    async refineManualDraft(currentHtml, keyword, tone) {
+    async refineManualDraft(currentHtml, keyword, tone, subKeywords = [], category = 'daily', competitorData = null) {
         const toneInstruction = this._toneMap[tone] || this._toneMap['friendly'];
+        const toneBoost = this._categoryToneBoost(category, tone);
 
-        const prompt = `
-            너는 네이버 블로그 글 보완 전문가야.
-            사용자가 직접 작성한 블로그 초안(HTML)을 기반으로, 구글 검색을 통해 실제 사실을 보완하여 1500자 이상의 완성된 글로 만들어줘.
+        const prompt = `너는 네이버 블로그 글 보완 전문가야.
+사용자가 직접 작성한 블로그 초안(HTML)을 기반으로, 구글 검색을 통해 실제 사실을 보완하여 1500자 이상의 완성된 글로 만들어줘.
 
-            [키워드] ${keyword}
+[키워드] ${keyword}
 
-            [톤 지시]
-            ${toneInstruction}
+[톤 지시]
+${toneInstruction}${toneBoost ? `\n[카테고리 맞춤 톤 보정] ${toneBoost}` : ''}
+${this._htmlRules(keyword)}
+${this._subKeywordPrompt(subKeywords)}
+${this._competitorPrompt(competitorData)}
 
-            [HTML/문장 규칙]
-            ${this._htmlRules(keyword)}
+[미션]
+1. 사용자가 쓴 문장을 최대한 살리되, 문맥을 자연스럽게 다듬는다.
+2. 자연스러운 흐름으로 내용을 확장한다.
+3. 검색 결과를 바탕으로 메뉴 가격, 가는 길, 꿀팁 등 실질적인 정보를 추가한다.
 
-            [미션]
-            1. 사용자가 쓴 문장을 최대한 살리되, 문맥을 자연스럽게 다듬는다.
-            2. 자연스러운 흐름으로 내용을 확장한다.
-            3. 검색 결과를 바탕으로 메뉴 가격, 가는 길, 꿀팁 등 실질적인 정보를 추가한다.
+[원본 내용]
+${currentHtml}
 
-            [원본 내용]
-            ${currentHtml}
-
-            Output strictly a valid JSON: { "html": "..." }
-        `;
+Output strictly a valid JSON: { "html": "..." }`;
 
         return this.generateContent([{ text: prompt }], {
             tools: [{ google_search: {} }]
@@ -1198,30 +1216,31 @@ Output strictly a valid JSON:
         }, '도입부 최적화');
     },
 
-    async recommendTitles(mainKeyword, subKeywords = [], content = '') {
+    async recommendTitles(mainKeyword, subKeywords = [], content = '', tone = 'friendly', category = 'daily') {
         const subKeywordStr = Array.isArray(subKeywords)
             ? subKeywords.filter(k => k && k.trim()).join(', ')
             : '';
         const contextHint = content
-            ? `\nContent Summary: ${content.substring(0, 300)}`
+            ? `\n본문 요약: ${content.substring(0, 300)}`
             : '';
-        const prompt = `
-      너는 네이버 블로그 SEO 전문가야.
+        const toneHint = this._toneMap[tone] ? `\n톤: ${tone}` : '';
+        const prompt = `너는 네이버 블로그 SEO 전문가야.
 
-      메인 키워드: ${mainKeyword}
-      ${subKeywordStr ? `서브 키워드: ${subKeywordStr}` : ''}${contextHint}
+메인 키워드: ${mainKeyword}
+카테고리: ${category}${toneHint}
+${subKeywordStr ? `서브 키워드: ${subKeywordStr}` : ''}${contextHint}
 
-      [작업]
-      1. 구글 검색으로 '${mainKeyword}'에 대한 실제 정보를 확인해.
-      2. 검색 결과와 본문 내용을 바탕으로 클릭률 높은 SEO 제목 5개를 만들어.
+[작업]
+1. 구글 검색으로 '${mainKeyword}'에 대한 실제 정보를 확인해.
+2. 검색 결과와 본문 내용을 바탕으로 클릭률 높은 SEO 제목 5개를 만들어.
 
-      [규칙]
-      - 제목은 반드시 '${mainKeyword}'으로 시작할 것
-      - 실제 정보(메뉴, 위치, 특징 등)를 반영할 것
-      - 25자 이내로 작성할 것
+[규칙]
+- 제목은 반드시 '${mainKeyword}'으로 시작할 것
+- 실제 정보(메뉴, 위치, 특징 등)를 반영할 것
+- 25자 이내로 작성할 것
+- 카테고리와 톤에 맞는 제목 스타일 유지
 
-      Return strictly a JSON array of strings.
-    `;
+Output strictly a valid JSON: ["제목1", "제목2", "제목3", "제목4", "제목5"]`;
         return this.generateContent([{ text: prompt }], {
             tools: [{ google_search: {} }],
             thinkingBudget: 0
@@ -1441,6 +1460,7 @@ ${styleDesc}
 1. 메인 텍스트: 10자 이내, 임팩트 있는 핵심 문구. 키워드 포함 권장.
 2. 서브 텍스트: 15자 이내, 메인을 보충하는 짧은 설명.
 3. 제목을 그대로 복사하지 말고 썸네일에 어울리게 압축·변환.
+4. 콜론(:), 특수문자, 이모지 사용 금지. 순수 한글·숫자만 사용.
 
 Output strictly a valid JSON: {"mainText":"메인","subText":"서브"}`;
 

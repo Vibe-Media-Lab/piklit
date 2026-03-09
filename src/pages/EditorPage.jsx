@@ -51,7 +51,15 @@ const EditorPage = () => {
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [topicInput, setTopicInput] = useState('');
     // AI 모드 4단계 스텝
-    const [aiStep, setAiStep] = useState(1); // 1: 주제, 2: 키워드+설정, 3: 이미지, 4: 아웃라인+생성
+    const [aiStep, setAiStepRaw] = useState(1); // 1: 주제, 2: 키워드+설정, 3: 이미지, 4: 아웃라인+생성
+    const setAiStep = (step) => {
+        setAiStepRaw(step);
+        setTimeout(() => {
+            const el = document.querySelector('.app-content');
+            if (el) el.scrollTo({ top: 0, behavior: 'instant' });
+            else window.scrollTo({ top: 0, behavior: 'instant' });
+        }, 0);
+    };
 
     // Step 1: 키워드 상태 (제안형 + 선택형)
     const [mainKeyword, setMainKeyword] = useState('');
@@ -291,6 +299,7 @@ const EditorPage = () => {
         injectedHtml = humanizeText(injectedHtml, selectedTone || 'friendly');
 
         // 4. 이모지 전용 <p> 태그를 다음 문단과 병합 (이모지가 별도 줄로 분리되는 현상 방지)
+        // eslint-disable-next-line no-misleading-character-class
         injectedHtml = injectedHtml.replace(/<p>\s*([\u{1F300}-\u{1FAD6}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{200D}\u{20E3}\u{E0020}-\u{E007F}\s]{1,6})\s*<\/p>\s*<p>/gu, '<p>$1 ');
 
         const chunkSize = 20;
@@ -306,8 +315,6 @@ const EditorPage = () => {
 
     // 본문 생성
     const handleAiGenerate = async () => {
-        const effectiveWizardData = wizardData || location.state;
-
         setIsGenerating(true);
         setGenerationStep(0);
         recordAiAction('fullDraft');
@@ -349,7 +356,7 @@ const EditorPage = () => {
             // 이미지 ALT 텍스트가 없으면 본문 생성 전에 생성 시도 (ref로 최신 값 참조)
             if (Object.keys(imageAltsRef.current).length === 0) {
                 const uploadedSlots = Object.entries(photoData.metadata)
-                    .filter(([_, count]) => count > 0)
+                    .filter(([, count]) => count > 0)
                     .map(([slot]) => slot);
                 if (uploadedSlots.length > 0) {
                     const slotCounts = {};
@@ -578,50 +585,46 @@ const EditorPage = () => {
         );
     }
 
-    // 생성 중 로딩 UI (단계별 체크리스트 + 프로그레스 바)
+    // 생성 중 로딩 UI
     if (isGenerating) {
         const GENERATION_STEPS = [
-            { label: '준비 중 (이미지 변환)', icon: <Loader2 size={16} /> },
-            { label: '사진 분석 중', icon: <Search size={16} /> },
-            { label: 'ALT 텍스트 생성 중', icon: <Tag size={16} /> },
-            { label: '본문 작성 중', icon: <Sparkles size={16} /> },
+            { label: '이미지 준비', icon: <Loader2 size={16} /> },
+            { label: '사진 분석', icon: <Search size={16} /> },
+            { label: '사진 설명 생성', icon: <Tag size={16} /> },
+            { label: '본문 작성', icon: <Sparkles size={16} /> },
         ];
-        const progressPercent = Math.round((generationStep / (GENERATION_STEPS.length - 1)) * 100);
+        const progressPercent = Math.round((generationStep / GENERATION_STEPS.length) * 100);
 
         return (
-            <div>
-                <div className="generation-loading">
-                    <div className="generation-card">
-                        <div className="generation-icon">
-                            <Sparkles size={48} />
-                        </div>
-                        <h2>AI가 글을 작성하고 있어요</h2>
-                        <p className="generation-subtitle">
-                            잠시만 기다려주세요. 곧 완성됩니다!
-                        </p>
+            <div className="generation-loading">
+                <div className="generation-icon">
+                    <Sparkles size={36} />
+                </div>
+                <h2 className="generation-title">AI가 글을 작성하고 있어요</h2>
+                <p className="generation-subtitle">
+                    잠시만 기다려주세요. 곧 완성됩니다!
+                </p>
 
-                        <div className="generation-progress-track">
-                            <div className="generation-progress-fill" style={{ width: `${progressPercent}%` }} />
-                        </div>
+                <div className="generation-progress-track">
+                    <div className="generation-progress-fill" style={{ width: `${progressPercent}%` }} />
+                </div>
 
-                        <div className="generation-steps">
-                            {GENERATION_STEPS.map((step, idx) => {
-                                const isDone = idx < generationStep;
-                                const isCurrent = idx === generationStep;
-                                return (
-                                    <div key={idx} className={`generation-step ${isDone ? 'done' : isCurrent ? 'current' : ''}`}>
-                                        <span className="generation-step-icon">
-                                            {isDone ? <CheckCircle size={16} /> : isCurrent ? step.icon : <span className="generation-step-placeholder" />}
-                                        </span>
-                                        <span>{step.label}</span>
-                                        {isCurrent && (
-                                            <span className="generation-step-status">진행 중...</span>
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
+                <div className="generation-steps">
+                    {GENERATION_STEPS.map((step, idx) => {
+                        const isDone = idx < generationStep;
+                        const isCurrent = idx === generationStep;
+                        return (
+                            <div key={idx} className={`generation-step ${isDone ? 'done' : isCurrent ? 'current' : ''}`}>
+                                <span className="generation-step-icon">
+                                    {isDone ? <CheckCircle size={16} /> : isCurrent ? step.icon : <span className="generation-step-placeholder" />}
+                                </span>
+                                <span>{step.label}</span>
+                                {isCurrent && (
+                                    <span className="generation-step-status">진행 중...</span>
+                                )}
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
         );
@@ -667,36 +670,13 @@ const EditorPage = () => {
             {showCompletionCard && completionStats && (
                 <div className="completion-overlay" onClick={() => setShowCompletionCard(false)}>
                     <div className="completion-card" onClick={(e) => e.stopPropagation()}>
-                        <div className="completion-icon"><PartyPopper size={40} /></div>
+                        <div className="completion-icon"><PartyPopper size={32} /></div>
                         <h3 className="completion-title">글이 완성되었습니다!</h3>
-                        <div className="completion-stats">
-                            <div className="completion-stat">
-                                <strong>{completionStats.charCount.toLocaleString()}</strong><span>자</span>
-                            </div>
-                            <div className="completion-stat">
-                                <strong>{completionStats.keywordCount}</strong><span>키워드</span>
-                            </div>
-                            <div className="completion-stat">
-                                <strong>{completionStats.photoCount}</strong><span>이미지</span>
-                            </div>
-                        </div>
-                        <p className="completion-guide-title">다음 할 일</p>
-                        <div className="completion-steps">
-                            <div className="completion-step">
-                                <BarChart3 size={16} />
-                                <span>우측 사이드바에서 SEO 점수를 확인하세요</span>
-                            </div>
-                            <div className="completion-step">
-                                <Sparkles size={16} />
-                                <span>문장을 선택하면 AI 편집 메뉴가 나타납니다</span>
-                            </div>
-                            <div className="completion-step">
-                                <ClipboardCopy size={16} />
-                                <span>상단 "블로그로 복사" 버튼으로 네이버에 발행하세요</span>
-                            </div>
-                        </div>
+                        <p className="completion-hint">
+                            제목을 작성하고 본문을 검토해보세요.
+                        </p>
                         <button className="completion-cta" onClick={() => setShowCompletionCard(false)}>
-                            편집 시작하기
+                            확인
                         </button>
                     </div>
                 </div>

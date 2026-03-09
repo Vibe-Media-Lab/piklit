@@ -59,24 +59,7 @@ const BugReportButton = () => {
             <button
                 onClick={() => setIsOpen(true)}
                 title="버그 신고"
-                style={{
-                    position: 'fixed',
-                    bottom: '24px',
-                    left: '24px',
-                    width: '44px',
-                    height: '44px',
-                    borderRadius: '50%',
-                    background: '#37352F',
-                    color: 'white',
-                    border: 'none',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-                    cursor: 'pointer',
-                    fontSize: '1.2rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 99,
-                }}
+                className="bug-report-fab"
             >
                 🐛
             </button>

@@ -1,7 +1,7 @@
-import React from 'react';
-import { FolderOpen, Edit3, ArrowRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { FolderOpen, Edit3, ArrowRight, ChevronDown } from 'lucide-react';
 import { useEditor } from '../../context/EditorContext';
-import { CATEGORIES, getToneForCategory } from '../../data/categories';
+import { CATEGORIES, PRIMARY_CATEGORY_COUNT, getToneForCategory } from '../../data/categories';
 
 // ── 카테고리별 플레이스홀더 ──
 const CATEGORY_PLACEHOLDERS = {
@@ -38,6 +38,9 @@ const TopicStep = ({
     renderStepIndicator,
 }) => {
     const { updateMainKeyword, updatePostMeta } = useEditor();
+    const [showAllCategories, setShowAllCategories] = useState(false);
+
+    const visibleCategories = showAllCategories ? CATEGORIES : CATEGORIES.slice(0, PRIMARY_CATEGORY_COUNT);
 
     return (
         <div className="wizard-card-wrap">
@@ -57,7 +60,7 @@ const TopicStep = ({
                         <FolderOpen size={16} /> 카테고리 선택 <span className="wizard-required">*</span>
                     </label>
                     <div className="wizard-category-grid">
-                        {CATEGORIES.map(cat => (
+                        {visibleCategories.map(cat => (
                             <div
                                 key={cat.id}
                                 className={`wizard-category-card ${selectedCategory?.id === cat.id ? 'selected' : ''}`}
@@ -74,6 +77,17 @@ const TopicStep = ({
                             </div>
                         ))}
                     </div>
+                    {CATEGORIES.length > PRIMARY_CATEGORY_COUNT && (
+                        <button
+                            className="wizard-category-more"
+                            onClick={() => setShowAllCategories(prev => !prev)}
+                        >
+                            {showAllCategories
+                                ? <>접기 <ChevronDown size={14} className="wizard-advanced-arrow open" /></>
+                                : <>+ {CATEGORIES.length - PRIMARY_CATEGORY_COUNT}개 더보기 <ChevronDown size={14} /></>
+                            }
+                        </button>
+                    )}
                 </div>
             )}
 
@@ -120,7 +134,7 @@ const TopicStep = ({
                     disabled={!canProceed}
                     className="wizard-btn-primary"
                 >
-                    다음: 키워드 + 설정 <ArrowRight size={16} />
+                    다음 <ArrowRight size={16} />
                 </button>
             </div>
         </div>
