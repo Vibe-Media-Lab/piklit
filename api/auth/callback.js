@@ -26,7 +26,7 @@ async function createFirebaseCustomToken(uid, claims = {}) {
 
 // 네이버: code → 액세스 토큰 → 프로필
 async function getNaverProfile(code, state) {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://piklit.pro';
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://piklit.vercel.app';
     const tokenRes = await fetch('https://nid.naver.com/oauth2.0/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -59,7 +59,7 @@ async function getNaverProfile(code, state) {
 
 // 카카오: code → 액세스 토큰 → 프로필
 async function getKakaoProfile(code) {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://piklit.pro';
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://piklit.vercel.app';
     const tokenRes = await fetch('https://kauth.kakao.com/oauth/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },

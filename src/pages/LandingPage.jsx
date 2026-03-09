@@ -468,7 +468,7 @@ const FeatureShowcase = () => (
 const MidCTA = ({ handleStart, loginLoading }) => (
     <section className="landing-mid-cta">
         <div className="landing-section-inner">
-            <p className="mid-cta-text">지금 바로 체험해보세요 — 첫 달 모든 기능 무료</p>
+            <p className="mid-cta-text">사진만 올리면 5분 만에 SEO 90점 글이 완성됩니다</p>
             <button
                 className="landing-cta-primary"
                 onClick={handleStart}
@@ -476,7 +476,7 @@ const MidCTA = ({ handleStart, loginLoading }) => (
             >
                 {loginLoading
                     ? <><Loader2 size={16} className="spin" /> 로그인 중...</>
-                    : '무료로 시작하기'
+                    : '30초 만에 시작하기 — 첫 달 무료'
                 }
             </button>
         </div>
@@ -690,7 +690,7 @@ const ComparisonTable = () => (
 const MidCTA2 = ({ handleStart, loginLoading }) => (
     <section className="landing-mid-cta">
         <div className="landing-section-inner">
-            <p className="mid-cta-text">피클잇이 압도적입니다. 직접 확인해보세요</p>
+            <p className="mid-cta-text">다른 도구와 비교해도 피클잇이 압도적입니다</p>
             <button
                 className="landing-cta-primary"
                 onClick={handleStart}
@@ -698,7 +698,7 @@ const MidCTA2 = ({ handleStart, loginLoading }) => (
             >
                 {loginLoading
                     ? <><Loader2 size={16} className="spin" /> 로그인 중...</>
-                    : '무료로 시작하기'
+                    : '30초 만에 시작하기 — 첫 달 무료'
                 }
             </button>
         </div>
@@ -806,6 +806,11 @@ const Footer = () => (
                 <span className="landing-footer-brand">Piklit</span>
             </div>
             <p className="landing-footer-tagline">사진을 글로 절이다</p>
+            <div className="landing-footer-links">
+                <a href="/terms" onClick={(e) => e.preventDefault()}>이용약관</a>
+                <span className="landing-footer-divider">·</span>
+                <a href="/privacy" onClick={(e) => e.preventDefault()}>개인정보처리방침</a>
+            </div>
             <p className="landing-footer-copy">&copy; {new Date().getFullYear()} Piklit. All rights reserved.</p>
         </div>
     </footer>

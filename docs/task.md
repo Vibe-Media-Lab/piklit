@@ -602,10 +602,66 @@
 - [x] 마스터/관리자 계정 시스템 — 3개 이메일 Pro 전체 권한 자동 부여
 - [x] AdminBugsPage 하드코딩 이메일 → 공통 adminEmails.js로 통합
 
+## 완료된 작업 (2026-03-09) — CDO 이사회 A+ 디자인 전면 개선
+
+### 리포트 탭 (HistoryPage) A+ 개선
+- [x] 기간 필터: 카드 박스 → pill 그룹 스타일
+- [x] 서머리 카드: 값/단위 분리, 배경색 surface-hover, border 제거
+- [x] SEO 차트: 데이터 3개 이하 시 컴팩트 모드 (100px), overflow hidden
+- [x] AI 활용: 직접 작성 바 뉴트럴(회색), 범례 축소, 섹션 제목 간결화
+- [x] AI 기능별: seasonKeywordAnalysis → "시즌 키워드" 라벨 추가, 유동 폭
+- [x] 섹션 간격: gap 24→12px, padding 24→16px, h3 0.9rem/600
+- [x] h1 "성장 리포트" 헤딩 제거 (탭 이름과 중복)
+
+### 글 목록 탭 (PostListPage) 개선
+- [x] 상단 헤딩 제거 (탭 이름과 중복)
+
+### TopBar 개선
+- [x] "내 글" 탭에 posts.length 배지 추가 (.topbar-nav-badge)
+
+### 디자인 시스템 강화
+- [x] variables.css: --color-score-high/mid/low + bg/text 변수 9개 신설
+- [x] history.css: dot-chart·SEO badge·streak badge 하드코딩 컬러 → CSS 변수
+- [x] stacked-bar border-radius → var(--radius-xl)
+- [x] Layout.css dead code 제거 (active badge 중복 선언)
+
+### MobileFab 위자드 진입 수정
+- [x] `/editor/new` 직행 → createPost() + navigate(isNew: true) 위자드 모드
+
+### BugReportButton 모바일 수정
+- [x] 인라인 스타일 → .bug-report-fab CSS 클래스 전환
+- [x] 모바일 768px: 탭바 위로 이동 (bottom: 60px+safe-area), 크기 36px 축소
+
+### 랜딩 텍스트 축약
+- [x] 모바일 한 줄 표시 최적화 (4개 텍스트 축약)
+
 ### 남은 작업
+
+#### 우선순위 HIGH
 - [ ] 랜딩 페이지 이사회 CRO A+ 달성 (현재 A-)
+- [ ] Vercel 환경변수 `BETA_CODE=PIKLIT-VIP` 추가 후 테스트
+- [ ] 베타 테스터 + 버그 리포트 실제 동작 검증
+- [ ] 배포 후 전체 플로우 E2E 테스트 (로그인→위자드→생성→발행)
+
+#### 우선순위 MEDIUM
 - [ ] 에디터 내 재생성 진입 경로 (위자드로 돌아가기)
 - [ ] 생성된 글 경쟁 블로그 대비 품질 비교 피드백
+- [ ] 랜딩 페이지에 워너비 스타일 기능 소개 추가
+
+#### 우선순위 LOW (디자인 QA 잔여)
+- [ ] history.css: gap 10px/12px → 토큰 정규화 (8px 또는 var(--spacing-sm))
+- [ ] history.css: font-size 0.78rem/0.8rem → 토큰 정규화
+- [ ] Layout.css: 480px 미디어쿼리 블록 추가 (소형 모바일 대응)
+
+#### Phase 3 (Firebase 필요)
+- [ ] 발행 후 성과 추적 (검색 순위, 조회수 대시보드)
+- [ ] 네이버 플레이스 연동 (가게 정보 자동 삽입)
+- [ ] 경쟁 매장 블로그 모니터링
+- [ ] 주간 자동 포스팅
+- [ ] 주제 입력 시 카테고리 자동 감지
+
+#### 보류
+- [ ] 기능 8: 내부 링크/시리즈 관리
 
 ## 아이디어 보관함 (Icebox)
 

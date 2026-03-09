@@ -351,13 +351,17 @@
 /* ===== Responsive ===== */
 @media (max-width: 1024px) {
     .main-container {
-        flex-direction: column;
+        gap: var(--spacing-md);
     }
 
     .analysis-section {
-        width: 100%;
-        position: static;
-        height: auto;
+        width: 280px;
+    }
+}
+
+@media (max-width: 768px) {
+    .analysis-section {
+        display: none;
     }
 }
 

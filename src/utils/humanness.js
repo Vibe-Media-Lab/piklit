@@ -117,7 +117,7 @@ function measureSentenceVariety(doc, maxScore) {
     });
 
     if (sentences.length < 3) {
-        return { score: 0, label: '문장 길이 다양성', maxScore, suggestions: [] };
+        return { score: 0, label: '문장 길이', maxScore, suggestions: [] };
     }
 
     const lengths = sentences.map(s => s.length);
@@ -140,7 +140,7 @@ function measureSentenceVariety(doc, maxScore) {
         suggestions.push({ type: 'info', text: '문장 길이에 좀 더 변화를 주면 자연스러워집니다.', priority: 4 });
     }
 
-    return { score, label: '문장 길이 다양성', maxScore, cv: Math.round(cv * 100) / 100, suggestions };
+    return { score, label: '문장 길이', maxScore, cv: Math.round(cv * 100) / 100, suggestions };
 }
 
 // ──────────────────────────────────────────────
@@ -202,7 +202,7 @@ function measureAiPatterns(text, maxScore) {
         suggestions.push({ type: 'info', text: `"${foundPatterns.slice(0, 2).join('", "')}" 같은 AI 패턴 표현을 줄여보세요.`, priority: 6 });
     }
 
-    return { score, label: 'AI 패턴 감지', maxScore, totalFound, suggestions };
+    return { score, label: 'AI 패턴', maxScore, totalFound, suggestions };
 }
 
 // ──────────────────────────────────────────────
@@ -215,7 +215,7 @@ function measureParagraphVariety(doc, maxScore) {
     });
 
     if (paragraphs.length < 3) {
-        return { score: 0, label: '문단 길이 다양성', maxScore, suggestions: [] };
+        return { score: 0, label: '문단 길이', maxScore, suggestions: [] };
     }
 
     const lengths = paragraphs.map(p => p.textContent.trim().length);
@@ -235,7 +235,7 @@ function measureParagraphVariety(doc, maxScore) {
         suggestions.push({ type: 'info', text: '문단 길이가 비슷합니다. 짧은 강조 문단과 긴 설명 문단을 섞어보세요.', priority: 3 });
     }
 
-    return { score, label: '문단 길이 다양성', maxScore, cv: Math.round(cv * 100) / 100, suggestions };
+    return { score, label: '문단 길이', maxScore, cv: Math.round(cv * 100) / 100, suggestions };
 }
 
 // ──────────────────────────────────────────────

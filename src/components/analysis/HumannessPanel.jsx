@@ -140,32 +140,11 @@ const HumannessPanel = () => {
                         </p>
                     ) : (
                         <>
-                            {/* 점수 게이지 */}
-                            <div className="humanness-gauge-row">
-                                <div className="humanness-gauge">
-                                    <svg width="90" height="90" viewBox="0 0 90 90">
-                                        <circle cx="45" cy="45" r="38" fill="none" stroke="#E5E7EB" strokeWidth="8" />
-                                        <circle
-                                            cx="45" cy="45" r="38" fill="none"
-                                            stroke={gradeColor} strokeWidth="8"
-                                            strokeDasharray="238.76"
-                                            strokeDashoffset={238.76 * (1 - score / 100)}
-                                            strokeLinecap="round"
-                                            transform="rotate(-90 45 45)"
-                                            style={{ transition: 'stroke-dashoffset 0.5s ease' }}
-                                        />
-                                    </svg>
-                                    <div className="humanness-gauge-text">
-                                        <span className="humanness-gauge-score" style={{ color: gradeColor }}>{score}</span>
-                                        <span className="humanness-gauge-label">{GRADE_LABELS[grade]}</span>
-                                    </div>
-                                </div>
-
-                                <div className="humanness-metrics-list">
-                                    {Object.values(metrics).map((m, i) => (
-                                        <MetricBar key={i} label={m.label} score={m.score} maxScore={m.maxScore}/>
-                                    ))}
-                                </div>
+                            {/* 지표 바 차트 */}
+                            <div className="humanness-metrics-list">
+                                {Object.values(metrics).map((m, i) => (
+                                    <MetricBar key={i} label={m.label} score={m.score} maxScore={m.maxScore}/>
+                                ))}
                             </div>
 
                             {/* 로컬 개선 제안 */}
@@ -185,7 +164,7 @@ const HumannessPanel = () => {
 
                             {suggestions.length === 0 && (
                                 <div className="humanness-perfect">
-                                    사람이 쓴 것처럼 자연스럽습니다!
+                                    자연스러운 글입니다!
                                 </div>
                             )}
 

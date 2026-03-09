@@ -87,11 +87,11 @@
 ### Phase 1: MVP ✅ 완료
 **목표**: 핵심 기능 완성 + 첫 배포
 
-- [x] 랜딩 페이지 (piklit.pro)
+- [x] 랜딩 페이지 (piklit.vercel.app)
 - [x] 소셜 로그인 (네이버/카카오/구글) — Vercel Serverless + Firebase Custom Token
 - [x] API 키 서버 사이드 숨김 — Vercel Serverless Functions (api/gemini.js)
 - [x] 무료 체험 (월 3회 제한 + 가입 첫 달 무료 프로모션)
-- [x] Vercel 배포 (piklit.pro)
+- [x] Vercel 배포 (piklit.vercel.app)
 - [x] 위자드 기반 글 작성 (4단계)
 - [x] AI 키워드 분석 + 경쟁 분석
 - [x] AI 본문 생성 (16개 카테고리)

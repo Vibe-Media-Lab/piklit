@@ -33,9 +33,12 @@ const CompetitorAnalysis = ({ data, loading, onAnalyze, compact }) => {
                         <span>경쟁 블로그 데이터 부족 — 이미지는 카테고리 기준 권장값</span>
                     </div>
                 ) : (
-                    <div className="competitor-compact-result">
-                        <BarChart3 size={14} />
-                        <span>상위 블로그 평균 <strong>{(average.charCount || 0).toLocaleString()}</strong>자 · <strong>{average.headingCount || 0}</strong>소제목 · <strong>{average.imageCount || 0}</strong>이미지</span>
+                    <div className="wizard-summary-inline">
+                        <span>상위 블로그 평균 {(average.charCount || 0).toLocaleString()}자</span>
+                        <span className="wizard-summary-dot">·</span>
+                        <span>{average.headingCount || 0}소제목</span>
+                        <span className="wizard-summary-dot">·</span>
+                        <span>{average.imageCount || 0}이미지</span>
                     </div>
                 )}
             </div>

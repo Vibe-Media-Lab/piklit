@@ -704,46 +704,8 @@
 }
 
 /* 게이지 + 지표 가로 배치 */
-.readability-gauge-row {
-    display: flex;
-    gap: 24px;
-    align-items: flex-start;
-    margin-bottom: 20px;
-}
-
-.readability-gauge {
-    position: relative;
-    flex-shrink: 0;
-    width: 90px;
-    height: 90px;
-}
-
-.readability-gauge-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.readability-gauge-score {
-    font-size: 1.4rem;
-    font-weight: 700;
-    line-height: 1;
-}
-
-.readability-gauge-label {
-    font-size: 0.65rem;
-    color: #888;
-    margin-top: 2px;
-}
-
 /* 지표 바 차트 */
 .readability-metrics-list {
-    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -765,6 +727,7 @@
 .metric-bar-label {
     font-size: 0.78rem;
     color: #555;
+    white-space: nowrap;
 }
 
 .metric-bar-score {
@@ -928,45 +891,7 @@
     border-top: 1px solid var(--color-border);
 }
 
-.humanness-gauge-row {
-    display: flex;
-    gap: 24px;
-    align-items: flex-start;
-    margin-bottom: 20px;
-}
-
-.humanness-gauge {
-    position: relative;
-    flex-shrink: 0;
-    width: 90px;
-    height: 90px;
-}
-
-.humanness-gauge-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.humanness-gauge-score {
-    font-size: 1.4rem;
-    font-weight: 700;
-    line-height: 1;
-}
-
-.humanness-gauge-label {
-    font-size: 0.65rem;
-    color: #888;
-    margin-top: 2px;
-}
-
 .humanness-metrics-list {
-    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 8px;

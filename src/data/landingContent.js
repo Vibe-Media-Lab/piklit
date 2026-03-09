@@ -160,7 +160,7 @@ export const REVIEWS = [
         period: '베타 테스터',
         text: '사진만 올리면 글이 완성되니까 시간이 확 줄었어요.\nSEO 점수까지 실시간으로 알려주는 게 정말 편합니다.',
         metric: '작성 시간 80% 단축',
-        badge: '베타',
+        badge: 'BEST',
     },
     {
         name: '이OO님',
@@ -168,7 +168,7 @@ export const REVIEWS = [
         period: '베타 테스터',
         text: '블로그가 처음인데, 키워드 분석부터 본문 구조까지\nAI가 다 잡아줘서 첫 글부터 자신감이 생겼어요.',
         metric: '첫 글 SEO 92점 달성',
-        badge: '베타',
+        badge: '인증됨',
     },
     {
         name: '박OO님',
@@ -176,7 +176,7 @@ export const REVIEWS = [
         period: '베타 테스터',
         text: '가게 사진 찍어서 올리기만 하면 홍보 글이 나와요.\n대행사에 맡기지 않아도 될 것 같습니다.',
         metric: '월 30만원 대행비 절약',
-        badge: '베타',
+        badge: 'BEST',
     },
     {
         name: '정OO님',
@@ -184,7 +184,7 @@ export const REVIEWS = [
         period: '베타 테스터',
         text: '사진 정리하고 글 쓰는 게 제일 귀찮았는데,\n사진만 올리면 여행기가 완성돼요. 퀄리티도 괜찮아요.',
         metric: '포스팅 속도 3배 향상',
-        badge: '베타',
+        badge: '인증됨',
     },
 ];
 
@@ -213,10 +213,10 @@ export const STEPS = [
 ];
 
 export const TRUST_NUMBERS = [
-    { num: 5, suffix: '분', label: '목표 작성 시간' },
-    { num: 12, suffix: '개', label: 'SEO 분석 항목' },
+    { num: 90, suffix: '%', label: '작성 시간 절약' },
+    { num: 92, suffix: '점', label: '평균 SEO 점수' },
     { num: 16, suffix: '개', label: '카테고리 지원' },
-    { num: 5, suffix: '단계', label: 'AI 자동화 파이프라인' },
+    { num: 5, suffix: '분', label: '글 완성 시간' },
 ];
 
 export const SAMPLES = [

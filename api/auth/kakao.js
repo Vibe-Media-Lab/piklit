@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto';
 
 export default function handler(req, res) {
     const clientId = process.env.KAKAO_REST_API_KEY;
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://piklit.pro';
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://piklit.vercel.app';
     const state = `kakao:${randomUUID()}`;
     const redirectUri = `${baseUrl}/api/auth/callback`;
 

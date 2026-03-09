@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto';
 
 export default function handler(req, res) {
     const clientId = process.env.NAVER_CLIENT_ID;
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://piklit.pro';
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://piklit.vercel.app';
     const state = `naver:${randomUUID()}`;
     const redirectUri = `${baseUrl}/api/auth/callback`;
 

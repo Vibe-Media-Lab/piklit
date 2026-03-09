@@ -2235,6 +2235,28 @@
     margin-bottom: var(--spacing-sm);
 }
 
+.landing-footer-links {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+.landing-footer-links a {
+    font-size: 0.78rem;
+    color: var(--color-text-sub);
+    text-decoration: none;
+}
+
+.landing-footer-links a:hover {
+    text-decoration: underline;
+}
+
+.landing-footer-divider {
+    color: var(--color-text-sub);
+    opacity: 0.4;
+}
+
 .landing-footer-copy {
     font-size: 0.75rem;
     color: var(--color-text-sub);

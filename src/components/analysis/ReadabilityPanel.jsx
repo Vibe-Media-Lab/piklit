@@ -62,33 +62,11 @@ const ReadabilityPanel = ({ onLocate }) => {
                         </p>
                     ) : (
                         <>
-                            {/* 점수 게이지 */}
-                            <div className="readability-gauge-row">
-                                <div className="readability-gauge">
-                                    <svg width="90" height="90" viewBox="0 0 90 90">
-                                        <circle cx="45" cy="45" r="38" fill="none" stroke="#E5E7EB" strokeWidth="8" />
-                                        <circle
-                                            cx="45" cy="45" r="38" fill="none"
-                                            stroke={gradeColor} strokeWidth="8"
-                                            strokeDasharray="238.76"
-                                            strokeDashoffset={238.76 * (1 - score / 100)}
-                                            strokeLinecap="round"
-                                            transform="rotate(-90 45 45)"
-                                            style={{ transition: 'stroke-dashoffset 0.5s ease' }}
-                                        />
-                                    </svg>
-                                    <div className="readability-gauge-text">
-                                        <span className="readability-gauge-score" style={{ color: gradeColor }}>{score}</span>
-                                        <span className="readability-gauge-label">{GRADE_LABELS[grade]}</span>
-                                    </div>
-                                </div>
-
-                                {/* 지표 바 차트 */}
-                                <div className="readability-metrics-list">
-                                    {Object.values(metrics).map((m, i) => (
-                                        <MetricBar key={i} label={m.label} score={m.score} maxScore={m.maxScore}/>
-                                    ))}
-                                </div>
+                            {/* 지표 바 차트 */}
+                            <div className="readability-metrics-list">
+                                {Object.values(metrics).map((m, i) => (
+                                    <MetricBar key={i} label={m.label} score={m.score} maxScore={m.maxScore}/>
+                                ))}
                             </div>
 
                             {/* 개선 제안 */}

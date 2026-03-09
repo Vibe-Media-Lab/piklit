@@ -3948,7 +3948,7 @@
 .bug-report-fab {
     position: fixed;
     bottom: 24px;
-    left: 24px;
+    left: 256px;
     width: 44px;
     height: 44px;
     border-radius: 50%;
