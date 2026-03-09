@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { copyToClipboard, exportAsMarkdown, exportAsHtml, exportAsText } from '../../utils/clipboard';
 import { Save, Copy, Download, Check, ChevronDown } from 'lucide-react';
 import SettingsModal from '../common/SettingsModal';
+import { useToast } from '../common/Toast';
 
 const PAGE_TITLES = {
     '/posts': '내 글',
@@ -14,6 +15,7 @@ const PAGE_TITLES = {
 const TopBar = () => {
     const { title, content, savePost, posts } = useEditor();
     const { logout } = useAuth();
+    const { showToast } = useToast();
     const location = useLocation();
     const { id } = useParams();
     const [copyStatus, setCopyStatus] = useState('idle');
@@ -43,8 +45,12 @@ const TopBar = () => {
     };
 
     const handleCopy = async () => {
-        const success = await copyToClipboard(title, content);
-        if (success) {
+        const result = await copyToClipboard(title, content);
+        if (result === 'text-only') {
+            setCopyStatus('success');
+            showToast('텍스트로 복사되었습니다. 서식은 HTML 내보내기를 이용하세요.', 'info');
+            setTimeout(() => setCopyStatus('idle'), 2000);
+        } else if (result) {
             setCopyStatus('success');
             setTimeout(() => setCopyStatus('idle'), 2000);
         } else {

@@ -685,7 +685,7 @@ const EditorPage = () => {
             {/* 에디터 온보딩 툴팁 */}
             {showEditorTip && (
                 <div className="editor-onboarding-tip">
-                    <p>우측 사이드바에서 <strong>SEO 점수</strong>와 <strong>가독성</strong>을 실시간으로 확인할 수 있어요.</p>
+                    <p><strong>SEO 점수</strong>와 <strong>가독성</strong>을 실시간으로 확인할 수 있어요.</p>
                     <button onClick={() => setShowEditorTip(false)}>확인</button>
                 </div>
             )}
@@ -734,8 +734,12 @@ const EditorPage = () => {
             <button
                 className="mobile-floating-copy-btn"
                 onClick={async () => {
-                    const ok = await copyToClipboard(title, content);
-                    if (ok) {
+                    const result = await copyToClipboard(title, content);
+                    if (result === 'text-only') {
+                        setMobileCopyStatus('success');
+                        showToast('텍스트로 복사됨. 서식 복사는 PC를 이용하세요.', 'info');
+                        setTimeout(() => setMobileCopyStatus('idle'), 2000);
+                    } else if (result) {
                         setMobileCopyStatus('success');
                         setTimeout(() => setMobileCopyStatus('idle'), 2000);
                     }

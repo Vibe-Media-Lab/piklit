@@ -1,51 +1,59 @@
 export const copyToClipboard = async (title, htmlContent) => {
-    try {
-        // 1. Clean HTML for Naver Blog SmartEditor ONE
-        // - Ensure <p> has breaks or margins
-        // - Remove internal Tiptap classes
-        let cleanInfo = htmlContent;
+    // 1. Clean HTML for Naver Blog SmartEditor ONE
+    let cleanInfo = htmlContent;
 
-        // 이미지를 [사진 추가] 플레이스홀더로 교체 (사용자가 직접 업로드)
-        cleanInfo = cleanInfo.replace(/<img[^>]*>/gi, '<p style="text-align:center; color:#999; font-size:0.95em; padding:12px 0;">[사진 추가]</p>');
+    // 이미지를 [사진 추가] 플레이스홀더로 교체
+    cleanInfo = cleanInfo.replace(/<img[^>]*>/gi, '<p style="text-align:center; color:#999; font-size:0.95em; padding:12px 0;">[사진 추가]</p>');
+    // Tiptap class 제거
+    cleanInfo = cleanInfo.replace(/class="[^"]*"/g, '');
+    // 인라인 스타일 추가
+    cleanInfo = cleanInfo
+        .replace(/<p>/g, '<p style="margin-bottom: 0.8em; line-height: 1.8;">')
+        .replace(/<h2>/g, '<h2 style="margin-top: 1.5em; margin-bottom: 1em; font-size: 1.5em; color: #333;">')
+        .replace(/<h3>/g, '<h3 style="margin-top: 1.2em; margin-bottom: 0.8em; font-size: 1.2em;">');
 
-        // Remove Tiptap class attributes
-        cleanInfo = cleanInfo.replace(/class="[^"]*"/g, '');
-
-        // Add explicit styling for consistent paste
-        // Naver Blog uses <div> or <p> with specific styles often, but clean semantic HTML is best.
-        // We wrap standard tags with inline styles to ensure appearance preservation.
-
-        cleanInfo = cleanInfo
-            .replace(/<p>/g, '<p style="margin-bottom: 0.8em; line-height: 1.8;">')
-            .replace(/<h2>/g, '<h2 style="margin-top: 1.5em; margin-bottom: 1em; font-size: 1.5em; color: #333;">')
-            .replace(/<h3>/g, '<h3 style="margin-top: 1.2em; margin-bottom: 0.8em; font-size: 1.2em;">');
-
-        // 2. Construct Final HTML
-        const fullHtml = `
-      <div style="font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; color: #333;">
+    // 2. 최종 HTML
+    const fullHtml = `<div style="font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; color: #333;">
         <h1 style="font-size: 2em; font-weight: bold; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 10px;">${title}</h1>
         ${cleanInfo}
-        <br/><br/>
-        <p style="color: #888; font-size: 0.8em; border-top: 1px solid #eee; padding-top: 20px;">
-           Written with <a href="#" style="color: #888; text-decoration: none;">Naver Blog Editor AI</a>
-        </p>
-      </div>
-    `;
+    </div>`;
 
-        // 3. Create ClipboardItem
-        const type = "text/html";
-        const blob = new Blob([fullHtml], { type });
-        const textBlob = new Blob([docToText(title, htmlContent)], { type: 'text/plain' });
+    // 3-A. ClipboardItem API (Chrome, Edge 등)
+    try {
+        if (navigator.clipboard?.write && typeof ClipboardItem !== 'undefined') {
+            const htmlBlob = new Blob([fullHtml], { type: 'text/html' });
+            const textBlob = new Blob([docToText(title, htmlContent)], { type: 'text/plain' });
+            await navigator.clipboard.write([new ClipboardItem({
+                'text/html': htmlBlob,
+                'text/plain': textBlob,
+            })]);
+            return true;
+        }
+    } catch (e) {
+        console.warn('ClipboardItem API failed, trying fallback:', e.message);
+    }
 
-        const data = [new ClipboardItem({
-            [type]: blob,
-            'text/plain': textBlob
-        })];
+    // 3-B. execCommand fallback (iOS Safari 등)
+    try {
+        const listener = (e) => {
+            e.preventDefault();
+            e.clipboardData.setData('text/html', fullHtml);
+            e.clipboardData.setData('text/plain', docToText(title, htmlContent));
+        };
+        document.addEventListener('copy', listener);
+        const success = document.execCommand('copy');
+        document.removeEventListener('copy', listener);
+        if (success) return true;
+    } catch (e) {
+        console.warn('execCommand copy failed:', e.message);
+    }
 
-        await navigator.clipboard.write(data);
-        return true;
-    } catch (err) {
-        console.error('Failed to copy: ', err);
+    // 3-C. 최후 수단: plain text
+    try {
+        await navigator.clipboard.writeText(docToText(title, htmlContent));
+        return 'text-only';
+    } catch (e) {
+        console.error('All copy methods failed:', e);
         return false;
     }
 };

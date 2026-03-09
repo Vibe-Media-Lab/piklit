@@ -74,14 +74,37 @@ const HumannessPanel = () => {
         if (!original || !revised) return;
 
         // TipTap 에디터 전체 텍스트에서 원문 위치 찾기
+        // ProseMirror textContent는 블록 노드 사이에 구분자 없이 붙으므로
+        // 공백 정규화 후 검색, 실패 시 앞 20자 부분 매칭 시도
         const docText = editor.state.doc.textContent;
         const searchText = original.trim();
-        const pos = docText.indexOf(searchText);
+        let pos = docText.indexOf(searchText);
+
+        // 정확 매칭 실패 → 공백 정규화 후 재시도
+        if (pos === -1) {
+            const normalize = s => s.replace(/\s+/g, ' ').trim();
+            const normDoc = normalize(docText);
+            const normSearch = normalize(searchText);
+            pos = normDoc.indexOf(normSearch);
+        }
+
+        // 그래도 실패 → 앞 20자 부분 매칭
+        if (pos === -1) {
+            const partial = searchText.slice(0, 20).trim();
+            if (partial.length >= 8) {
+                pos = docText.indexOf(partial);
+            }
+        }
 
         if (pos === -1) {
             showToast('원문을 본문에서 찾을 수 없습니다.', 'warning');
             return;
         }
+
+        // 부분 매칭일 때는 원본 길이만큼만 교체
+        const replaceLength = docText.indexOf(searchText) !== -1
+            ? searchText.length
+            : Math.min(searchText.length, docText.length - pos);
 
         // 텍스트 오프셋 → ProseMirror position 매핑 테이블 구축
         // 노드 경계(서식 태그 등)를 정확히 반영
@@ -102,7 +125,7 @@ const HumannessPanel = () => {
         }
 
         const fromEntry = posMap.find(e => e.textOffset === pos);
-        const toEntry = posMap.find(e => e.textOffset === pos + searchText.length);
+        const toEntry = posMap.find(e => e.textOffset === pos + replaceLength);
 
         if (fromEntry && toEntry) {
             editor.chain()

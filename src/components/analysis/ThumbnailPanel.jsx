@@ -174,8 +174,31 @@ const ThumbnailPanel = () => {
         }
     };
 
-    const handleDownload = () => {
+    const handleDownload = async () => {
         if (!previewUrl) return;
+
+        // 모바일 + Web Share API 지원 시 공유 시트 사용
+        if (navigator.share && navigator.canShare) {
+            try {
+                const res = await fetch(previewUrl);
+                const blob = await res.blob();
+                const file = new File([blob], `thumbnail-${Date.now()}.png`, { type: 'image/png' });
+
+                if (navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        files: [file],
+                        title: '피클잇 썸네일',
+                    });
+                    showToast('공유/저장이 완료되었습니다.', 'success');
+                    return;
+                }
+            } catch (e) {
+                // 사용자가 공유 취소한 경우 무시
+                if (e.name === 'AbortError') return;
+            }
+        }
+
+        // PC 또는 미지원 브라우저: 기존 다운로드 방식
         const link = document.createElement('a');
         link.download = `thumbnail-${Date.now()}.png`;
         link.href = previewUrl;

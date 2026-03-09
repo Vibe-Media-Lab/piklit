@@ -179,7 +179,7 @@ const MenuBar = ({ editor, tone, aiFooterEnabled, onToggleAiFooter }) => {
     );
 };
 
-const AI_FOOTER_HTML = '<p style="text-align: center; padding: 14px 16px; background: #f5f5f5; border-radius: 8px; margin: 24px 0 0; font-size: 0.8rem; color: #999;">이 콘텐츠에 포함된 이미지는 AI 생성 도구를 사용하여 제작되었습니다.</p>';
+const AI_FOOTER_HTML = '<p style="text-align: center; padding: 14px 16px; background: #f5f5f5; border-radius: 8px; margin: 24px 0 0; font-size: 0.8rem; color: #999; line-height: 1.6;">이 콘텐츠에 포함된 이미지는 AI 생성 도구를 사용하여 제작되었습니다.</p>';
 const AI_FOOTER_MARKER = 'AI 생성 도구를 사용하여 제작되었습니다';
 
 const TiptapEditor = () => {
@@ -389,6 +389,9 @@ const TiptapEditor = () => {
         if (next) {
             // 이미 있으면 추가하지 않음
             if (!html.includes(AI_FOOTER_MARKER)) {
+                // 끝에 빈 문단 정리 후 삽입
+                const trimmed = html.replace(/(<p><\/p>)+$/, '');
+                editor.commands.setContent(trimmed);
                 editor.chain().focus('end').insertContent(AI_FOOTER_HTML).run();
             }
         } else {

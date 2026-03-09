@@ -47,7 +47,7 @@ const TitleInput = () => {
                     title={!mainKeyword ? "메인 키워드를 먼저 설정해주세요" : "AI가 SEO 최적화 제목을 추천합니다"}
                 >
                     <Bot size={13} />
-                    {loading ? '생성 중...' : 'AI 추천'}
+                    {loading ? '생성 중...' : '타이틀 AI 추천'}
                 </button>
                 <span className={`title-counter ${title.length > 30 ? 'warning' : ''}`}>
                     {title.length}/25

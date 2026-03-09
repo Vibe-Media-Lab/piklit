@@ -486,7 +486,7 @@
         background: var(--color-bg);
         display: flex;
         flex-direction: column;
-        padding: 0 16px 80px;
+        padding: 0 16px 120px;
         border-top: none;
         overflow-y: auto;
     }
@@ -568,11 +568,8 @@
         flex: 1;
     }
 
-    /* 스타일 칩 가로 스크롤 */
+    /* 스타일 칩 줄바꿈 */
     .thumbnail-style-chips {
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        padding-bottom: 4px;
+        flex-wrap: wrap;
     }
 }
