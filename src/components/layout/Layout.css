@@ -560,9 +560,11 @@
     transition: transform 0.15s, box-shadow 0.15s;
 }
 
-/* 마이 메뉴 열릴 때 FAB 숨김 */
-.my-menu-overlay ~ .mobile-fab,
-body:has(.my-menu-overlay) .mobile-fab {
+/* 마이 메뉴 열릴 때 모든 FAB 숨김 */
+body:has(.my-menu-overlay) .mobile-fab,
+body:has(.my-menu-overlay) .bug-report-fab,
+body:has(.my-menu-overlay) .image-seo-floating-btn,
+body:has(.my-menu-overlay) .image-gen-floating-btn {
     display: none;
 }
 
