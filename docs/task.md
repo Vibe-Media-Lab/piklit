@@ -635,10 +635,47 @@
 ### 랜딩 텍스트 축약
 - [x] 모바일 한 줄 표시 최적화 (4개 텍스트 축약)
 
+## 완료된 작업 (2026-03-09) — 모바일/PC UX 전면 개선 + CRO A+
+
+### URL 통일
+- [x] `piklit.pro` → `piklit.vercel.app` 전체 교체 (8파일 12건: index.html, CLAUDE.md, api/auth/*, docs/*)
+
+### 사이드바/분석 패널 개선 (PC)
+- [x] 경쟁 분석 compact 결과 → `wizard-summary-inline` 스타일 통일 (dot 구분자)
+- [x] PC 1024px에서 분석 사이드바 하단 이동 버그 수정 (flex-direction: column 제거, 280px 축소)
+- [x] MetricBar 라벨 한줄 표기 — 라벨 축약 + `white-space: nowrap`
+- [x] ReadabilityPanel, HumannessPanel 원형 게이지 그래프 제거 (중복 점수 표시 해소)
+- [x] "사람이 쓴 것처럼 자연스럽습니다!" → "자연스러운 글입니다!" 축약
+- [x] humanness.js 라벨 축약 (문장 길이 다양성→문장 길이, AI 패턴 감지→AI 패턴 등)
+
+### 버그 수정 (PC)
+- [x] 버그 리포트 FAB 사이드바 뒤 잘림 — `left: 24px` → `left: 256px`
+- [x] FAB 사이즈 불일치 — image-seo-floating-btn 48px→44px 통일
+
+### 에디터 개선
+- [x] 에디터 온보딩 팁에서 "우측 사이드바에서" 제거 (플랫폼 중립)
+- [x] AI footer "..." 표시 버그 수정 — 삽입 전 빈 `<p></p>` 정리
+- [x] `splitLongSentence` 숫자 콤마("16,000원") 분리 버그 수정 — 정규식 `(?!\d)` lookahead
+- [x] Humanness "적용" 버튼 원문 찾기 실패 수정 — 3단계 fuzzy matching (정규화→부분매칭)
+- [x] "AI 추천" → "타이틀 AI 추천" 직관성 개선
+
+### 모바일 UX 개선
+- [x] CTA 드롭다운 미표시 수정 — `position: fixed; bottom: 80px; z-index: 1000`
+- [x] 에디터 툴바 하단 여백 추가 (`margin-bottom: 80px`)
+- [x] 랜딩 pain-card 텍스트 오버플로우 수정 (`overflow: hidden` + `min-width: 0`)
+- [x] 썸네일 패널 버튼 잘림 수정 — chips `flex-wrap: wrap`, body padding 120px
+- [x] 썸네일 다운로드 Web Share API 적용 (iOS 사진앱 저장 지원)
+- [x] 클립보드 복사 HTML 미지원 수정 — 3단계 fallback (ClipboardItem→execCommand→text)
+- [x] TopBar 복사 결과 text-only 처리 + 토스트 안내
+- [x] "마이" 메뉴 열릴 때 모든 FAB 숨김 (`body:has(.my-menu-overlay)`)
+
+### 관리자 계정
+- [x] `hyoho1110@gmail.com` 마스터 계정 추가
+
 ### 남은 작업
 
 #### 우선순위 HIGH
-- [ ] 랜딩 페이지 이사회 CRO A+ 달성 (현재 A-)
+- [x] 랜딩 페이지 이사회 CRO A+ 달성 — 완료 (2026-03-09)
 - [ ] Vercel 환경변수 `BETA_CODE=PIKLIT-VIP` 추가 후 테스트
 - [ ] 베타 테스터 + 버그 리포트 실제 동작 검증
 - [ ] 배포 후 전체 플로우 E2E 테스트 (로그인→위자드→생성→발행)
