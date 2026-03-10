@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
+import '../../styles/components.css';
 
 const ImageCropper = ({ base64, mimeType, onCropApply, onApplyAll, onClose }) => {
     const containerRef = useRef(null);
@@ -171,18 +172,11 @@ const ImageCropper = ({ base64, mimeType, onCropApply, onApplyAll, onClose }) =>
     };
 
     return (
-        <div style={{ width: '100%' }}>
+        <div className="cropper-wrapper">
             {/* Crop area */}
             <div
                 ref={containerRef}
-                style={{
-                    position: 'relative',
-                    userSelect: 'none',
-                    cursor: 'crosshair',
-                    borderRadius: '8px',
-                    overflow: 'hidden',
-                    lineHeight: 0,
-                }}
+                className="cropper-container"
                 onMouseDown={onMouseDown}
                 onMouseMove={onMouseMove}
                 onMouseUp={onMouseUp}
@@ -195,34 +189,23 @@ const ImageCropper = ({ base64, mimeType, onCropApply, onApplyAll, onClose }) =>
                     src={`data:${mimeType};base64,${base64}`}
                     alt="크롭할 이미지"
                     draggable={false}
-                    style={{ width: '100%', display: 'block', pointerEvents: 'none' }}
+                    className="cropper-img"
                 />
                 {renderOverlay()}
             </div>
 
             {/* Crop action buttons */}
-            <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+            <div className="cropper-actions">
                 <button
                     onClick={performCrop}
                     disabled={!hasValidSelection}
-                    style={{
-                        flex: 1, padding: '10px', background: hasValidSelection ? '#FF6B35' : '#ccc',
-                        color: 'white', border: 'none', borderRadius: '8px',
-                        fontSize: '0.85rem', fontWeight: 600,
-                        cursor: hasValidSelection ? 'pointer' : 'not-allowed',
-                        transition: 'background 0.2s',
-                    }}
+                    className="cropper-btn-crop"
                 >
                     ✂️ 크롭하기
                 </button>
                 <button
                     onClick={onClose}
-                    style={{
-                        flex: 1, padding: '10px', background: 'white',
-                        border: '1px solid #ddd', borderRadius: '8px',
-                        fontSize: '0.85rem', cursor: 'pointer',
-                        transition: 'background 0.2s',
-                    }}
+                    className="cropper-btn-back"
                 >
                     돌아가기
                 </button>
@@ -230,56 +213,28 @@ const ImageCropper = ({ base64, mimeType, onCropApply, onApplyAll, onClose }) =>
 
             {/* Cropped images grid */}
             {croppedImages.length > 0 && (
-                <div style={{ marginTop: '16px' }}>
-                    <div style={{
-                        fontSize: '0.8rem', fontWeight: 600, color: '#555',
-                        marginBottom: '8px',
-                    }}>
+                <div className="cropper-results">
+                    <div className="cropper-results-label">
                         크롭된 이미지 ({croppedImages.length}장)
                     </div>
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))',
-                        gap: '8px',
-                    }}>
+                    <div className="cropper-grid">
                         {croppedImages.map((item, index) => (
-                            <div key={index} style={{
-                                position: 'relative',
-                                borderRadius: '8px',
-                                overflow: 'hidden',
-                                border: '1px solid #e0e0e0',
-                                aspectRatio: '1',
-                            }}>
+                            <div key={index} className="cropper-grid-item">
                                 <img
                                     src={item.url}
                                     alt={`크롭 ${index + 1}`}
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                                 />
                                 {/* Remove button */}
                                 <button
                                     onClick={() => removeCropped(index)}
-                                    style={{
-                                        position: 'absolute', top: '4px', right: '4px',
-                                        background: 'rgba(255,255,255,0.9)', border: '1px solid #ddd',
-                                        borderRadius: '50%', width: '20px', height: '20px',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        cursor: 'pointer', fontSize: '11px', color: '#555', lineHeight: 1,
-                                        padding: 0,
-                                    }}
+                                    className="cropper-btn-remove"
                                 >
                                     ✕
                                 </button>
                                 {/* Use button */}
                                 <button
                                     onClick={() => handleApplyOne(item)}
-                                    style={{
-                                        position: 'absolute', bottom: '4px', left: '50%',
-                                        transform: 'translateX(-50%)',
-                                        background: 'rgba(255,107,53,0.9)', color: 'white',
-                                        border: 'none', borderRadius: '4px',
-                                        padding: '3px 10px', fontSize: '0.7rem', fontWeight: 600,
-                                        cursor: 'pointer', whiteSpace: 'nowrap',
-                                    }}
+                                    className="cropper-btn-use"
                                 >
                                     사용
                                 </button>
@@ -291,12 +246,7 @@ const ImageCropper = ({ base64, mimeType, onCropApply, onApplyAll, onClose }) =>
                     {croppedImages.length >= 2 && (
                         <button
                             onClick={handleApplyAll}
-                            style={{
-                                width: '100%', marginTop: '10px', padding: '10px',
-                                background: 'linear-gradient(135deg, #FF6B35, #F7931E)',
-                                color: 'white', border: 'none', borderRadius: '8px',
-                                fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer',
-                            }}
+                            className="cropper-btn-apply-all"
                         >
                             모두 사용하기 ({croppedImages.length}장)
                         </button>

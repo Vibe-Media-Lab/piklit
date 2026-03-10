@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { callListBugReports, callUpdateBugStatus } from '../services/firebase';
+import '../styles/components.css';
 
 const STATUS_LABELS = {
     new: { label: '신규', color: '#EB5757', bg: '#FFF0F0' },
@@ -36,7 +37,7 @@ const AdminBugsPage = () => {
 
     if (!isAdmin) {
         return (
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh', color: 'var(--color-text-sub)' }}>
+            <div className="admin-bugs-center">
                 접근 권한이 없습니다.
             </div>
         );
@@ -44,7 +45,7 @@ const AdminBugsPage = () => {
 
     if (loading) {
         return (
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh', color: 'var(--color-text-sub)' }}>
+            <div className="admin-bugs-center">
                 로딩 중...
             </div>
         );
@@ -52,21 +53,21 @@ const AdminBugsPage = () => {
 
     if (error) {
         return (
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh', color: '#EB5757' }}>
+            <div className="admin-bugs-center admin-bugs-center--error">
                 오류: {error}
             </div>
         );
     }
 
     return (
-        <div style={{ maxWidth: '900px', margin: '0 auto', padding: '32px 24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                <h2 style={{ margin: 0 }}>Bug Reports ({reports.length})</h2>
-                <div style={{ display: 'flex', gap: '8px', fontSize: '0.8rem' }}>
+        <div className="admin-bugs-page">
+            <div className="admin-bugs-header">
+                <h2>Bug Reports ({reports.length})</h2>
+                <div className="admin-bugs-status-summary">
                     {Object.entries(STATUS_LABELS).map(([key, { label, color }]) => {
                         const count = reports.filter(r => r.status === key).length;
                         return (
-                            <span key={key} style={{ color, fontWeight: 600 }}>
+                            <span key={key} className="admin-bugs-status-count" style={{ color }}>
                                 {label}: {count}
                             </span>
                         );
@@ -75,95 +76,79 @@ const AdminBugsPage = () => {
             </div>
 
             {reports.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--color-text-sub)' }}>
+                <div className="admin-bugs-empty">
                     아직 버그 리포트가 없습니다.
                 </div>
             ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div className="admin-bugs-list">
                     {reports.map(report => {
                         const status = STATUS_LABELS[report.status] || STATUS_LABELS.new;
                         const isExpanded = expandedId === report.id;
                         const showScreenshot = screenshotId === report.id;
 
                         return (
-                            <div key={report.id} style={{
-                                border: '1px solid var(--color-border)',
-                                borderRadius: 'var(--radius-md)',
-                                overflow: 'hidden',
-                                background: 'white',
-                            }}>
+                            <div key={report.id} className="admin-bugs-card">
                                 {/* 헤더 */}
                                 <div
                                     onClick={() => setExpandedId(isExpanded ? null : report.id)}
-                                    style={{
-                                        padding: '14px 16px',
-                                        cursor: 'pointer',
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                        background: isExpanded ? '#FAFAFA' : 'white',
-                                    }}
+                                    className={`admin-bugs-card-header ${isExpanded ? 'admin-bugs-card-header--expanded' : ''}`}
                                 >
-                                    <div style={{ flex: 1 }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                                            <span style={{
-                                                fontSize: '0.7rem',
-                                                fontWeight: 600,
-                                                padding: '2px 8px',
-                                                borderRadius: '10px',
-                                                color: status.color,
-                                                background: status.bg,
-                                            }}>
+                                    <div className="admin-bugs-card-body">
+                                        <div className="admin-bugs-meta">
+                                            <span
+                                                className="admin-bugs-badge"
+                                                style={{ color: status.color, background: status.bg }}
+                                            >
                                                 {status.label}
                                             </span>
-                                            <span style={{ fontSize: '0.8rem', color: 'var(--color-text-sub)' }}>
+                                            <span className="admin-bugs-email">
                                                 {report.email}
                                             </span>
-                                            <span style={{ fontSize: '0.75rem', color: '#B0AFA8' }}>
+                                            <span className="admin-bugs-date">
                                                 {formatDate(report.createdAt)}
                                             </span>
                                         </div>
-                                        <div style={{ fontSize: '0.9rem', color: 'var(--color-primary)' }}>
+                                        <div className="admin-bugs-preview">
                                             {report.description?.substring(0, 100) || '(설명 없음)'}
                                             {report.description?.length > 100 ? '...' : ''}
                                         </div>
                                     </div>
-                                    <span style={{ fontSize: '0.8rem', color: 'var(--color-text-sub)' }}>
+                                    <span className="admin-bugs-toggle">
                                         {isExpanded ? '▲' : '▼'}
                                     </span>
                                 </div>
 
                                 {/* 상세 */}
                                 {isExpanded && (
-                                    <div style={{ padding: '0 16px 16px', borderTop: '1px solid var(--color-border)' }}>
+                                    <div className="admin-bugs-detail">
                                         {/* 설명 */}
-                                        <div style={{ marginTop: '12px' }}>
-                                            <label style={labelStyle}>설명</label>
-                                            <p style={{ margin: '4px 0', fontSize: '0.9rem', whiteSpace: 'pre-wrap' }}>
+                                        <div className="admin-bugs-section">
+                                            <label className="admin-bugs-label">설명</label>
+                                            <p className="admin-bugs-description">
                                                 {report.description}
                                             </p>
                                         </div>
 
                                         {/* URL + 브라우저 */}
-                                        <div style={{ marginTop: '12px', display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                                        <div className="admin-bugs-row">
                                             <div>
-                                                <label style={labelStyle}>URL</label>
-                                                <p style={valueStyle}>{report.url || '-'}</p>
+                                                <label className="admin-bugs-label">URL</label>
+                                                <p className="admin-bugs-value">{report.url || '-'}</p>
                                             </div>
                                             <div>
-                                                <label style={labelStyle}>브라우저</label>
-                                                <p style={valueStyle}>{formatUserAgent(report.userAgent)}</p>
+                                                <label className="admin-bugs-label">브라우저</label>
+                                                <p className="admin-bugs-value">{formatUserAgent(report.userAgent)}</p>
                                             </div>
                                         </div>
 
                                         {/* 스크린샷 */}
                                         {report.screenshot && (
-                                            <div style={{ marginTop: '12px' }}>
-                                                <label style={labelStyle}>
+                                            <div className="admin-bugs-section">
+                                                <label className="admin-bugs-label">
                                                     스크린샷{' '}
                                                     <button
                                                         onClick={() => setScreenshotId(showScreenshot ? null : report.id)}
-                                                        style={{ fontSize: '0.75rem', color: 'var(--color-brand)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+                                                        className="admin-bugs-screenshot-toggle"
                                                     >
                                                         {showScreenshot ? '숨기기' : '보기'}
                                                     </button>
@@ -172,12 +157,7 @@ const AdminBugsPage = () => {
                                                     <img
                                                         src={report.screenshot}
                                                         alt="screenshot"
-                                                        style={{
-                                                            maxWidth: '100%',
-                                                            borderRadius: 'var(--radius-md)',
-                                                            border: '1px solid var(--color-border)',
-                                                            marginTop: '8px',
-                                                        }}
+                                                        className="admin-bugs-screenshot-img"
                                                     />
                                                 )}
                                             </div>
@@ -185,42 +165,26 @@ const AdminBugsPage = () => {
 
                                         {/* 콘솔 로그 */}
                                         {report.consoleLogs && (
-                                            <div style={{ marginTop: '12px' }}>
-                                                <label style={labelStyle}>콘솔 로그</label>
-                                                <pre style={{
-                                                    background: '#1E1E1E',
-                                                    color: '#D4D4D4',
-                                                    padding: '12px',
-                                                    borderRadius: 'var(--radius-md)',
-                                                    fontSize: '0.75rem',
-                                                    maxHeight: '200px',
-                                                    overflow: 'auto',
-                                                    whiteSpace: 'pre-wrap',
-                                                    wordBreak: 'break-all',
-                                                    marginTop: '4px',
-                                                }}>
+                                            <div className="admin-bugs-section">
+                                                <label className="admin-bugs-label">콘솔 로그</label>
+                                                <pre className="admin-bugs-console">
                                                     {formatConsoleLogs(report.consoleLogs)}
                                                 </pre>
                                             </div>
                                         )}
 
                                         {/* 상태 변경 */}
-                                        <div style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
+                                        <div className="admin-bugs-actions">
                                             {Object.entries(STATUS_LABELS).map(([key, { label, color }]) => (
                                                 <button
                                                     key={key}
                                                     onClick={() => handleStatusChange(report.id, key)}
                                                     disabled={report.status === key}
+                                                    className="admin-bugs-status-btn"
                                                     style={{
-                                                        padding: '6px 14px',
-                                                        fontSize: '0.8rem',
-                                                        fontWeight: 600,
-                                                        borderRadius: 'var(--radius-md)',
                                                         border: report.status === key ? 'none' : `1px solid ${color}`,
                                                         background: report.status === key ? color : 'white',
                                                         color: report.status === key ? 'white' : color,
-                                                        cursor: report.status === key ? 'default' : 'pointer',
-                                                        opacity: report.status === key ? 1 : 0.8,
                                                     }}
                                                 >
                                                     {label}
@@ -237,9 +201,6 @@ const AdminBugsPage = () => {
         </div>
     );
 };
-
-const labelStyle = { fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-sub)', textTransform: 'uppercase' };
-const valueStyle = { margin: '2px 0', fontSize: '0.8rem', color: 'var(--color-primary)' };
 
 function formatDate(iso) {
     if (!iso) return '-';

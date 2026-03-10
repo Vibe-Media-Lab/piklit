@@ -63,94 +63,54 @@ const SettingsModal = ({ isOpen, onClose }) => {
     const usagePercent = usage ? Math.round((usage.used / usage.limit) * 100) : 0;
 
     return (
-        <div style={{
-            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            display: 'flex', justifyContent: 'center', alignItems: 'center',
-            zIndex: 1000
-        }}>
-            <div style={{
-                background: 'white',
-                padding: '24px',
-                borderRadius: 'var(--radius-lg)',
-                width: '440px',
-                boxShadow: 'var(--shadow-lg)'
-            }}>
-                <h3 style={{ marginTop: 0, marginBottom: '20px' }}>설정</h3>
+        <div className="settings-overlay">
+            <div className="settings-modal">
+                <h3 className="settings-title">설정</h3>
 
                 {/* 베타 테스터 */}
                 {betaStatus?.active ? (
-                    <div style={{
-                        marginBottom: '20px',
-                        padding: '16px',
-                        background: 'linear-gradient(135deg, #FFF8F0, #FFF0E5)',
-                        borderRadius: 'var(--radius-md)',
-                        border: '1px solid var(--color-brand)',
-                    }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--color-brand)' }}>
+                    <div className="settings-beta-card-active">
+                        <div className="settings-beta-header">
+                            <span className="settings-beta-label">
                                 Beta Tester
                             </span>
-                            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-brand)' }}>
+                            <span className="settings-beta-days">
                                 D-{betaStatus.daysLeft}
                             </span>
                         </div>
-                        <p style={{ fontSize: '0.8rem', color: 'var(--color-text-sub)', marginTop: '8px', marginBottom: 0 }}>
+                        <p className="settings-beta-desc">
                             베타 테스트 기간 중 모든 Pro 기능을 무제한 사용할 수 있습니다.
                         </p>
                     </div>
                 ) : (
-                    <div style={{
-                        marginBottom: '20px',
-                        padding: '16px',
-                        background: '#FAFAFA',
-                        borderRadius: 'var(--radius-md)',
-                        border: '1px solid var(--color-border)',
-                    }}>
-                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '0.9rem' }}>
+                    <div className="settings-beta-card-inactive">
+                        <label className="settings-label">
                             베타 테스터 코드
                         </label>
                         {betaStatus?.expired && (
-                            <p style={{ fontSize: '0.8rem', color: '#EB5757', marginBottom: '8px' }}>
+                            <p className="settings-beta-expired">
                                 베타 테스트 기간이 만료되었습니다.
                             </p>
                         )}
-                        <div style={{ display: 'flex', gap: '8px' }}>
+                        <div className="settings-beta-input-row">
                             <input
                                 type="text"
                                 value={betaCode}
                                 onChange={(e) => setBetaCode(e.target.value.toUpperCase())}
                                 placeholder="베타 코드 입력"
                                 disabled={betaStatus?.expired}
-                                style={{
-                                    flex: 1,
-                                    padding: '10px',
-                                    border: '1px solid var(--color-border)',
-                                    borderRadius: 'var(--radius-md)',
-                                    fontWeight: 600,
-                                    letterSpacing: '1px',
-                                }}
+                                className="settings-beta-input"
                                 onKeyDown={(e) => e.key === 'Enter' && handleBetaActivate()}
                             />
                             <button
                                 onClick={handleBetaActivate}
                                 disabled={betaLoading || betaStatus?.expired}
-                                style={{
-                                    padding: '10px 16px',
-                                    background: 'var(--color-brand)',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: 'var(--radius-md)',
-                                    cursor: betaStatus?.expired ? 'not-allowed' : 'pointer',
-                                    fontWeight: 600,
-                                    whiteSpace: 'nowrap',
-                                    opacity: betaStatus?.expired ? 0.5 : 1,
-                                }}
+                                className="settings-beta-activate-btn"
                             >
                                 {betaLoading ? '확인 중...' : '활성화'}
                             </button>
                         </div>
-                        <p style={{ fontSize: '0.75rem', color: 'var(--color-text-sub)', marginTop: '8px', marginBottom: 0 }}>
+                        <p className="settings-beta-hint">
                             선착순 30명 한정, 활성화 후 7일간 Pro 기능을 무료로 체험할 수 있습니다.
                         </p>
                     </div>
@@ -158,52 +118,47 @@ const SettingsModal = ({ isOpen, onClose }) => {
 
                 {/* 사용량 표시 */}
                 {!hasOwnKey && (
-                    <div style={{
-                        marginBottom: '20px',
-                        padding: '16px',
-                        background: usage?.isPromo ? '#F0FFF4' : '#FFF8F5',
-                        borderRadius: 'var(--radius-md)',
-                        border: `1px solid ${usage?.isPromo ? '#C6F6D5' : '#FFE0D0'}`
-                    }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                            <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>
+                    <div
+                        className="settings-usage-card"
+                        style={{
+                            background: usage?.isPromo ? '#F0FFF4' : '#FFF8F5',
+                            border: `1px solid ${usage?.isPromo ? '#C6F6D5' : '#FFE0D0'}`
+                        }}
+                    >
+                        <div className="settings-usage-header">
+                            <span className="settings-usage-title">
                                 {usage?.isPromo ? '첫 달 무료 체험 중' : '무료 체험'}
                             </span>
                             {usageLoading ? (
-                                <span style={{ fontSize: '0.85rem', color: 'var(--color-text-sub)' }}>조회 중...</span>
+                                <span className="settings-usage-loading">조회 중...</span>
                             ) : usage?.isPromo ? (
-                                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#27AE60' }}>
+                                <span className="settings-usage-count" style={{ color: 'var(--color-success)' }}>
                                     D-{usage.promoDaysLeft ?? '?'}
                                 </span>
                             ) : usage ? (
-                                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: usagePercent >= 80 ? '#EB5757' : 'var(--color-brand)' }}>
+                                <span className="settings-usage-count" style={{ color: usagePercent >= 80 ? 'var(--color-error)' : 'var(--color-brand)' }}>
                                     {usage.used} / {usage.limit}회 사용
                                 </span>
                             ) : null}
                         </div>
                         {usage && (
-                            <div style={{
-                                height: '6px',
-                                background: '#E3E2E0',
-                                borderRadius: '3px',
-                                overflow: 'hidden'
-                            }}>
-                                <div style={{
-                                    height: '100%',
-                                    width: usage.isPromo ? '100%' : `${Math.min(usagePercent, 100)}%`,
-                                    background: usage.isPromo ? '#27AE60' : (usagePercent >= 80 ? '#EB5757' : 'var(--color-brand)'),
-                                    borderRadius: '3px',
-                                    transition: 'width 0.3s'
-                                }} />
+                            <div className="settings-progress-track">
+                                <div
+                                    className="settings-progress-bar"
+                                    style={{
+                                        width: usage.isPromo ? '100%' : `${Math.min(usagePercent, 100)}%`,
+                                        background: usage.isPromo ? 'var(--color-success)' : (usagePercent >= 80 ? 'var(--color-error)' : 'var(--color-brand)')
+                                    }}
+                                />
                             </div>
                         )}
                         {usage?.isPromo && (
-                            <p style={{ fontSize: '0.8rem', color: '#27AE60', marginTop: '8px', marginBottom: 0 }}>
+                            <p className="settings-usage-promo-text">
                                 무제한 글 생성 가능
                             </p>
                         )}
                         {usage && !usage.isPromo && usage.used >= usage.limit && (
-                            <p style={{ fontSize: '0.8rem', color: '#EB5757', marginTop: '8px', marginBottom: 0 }}>
+                            <p className="settings-usage-exhausted-text">
                                 무료 체험이 소진되었습니다. 아래에서 직접 API 키를 등록하면 무제한 사용 가능합니다.
                             </p>
                         )}
@@ -211,23 +166,14 @@ const SettingsModal = ({ isOpen, onClose }) => {
                 )}
 
                 {hasOwnKey && (
-                    <div style={{
-                        marginBottom: '20px',
-                        padding: '12px 16px',
-                        background: '#F0FFF4',
-                        borderRadius: 'var(--radius-md)',
-                        border: '1px solid #C6F6D5',
-                        fontSize: '0.85rem',
-                        color: '#27AE60',
-                        fontWeight: 600
-                    }}>
+                    <div className="settings-own-key-badge">
                         직접 API 키 사용 중 (무제한)
                     </div>
                 )}
 
                 {/* API 키 입력 */}
-                <div style={{ marginBottom: '20px' }}>
-                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>
+                <div className="settings-api-section">
+                    <label className="settings-label">
                         Google Gemini API Key (선택)
                     </label>
                     <input
@@ -235,42 +181,23 @@ const SettingsModal = ({ isOpen, onClose }) => {
                         value={apiKey}
                         onChange={(e) => setApiKey(e.target.value)}
                         placeholder="AIza..."
-                        style={{
-                            width: '100%',
-                            padding: '10px',
-                            border: '1px solid var(--color-border)',
-                            borderRadius: 'var(--radius-md)'
-                        }}
+                        className="settings-api-input"
                     />
-                    <p style={{ fontSize: '0.8rem', color: 'var(--color-text-sub)', marginTop: '8px' }}>
+                    <p className="settings-api-hint">
                         직접 API 키를 등록하면 무료 체험 횟수와 관계없이 무제한으로 사용할 수 있습니다.
                     </p>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                <div className="settings-actions">
                     <button
                         onClick={onClose}
-                        style={{
-                            padding: '8px 16px',
-                            background: 'var(--color-bg)',
-                            border: '1px solid var(--color-border)',
-                            borderRadius: 'var(--radius-md)',
-                            cursor: 'pointer'
-                        }}
+                        className="settings-cancel-btn"
                     >
                         취소
                     </button>
                     <button
                         onClick={handleSave}
-                        style={{
-                            padding: '8px 16px',
-                            background: 'var(--color-brand)',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: 'var(--radius-md)',
-                            cursor: 'pointer',
-                            fontWeight: '600'
-                        }}
+                        className="settings-save-btn"
                     >
                         저장
                     </button>
