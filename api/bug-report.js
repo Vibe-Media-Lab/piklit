@@ -45,6 +45,9 @@ export default async function handler(req, res) {
                 lastReportAt: new Date().toISOString(),
             });
 
+            // 디스코드 알림
+            await sendDiscordAlert({ email, description, url, reportId });
+
             return res.status(200).json({ success: true, reportId });
         } catch (err) {
             console.error('Bug report save error:', err);
@@ -86,6 +89,37 @@ export default async function handler(req, res) {
     }
 
     return res.status(400).json({ error: 'action은 "submit", "list", "updateStatus"만 가능합니다.' });
+}
+
+// 디스코드 웹훅으로 버그 알림 전송
+async function sendDiscordAlert({ email, description, url, reportId }) {
+    const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+    if (!webhookUrl) return;
+
+    const time = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
+    const desc = (description || '(설명 없음)').slice(0, 200);
+
+    try {
+        await fetch(webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                embeds: [{
+                    title: '🐛 새 버그 리포트',
+                    color: 0xFF6B35,
+                    fields: [
+                        { name: '작성자', value: email || '알 수 없음', inline: true },
+                        { name: '시간', value: time, inline: true },
+                        { name: '내용', value: desc },
+                        { name: '페이지', value: url || '-' },
+                    ],
+                    footer: { text: `ID: ${reportId}` },
+                }],
+            }),
+        });
+    } catch (e) {
+        console.error('Discord webhook error:', e.message);
+    }
 }
 
 // Firestore REST API로 bug-reports 컬렉션 목록 조회
