@@ -90,7 +90,7 @@
 }
 
 .thumbnail-photo-option.selected {
-    border-color: #FF6B35;
+    border-color: var(--color-brand);
 }
 
 .thumbnail-photo-option img {

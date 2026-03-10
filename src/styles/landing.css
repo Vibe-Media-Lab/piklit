@@ -1090,7 +1090,7 @@
 }
 
 .fm-dot.red { background: #FF5F57; }
-.fm-dot.yellow { background: #FEBC2E; }
+.fm-dot.yellow { background: #FFBD2E; }
 .fm-dot.green { background: #28C840; }
 
 .fm-editor-body {
@@ -2552,7 +2552,7 @@
 
     .landing-mobile-nav-cta {
         margin-top: 8px;
-        background: #FF6B35 !important;
+        background: var(--color-brand) !important;
         color: white !important;
         text-align: center !important;
         font-weight: 600;

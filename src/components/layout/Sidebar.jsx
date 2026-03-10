@@ -156,80 +156,18 @@ const Sidebar = () => {
 
             {/* 이탈 방지 확인 모달 */}
             {leaveModal && (
-                <div
-                    className="leave-guard-overlay"
-                    style={{
-                        position: 'fixed', inset: 0, zIndex: 9999,
-                        background: 'rgba(0,0,0,0.45)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}
-                    onClick={handleStay}
-                >
-                    <div
-                        className="leave-guard-modal"
-                        style={{
-                            background: 'var(--color-bg, #fff)',
-                            borderRadius: '12px',
-                            padding: '28px 24px 20px',
-                            maxWidth: '380px',
-                            width: '90vw',
-                            boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <div style={{
-                            display: 'flex', alignItems: 'center', gap: '10px',
-                            marginBottom: '12px',
-                        }}>
-                            <AlertTriangle size={22} color="var(--color-warning, #E67E22)" />
-                            <span style={{
-                                fontSize: '1.05rem', fontWeight: 600,
-                                color: 'var(--color-text, #37352F)',
-                            }}>
-                                페이지를 떠나시겠습니까?
-                            </span>
+                <div className="leave-guard-overlay" onClick={handleStay}>
+                    <div className="leave-guard-modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="leave-guard-header">
+                            <AlertTriangle size={22} className="leave-guard-icon" />
+                            <span className="leave-guard-title">페이지를 떠나시겠습니까?</span>
                         </div>
-                        <p style={{
-                            fontSize: '0.9rem',
-                            color: 'var(--color-text-sub, #787774)',
-                            margin: '0 0 20px',
-                            lineHeight: 1.5,
-                        }}>
+                        <p className="leave-guard-desc">
                             작성 중인 내용이 저장되지 않을 수 있습니다.
                         </p>
-                        <div style={{
-                            display: 'flex', gap: '8px', justifyContent: 'flex-end',
-                        }}>
-                            <button
-                                onClick={handleStay}
-                                style={{
-                                    padding: '8px 16px',
-                                    borderRadius: '6px',
-                                    border: '1px solid var(--color-border, #E3E2E0)',
-                                    background: 'var(--color-bg, #fff)',
-                                    color: 'var(--color-text, #37352F)',
-                                    fontSize: '0.88rem',
-                                    fontWeight: 500,
-                                    cursor: 'pointer',
-                                }}
-                            >
-                                취소
-                            </button>
-                            <button
-                                onClick={handleLeave}
-                                style={{
-                                    padding: '8px 16px',
-                                    borderRadius: '6px',
-                                    border: 'none',
-                                    background: 'var(--color-danger, #EB5757)',
-                                    color: '#fff',
-                                    fontSize: '0.88rem',
-                                    fontWeight: 500,
-                                    cursor: 'pointer',
-                                }}
-                            >
-                                저장 안 함
-                            </button>
+                        <div className="leave-guard-actions">
+                            <button className="leave-guard-btn-cancel" onClick={handleStay}>취소</button>
+                            <button className="leave-guard-btn-leave" onClick={handleLeave}>저장 안 함</button>
                         </div>
                     </div>
                 </div>

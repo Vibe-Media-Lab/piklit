@@ -581,3 +581,83 @@ body:has(.my-menu-overlay) .image-gen-floating-btn {
         display: none !important;
     }
 }
+
+/* ===== Leave Guard Modal ===== */
+.leave-guard-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.leave-guard-modal {
+    background: var(--color-bg);
+    border-radius: 8px;
+    padding: 24px;
+    max-width: 380px;
+    width: 90vw;
+    box-shadow: var(--shadow-lg);
+}
+
+.leave-guard-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.leave-guard-icon {
+    color: var(--color-warning);
+    flex-shrink: 0;
+}
+
+.leave-guard-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text-main);
+}
+
+.leave-guard-desc {
+    font-size: 0.875rem;
+    color: var(--color-text-sub);
+    margin: 0 0 16px;
+    line-height: 1.5;
+}
+
+.leave-guard-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.leave-guard-btn-cancel,
+.leave-guard-btn-leave {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.leave-guard-btn-cancel {
+    border: 1px solid var(--color-border);
+    background: var(--color-bg);
+    color: var(--color-text-main);
+}
+
+.leave-guard-btn-cancel:hover {
+    background: var(--color-surface-hover);
+}
+
+.leave-guard-btn-leave {
+    border: none;
+    background: var(--color-error);
+    color: #fff;
+}
+
+.leave-guard-btn-leave:hover {
+    opacity: 0.9;
+}

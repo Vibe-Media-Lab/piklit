@@ -323,7 +323,7 @@
 .ai-gen-btn {
     margin-top: 6px;
     padding: 3px 12px;
-    background: linear-gradient(135deg, #FF6B35, #F7931E);
+    background: linear-gradient(135deg, var(--color-brand), var(--color-brand-dark));
     color: white;
     border: none;
     border-radius: 12px;
@@ -334,7 +334,7 @@
     z-index: 2;
 }
 .ai-gen-btn:hover {
-    background: linear-gradient(135deg, #E55A2B, #F7931E);
+    background: linear-gradient(135deg, var(--color-brand-dark), var(--color-brand));
     transform: scale(1.05);
 }
 
@@ -421,7 +421,7 @@
 }
 .ai-modal-textarea:focus {
     outline: none;
-    border-color: #FF6B35;
+    border-color: var(--color-brand);
 }
 
 /* Style Chips */
@@ -443,11 +443,11 @@
 }
 .ai-style-chip:hover {
     border-color: #FFCDB2;
-    background: #FFF3ED;
+    background: var(--color-brand-light);
 }
 .ai-style-chip.active {
-    border-color: #FF6B35;
-    background: #FFF3ED;
+    border-color: var(--color-brand);
+    background: var(--color-brand-light);
 }
 .ai-style-chip-label {
     font-size: 0.8rem;
@@ -465,7 +465,7 @@
     width: 100%;
     margin-top: 20px;
     padding: 12px;
-    background: linear-gradient(135deg, #FF6B35, #F7931E);
+    background: linear-gradient(135deg, var(--color-brand), var(--color-brand-dark));
     color: white;
     border: none;
     border-radius: 10px;
@@ -475,7 +475,7 @@
     transition: all 0.2s;
 }
 .ai-modal-generate-btn:hover:not(:disabled) {
-    background: linear-gradient(135deg, #E55A2B, #F7931E);
+    background: linear-gradient(135deg, var(--color-brand-dark), var(--color-brand));
 }
 .ai-modal-generate-btn:disabled {
     opacity: 0.6;
@@ -526,7 +526,7 @@
 .ai-modal-apply-btn {
     flex: 2;
     padding: 10px;
-    background: #FF6B35;
+    background: var(--color-brand);
     color: white;
     border: none;
     border-radius: 8px;
@@ -551,7 +551,7 @@
     transition: all 0.2s;
 }
 .ai-modal-crop-btn:hover {
-    background: #FFF3ED;
-    border-color: #FF6B35;
+    background: var(--color-brand-light);
+    border-color: var(--color-brand);
     color: var(--color-brand-text);
 }
