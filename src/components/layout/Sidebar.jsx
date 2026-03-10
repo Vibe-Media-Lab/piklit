@@ -106,7 +106,7 @@ const Sidebar = () => {
     return (
         <>
             <aside className={`app-sidebar ${collapsed ? 'collapsed' : ''}`}>
-                {/* 로고 */}
+                {/* 로고 + 접기 */}
                 <div className="sidebar-logo">
                     <NavLink
                         to="/posts"
@@ -116,6 +116,13 @@ const Sidebar = () => {
                         <img src="/logo.png" alt="Piklit" className="sidebar-logo-img" />
                         {!collapsed && <span className="sidebar-logo-text">Piklit</span>}
                     </NavLink>
+                    <button
+                        className="sidebar-collapse-btn"
+                        onClick={() => setCollapsed(!collapsed)}
+                        title={collapsed ? '펼치기' : '접기'}
+                    >
+                        <Menu size={18} />
+                    </button>
                 </div>
 
                 {/* 새 글 작성 */}
@@ -171,7 +178,7 @@ const Sidebar = () => {
                     )}
                 </nav>
 
-                {/* 하단: 프로필 + 접기 */}
+                {/* 하단: 프로필 */}
                 <div className="sidebar-bottom">
                     {user && (
                         <div className="sidebar-profile">
@@ -209,14 +216,6 @@ const Sidebar = () => {
                             )}
                         </div>
                     )}
-
-                    <button
-                        className="sidebar-collapse-btn"
-                        onClick={() => setCollapsed(!collapsed)}
-                        title={collapsed ? '펼치기' : '접기'}
-                    >
-                        <Menu size={18} />
-                    </button>
                 </div>
             </aside>
             <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />

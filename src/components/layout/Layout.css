@@ -22,13 +22,14 @@
 }
 
 .app-sidebar.collapsed {
-    width: 64px;
+    width: 72px;
 }
 
 /* 로고 */
 .sidebar-logo {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     margin-bottom: var(--spacing-lg);
     padding: var(--spacing-xs) 0;
 }
@@ -264,7 +265,7 @@
     color: var(--color-brand);
 }
 
-/* 접기/펼치기 버튼 */
+/* 접기/펼치기 버튼 (로고 행 오른쪽) */
 .sidebar-collapse-btn {
     display: flex;
     align-items: center;
@@ -273,8 +274,9 @@
     border: none;
     color: var(--color-text-sub);
     cursor: pointer;
-    padding: 8px 12px;
-    border-radius: var(--radius-md);
+    padding: 6px;
+    border-radius: var(--radius-sm);
+    flex-shrink: 0;
 }
 
 .sidebar-collapse-btn:hover {
@@ -282,15 +284,26 @@
     color: var(--color-text-main);
 }
 
-/* 접힌 상태 프로필 */
+/* 접힌 상태 */
+.app-sidebar.collapsed .sidebar-logo {
+    justify-content: center;
+    gap: 2px;
+}
+
 .app-sidebar.collapsed .sidebar-profile {
     flex-direction: column;
+    align-items: center;
     gap: 6px;
-    padding: 10px 8px;
+    padding: 10px 4px;
 }
 
 .app-sidebar.collapsed .sidebar-settings-btn {
     padding: 6px;
+}
+
+/* 접힌 상태에서 로고 클릭으로 펼치기 대체 — 로고 영역에 커서 */
+.app-sidebar.collapsed .sidebar-logo-link {
+    cursor: pointer;
 }
 
 /* ===== App Main Area ===== */
@@ -306,7 +319,7 @@
 
 .app-sidebar.collapsed ~ .app-main,
 .app-layout:has(.app-sidebar.collapsed) .app-main {
-    margin-left: 64px;
+    margin-left: 72px;
 }
 
 /* ===== Top Bar ===== */
