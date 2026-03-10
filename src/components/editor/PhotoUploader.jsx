@@ -5,6 +5,7 @@ import { generateSeoFilename } from './ImageSeoGuide';
 import { getRecommendedImages } from '../../data/categories';
 import ImageCropper from './ImageCropper';
 import { addAiWatermark } from '../../utils/watermark';
+import { fileToDataUrl } from '../../utils/image';
 import '../../styles/PhotoUploader.css';
 
 // ── 카테고리별 이미지 슬롯 정의 ──
@@ -230,7 +231,8 @@ const PhotoUploader = ({ keyword, onUpdate, categoryId }) => {
                 const newName = generateSeoFilename(keyword || 'myblog', slotId, existingCount + i);
                 const newFile = new File([resizedBlob], newName, { type: 'image/jpeg' });
                 processedFiles.push(newFile);
-                newPreviews.push(URL.createObjectURL(newFile));
+                const dataUrl = await fileToDataUrl(newFile);
+                newPreviews.push(dataUrl);
             } catch (err) {
                 console.error("Image processing failed", err);
             }
@@ -316,7 +318,7 @@ const PhotoUploader = ({ keyword, onUpdate, categoryId }) => {
         const cleanKeyword = keyword ? keyword.replace(/\s+/g, '_') : 'myblog';
         const fileName = `${cleanKeyword}_${aiModal.slotId}_ai_${Date.now()}.${ext}`;
         const file = base64ToFile(watermarked.base64, watermarked.mimeType, fileName);
-        const previewUrl = URL.createObjectURL(file);
+        const previewUrl = await fileToDataUrl(file);
 
         setFiles(prev => ({
             ...prev,
@@ -336,7 +338,7 @@ const PhotoUploader = ({ keyword, onUpdate, categoryId }) => {
         const cleanKeyword = keyword ? keyword.replace(/\s+/g, '_') : 'myblog';
         const fileName = `${cleanKeyword}_${aiModal.slotId}_crop_${Date.now()}.${ext}`;
         const file = base64ToFile(watermarked.base64, watermarked.mimeType, fileName);
-        const previewUrl = URL.createObjectURL(file);
+        const previewUrl = await fileToDataUrl(file);
 
         setFiles(prev => ({
             ...prev,
@@ -357,7 +359,7 @@ const PhotoUploader = ({ keyword, onUpdate, categoryId }) => {
             const fileName = `${cleanKeyword}_${aiModal.slotId}_crop_${i + 1}_${Date.now()}.${ext}`;
             return base64ToFile(img.base64, img.mimeType, fileName);
         });
-        const lastPreviewUrl = URL.createObjectURL(newFiles[newFiles.length - 1]);
+        const lastPreviewUrl = await fileToDataUrl(newFiles[newFiles.length - 1]);
 
         setFiles(prev => ({
             ...prev,

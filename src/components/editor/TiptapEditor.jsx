@@ -198,7 +198,7 @@ const TiptapEditor = () => {
     const editor = useEditor({
         extensions: [
             StarterKit,
-            Image,
+            Image.configure({ inline: true, allowBase64: true }),
             Highlight,
             LongSentenceExtension
         ],
@@ -395,10 +395,19 @@ const TiptapEditor = () => {
                 editor.chain().focus('end').insertContent(AI_FOOTER_HTML).run();
             }
         } else {
-            // 푸터 제거
-            const cleaned = html.replace(/<p[^>]*>.*?AI 생성 도구를 사용하여 제작되었습니다\..*?<\/p>/g, '');
-            if (cleaned !== html) {
-                editor.commands.setContent(cleaned);
+            // 푸터가 포함된 <p> 태그만 정확히 제거 (마커 텍스트가 있는 <p>만 대상)
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const allP = doc.body.querySelectorAll('p');
+            let removed = false;
+            allP.forEach(p => {
+                if (p.textContent.includes(AI_FOOTER_MARKER)) {
+                    p.remove();
+                    removed = true;
+                }
+            });
+            if (removed) {
+                editor.commands.setContent(doc.body.innerHTML);
             }
         }
     }, [editor, aiFooterEnabled]);

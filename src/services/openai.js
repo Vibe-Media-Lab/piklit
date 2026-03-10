@@ -183,9 +183,16 @@ export const AIService = {
     // 경쟁 분석 캐시 (키워드 분석 통합 호출에서 함께 수신한 데이터)
     _competitorCache: { keyword: null, data: null },
 
-    async analyzeKeywords(topic, excludeKeywords = '') {
+    async analyzeKeywords(topic, excludeKeywords = '', categoryId = '') {
         const excludeInstruction = excludeKeywords
             ? `\n다음 키워드는 반드시 제외: ${excludeKeywords}`
+            : '';
+
+        // 카테고리 라벨 매핑
+        const categoryLabels = { cafe: '카페&맛집', travel: '여행', review: '솔직후기', recipe: '레시피', parenting: '육아', shopping: '쇼핑', pet: '반려동물', tips: '생활꿀팁', tech: '테크', comparison: '제품비교', economy: '경제', medical: '의학', law: '법률', tutorial: '튜토리얼', daily: '일상' };
+        const categoryLabel = categoryLabels[categoryId] || '';
+        const categoryInstruction = categoryLabel
+            ? `\n이 주제의 카테고리: "${categoryLabel}". 반드시 이 카테고리와 직접 관련된 키워드만 추천해. 카테고리와 무관한 키워드(숙소, 관광지, 축제 등)는 절대 포함하지 마.`
             : '';
 
         // 시즌/트렌드 반영을 위한 날짜·계절 변수
@@ -199,7 +206,7 @@ export const AIService = {
         const prompt = `너는 네이버 블로그 SEO 키워드 전문가야.
 "${topic}"에 대해 네이버 검색 유입을 최대한 끌어올릴 키워드를 추천해줘.
 구글 검색으로 "${topic}" 관련 블로그, 카페, 리뷰를 조사해.
-${excludeInstruction}
+${excludeInstruction}${categoryInstruction}
 
 [키워드 추천 규칙]
 1. 브랜드명 단독 키워드 금지 (예: "김선문 메뉴" ❌)
@@ -207,11 +214,12 @@ ${excludeInstruction}
 3. 일반 사용자가 실제로 검색할 법한 키워드
 4. 롱테일 키워드 포함 (3~5어절)
 5. 메인 키워드는 검색량이 가장 많을 핵심 키워드
+6. 주제의 카테고리와 무관한 키워드 금지 (예: 맛집인데 "숙소", "명소" ❌)
 
 [시즌/트렌드 반영]
 현재: ${now.getFullYear()}년 ${month}월 (${season}). 다음 달: ${nextMonth}월 (${nextSeason}).
-6. 현재 시즌(${season})과 다가올 시즌(${nextSeason})에 검색량이 오를 키워드를 2~3개 포함
-7. 명절·방학·연휴 등 시기적 이벤트 관련 롱테일 키워드 우선 고려
+7. 현재 시즌(${season})과 다가올 시즌(${nextSeason})에 검색량이 오를 키워드를 2~3개 포함
+8. 명절·방학·연휴 등 시기적 이벤트 관련 롱테일 키워드 우선 고려
 
 [출력]
 - 메인 키워드 1개
@@ -749,8 +757,8 @@ Output strictly a valid JSON:
         ).join('\n');
         return `\n[아웃라인 — 반드시 이 소제목 구조를 따를 것!!!]
 ${tree}
-→ 위 아웃라인의 소제목을 그대로 HTML h2/h3 태그로 사용하고, 각 섹션에 맞는 내용을 채울 것.
-[구조 변주] 매번 같은 순서(소개→메뉴→가격→위치)로 쓰지 마. 가장 기억에 남는 경험부터 시작하거나, 에피소드 중심으로 풀어. 첫 문단에서 바로 핵심 경험을 던져.`;
+→ 위 아웃라인의 소제목 텍스트를 그대로 HTML h2/h3 태그로 사용할 것. 소제목을 임의로 변경하거나 생략하면 안 됨.
+→ 각 섹션에 맞는 내용을 채우되, 첫 문단에서 바로 핵심 경험을 던져.`;
     },
 
     async generateFullDraft(category, mainKeyword, tone, imageMetadata = {}, photoAssets = [], subKeywords = [], targetLength = '1200~1800자', photoAnalysis = null, competitorData = null, outline = null, wannabeStyleRules = '', paragraphStyle = 'normal') {
@@ -876,7 +884,7 @@ ${imageInstructions}
 
 [구조 — 반드시 이 순서!!!]
 ${this._introPromptByCategory('food', keyword)}
-2. 본문: 가장 기억에 남는 경험부터 시작. h2/h3 사용. 매번 같은 순서 금지 — 기억에 남는 장면, 에피소드 중심으로 자유롭게 구성. [[VIDEO]] 1개 배치.
+2. 본문: 아웃라인의 h2/h3 소제목을 반드시 그대로 사용. 각 섹션에 서브 키워드를 자연스럽게 포함. [[VIDEO]] 1개 배치.
 3. 가게 정보카드 — 글 하단 마무리에 배치 (아래 HTML 그대로 삽입):
 ${infoCard}
 → 가게 정보는 반드시 글의 맨 마지막에 위치해야 함. 도입부나 본문 중간에 넣지 말 것. 독자가 글을 끝까지 읽고 방문을 결심한 후 확인하는 정보임.

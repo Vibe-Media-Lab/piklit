@@ -87,9 +87,13 @@ export const locateSuggestion = (locateType) => {
     if (!editor) return;
 
     // 이전 하이라이트 제거
-    editor.querySelectorAll('.readability-locate-highlight').forEach(el => {
-        el.classList.remove('readability-locate-highlight');
+    editor.querySelectorAll('.readability-locate-highlight, .readability-blink-highlight').forEach(el => {
+        el.classList.remove('readability-locate-highlight', 'readability-blink-highlight');
     });
+
+    // 긴 문장/긴 문단은 깜빡임 형광펜 사용
+    const blinkTypes = ['longSentence', 'avgSentenceLength', 'longParagraph', 'avgParagraphLength'];
+    const useBlink = blinkTypes.includes(locateType);
 
     let target = null;
 
@@ -254,8 +258,14 @@ export const locateSuggestion = (locateType) => {
     }
 
     if (target) {
-        target.classList.add('readability-locate-highlight');
+        const cls = useBlink ? 'readability-blink-highlight' : 'readability-locate-highlight';
+        target.classList.add(cls);
         target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        // 깜빡임은 애니메이션 끝나면 자동 제거 (3.3초)
+        if (useBlink) {
+            setTimeout(() => target.classList.remove(cls), 3300);
+        }
     }
 
     return !!target;
@@ -267,8 +277,8 @@ export const locateSuggestion = (locateType) => {
 export const clearLocateHighlight = () => {
     const editor = document.querySelector('.tiptap-content-area');
     if (!editor) return;
-    editor.querySelectorAll('.readability-locate-highlight').forEach(el => {
-        el.classList.remove('readability-locate-highlight');
+    editor.querySelectorAll('.readability-locate-highlight, .readability-blink-highlight').forEach(el => {
+        el.classList.remove('readability-locate-highlight', 'readability-blink-highlight');
     });
 };
 

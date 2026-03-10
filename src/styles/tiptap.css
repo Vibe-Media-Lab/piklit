@@ -860,6 +860,22 @@
     50% { box-shadow: 0 0 0 6px #FCD34D; }
 }
 
+/* 긴 문장/긴 문단 전용: 형광펜 3회 깜빡임 후 자동 페이드아웃 */
+.tiptap-content-area .readability-blink-highlight {
+    border-radius: 4px;
+    animation: readability-blink 0.5s ease-in-out 6, readability-fadeout 0.3s ease 3s forwards;
+}
+
+@keyframes readability-blink {
+    0%, 100% { background: transparent; box-shadow: none; }
+    50% { background: #FDE68A; box-shadow: 0 0 0 4px #FDE68A; }
+}
+
+@keyframes readability-fadeout {
+    from { background: #FDE68A; box-shadow: 0 0 0 4px #FDE68A; }
+    to { background: transparent; box-shadow: none; }
+}
+
 /* ===== Humanness Detection Panel ===== */
 .humanness-panel {
     margin-top: 24px;
@@ -1027,6 +1043,19 @@
     color: #999;
     text-decoration: line-through;
     line-height: 1.5;
+}
+
+.humanness-ai-locatable {
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 2px 4px;
+    margin: -2px -4px;
+    transition: background 0.15s;
+}
+
+.humanness-ai-locatable:hover {
+    background: #FEF3C7;
+    text-decoration: line-through;
 }
 
 .humanness-ai-arrow {

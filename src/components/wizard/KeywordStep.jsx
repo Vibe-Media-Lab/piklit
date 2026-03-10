@@ -82,7 +82,7 @@ const KeywordStep = ({
         recordAiAction('keywordAnalysis');
         try {
             const excludeKeywords = selectedKeywords.map(k => getKw(k)).join(', ');
-            const result = await AIService.analyzeKeywords(topic, excludeKeywords);
+            const result = await AIService.analyzeKeywords(topic, excludeKeywords, categoryId);
 
             if (result) {
                 if (result.competitors && result.competitors.blogs) {
@@ -369,9 +369,16 @@ const KeywordStep = ({
                     <div className="wizard-advanced-section">
                         <button
                             className="wizard-advanced-toggle"
-                            onClick={() => setAdvancedOpen(prev => !prev)}
+                            onClick={() => {
+                                setAdvancedOpen(prev => !prev);
+                                const count = parseInt(localStorage.getItem('piklit_advanced_seen') || '0', 10);
+                                localStorage.setItem('piklit_advanced_seen', String(count + 1));
+                            }}
                         >
                             <span>고급 옵션</span>
+                            {parseInt(localStorage.getItem('piklit_advanced_seen') || '0', 10) < 2 && !advancedOpen && (
+                                <span className="wizard-advanced-dot" />
+                            )}
                             <ChevronDown size={16} className={`wizard-advanced-arrow ${advancedOpen ? 'open' : ''}`} />
                         </button>
 

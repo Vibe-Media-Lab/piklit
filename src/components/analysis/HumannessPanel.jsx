@@ -63,6 +63,35 @@ const HumannessPanel = () => {
         }
     }, [content, keywords.main, recordAiAction, showToast]);
 
+    // 원문 클릭 시 에디터에서 해당 위치로 스크롤 + 형광펜 깜빡임
+    const handleLocateOriginal = useCallback((suggestion) => {
+        const editor = editorRef?.current;
+        if (!editor) return;
+
+        const { original } = suggestion;
+        if (!original) return;
+
+        // 에디터 DOM에서 원문 텍스트가 포함된 요소 찾기
+        const editorEl = document.querySelector('.tiptap-content-area');
+        if (!editorEl) return;
+
+        // 이전 하이라이트 제거
+        editorEl.querySelectorAll('.readability-blink-highlight').forEach(el => {
+            el.classList.remove('readability-blink-highlight');
+        });
+
+        const searchText = original.trim().slice(0, 30);
+        const paragraphs = editorEl.querySelectorAll('p');
+        for (const p of paragraphs) {
+            if (p.textContent.includes(searchText)) {
+                p.classList.add('readability-blink-highlight');
+                p.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                setTimeout(() => p.classList.remove('readability-blink-highlight'), 3300);
+                break;
+            }
+        }
+    }, [editorRef]);
+
     const handleApplySuggestion = useCallback((suggestion, index) => {
         const editor = editorRef?.current;
         if (!editor) {
@@ -210,7 +239,11 @@ const HumannessPanel = () => {
                                         const isApplied = appliedIndices.has(i);
                                         return (
                                             <div key={i} className={`humanness-ai-card ${isApplied ? 'humanness-ai-card-applied' : ''}`}>
-                                                <div className="humanness-ai-original">{s.original}</div>
+                                                <div
+                                                    className="humanness-ai-original humanness-ai-locatable"
+                                                    onClick={() => handleLocateOriginal(s)}
+                                                    title="클릭하면 본문에서 위치를 찾아줍니다"
+                                                >{s.original}</div>
                                                 <div className="humanness-ai-arrow">
                                                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                                                         <path d="M3 8h10M10 5l3 3-3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>

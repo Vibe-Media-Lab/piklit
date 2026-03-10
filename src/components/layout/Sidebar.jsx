@@ -16,7 +16,7 @@ import {
 
 const Sidebar = () => {
     const { user, logout } = useAuth();
-    const { createPost, navigationGuardRef } = useEditor();
+    const { createPost, navigationGuardRef, posts, currentPostId, deletePost, revertPost } = useEditor();
     const navigate = useNavigate();
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [collapsed, setCollapsed] = useState(false);
@@ -63,6 +63,17 @@ const Sidebar = () => {
         setLeaveModal(null);
         // 가드 해제 후 실행
         if (navigationGuardRef) navigationGuardRef.current = null;
+
+        // 저장 안 함 처리: 수동 저장 이력 없는 글 → 삭제, 있는 글 → 스냅샷 롤백
+        const currentPost = posts.find(p => p.id === currentPostId);
+        if (currentPost) {
+            if (!currentPost.savedAt) {
+                deletePost(currentPost.id);
+            } else if (currentPost._snapshot) {
+                revertPost(currentPost.id);
+            }
+        }
+
         if (action) action();
     };
 

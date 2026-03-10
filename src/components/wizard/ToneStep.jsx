@@ -176,9 +176,16 @@ const ToneStep = ({
             <div className="wizard-advanced-section" style={{ marginTop: '16px' }}>
                 <button
                     className="wizard-advanced-toggle"
-                    onClick={() => setAdvancedOpen(!advancedOpen)}
+                    onClick={() => {
+                        setAdvancedOpen(!advancedOpen);
+                        const count = parseInt(localStorage.getItem('piklit_advanced_seen') || '0', 10);
+                        localStorage.setItem('piklit_advanced_seen', String(count + 1));
+                    }}
                 >
                     <span>고급 옵션</span>
+                    {parseInt(localStorage.getItem('piklit_advanced_seen') || '0', 10) < 2 && !advancedOpen && (
+                        <span className="wizard-advanced-dot" />
+                    )}
                     <span className="wizard-advanced-badges">
                         {competitorData && <span className="wizard-advanced-badge done">경쟁분석 완료</span>}
                         {selectedWannabeStyle && <span className="wizard-advanced-badge done">워너비 적용</span>}
@@ -200,14 +207,6 @@ const ToneStep = ({
 
                         {/* 워너비 스타일 */}
                         <div className="wizard-advanced-item">
-                            <div className="wizard-advanced-item-header">
-                                <label className="wizard-label wizard-label-sm">
-                                    <Wand2 size={14} /> 워너비 스타일
-                                </label>
-                                <span className="wannabe-usage-badge-sm">
-                                    {wannabePresets.length}/{limit}
-                                </span>
-                            </div>
                             {wannabePresets.length > 0 && (
                                 <div className="wannabe-preset-grid-compact">
                                     {wannabePresets.map(p => (
@@ -237,7 +236,10 @@ const ToneStep = ({
                                 className="wannabe-analyze-compact"
                                 onClick={() => setShowWannabeModal(true)}
                             >
-                                <Sparkles size={14} /> 스타일 분석해보기
+                                <Wand2 size={14} /> 워너비 스타일 분석하기
+                                {wannabePresets.length > 0 && (
+                                    <span className="wannabe-usage-badge-inline">{wannabePresets.length}/{limit}</span>
+                                )}
                             </button>
                         </div>
                     </div>

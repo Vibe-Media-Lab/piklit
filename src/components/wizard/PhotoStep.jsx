@@ -117,12 +117,7 @@ const PhotoStep = ({
                 </div>
             )}
 
-            {isAnalyzingPhotos && (
-                <div className="ai-progress-inline wizard-mt-16">
-                    <Loader2 size={16} className="spin" />
-                    <span>업로드한 사진을 AI가 분석 중입니다</span>
-                </div>
-            )}
+
 
             {(photoAnalysis || Object.keys(imageAlts).length > 0) && (
                 <div className="wizard-mt-16">

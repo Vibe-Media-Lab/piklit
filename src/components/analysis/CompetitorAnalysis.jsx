@@ -32,13 +32,29 @@ const CompetitorAnalysis = ({ data, loading, onAnalyze, compact }) => {
                         <span>경쟁 블로그 데이터 부족 — 이미지는 카테고리 기준 권장값</span>
                     </div>
                 ) : (
-                    <div className="wizard-summary-inline">
-                        <span>상위 블로그 평균 {(average.charCount || 0).toLocaleString()}자</span>
-                        <span className="wizard-summary-dot">·</span>
-                        <span>{average.headingCount || 0}소제목</span>
-                        <span className="wizard-summary-dot">·</span>
-                        <span>{average.imageCount || 0}이미지</span>
-                    </div>
+                    <>
+                        <div className="competitor-compact-stats">
+                            <div className="competitor-compact-stat">
+                                <span className="competitor-compact-stat-value">{(average.charCount || 0).toLocaleString()}</span>
+                                <span className="competitor-compact-stat-label">평균 글자수</span>
+                            </div>
+                            <div className="competitor-compact-stat">
+                                <span className="competitor-compact-stat-value">{average.headingCount || 0}</span>
+                                <span className="competitor-compact-stat-label">소제목</span>
+                            </div>
+                            <div className="competitor-compact-stat">
+                                <span className="competitor-compact-stat-value">{average.imageCount || 0}</span>
+                                <span className="competitor-compact-stat-label">이미지</span>
+                            </div>
+                        </div>
+                        <div className="competitor-compact-feedback">
+                            <CheckCircle size={13} />
+                            <span>이 분석 기준으로 글 길이가 자동 설정되었습니다</span>
+                        </div>
+                        <button onClick={onAnalyze} className="competitor-compact-reanalyze">
+                            <BarChart3 size={13} /> 다시 분석
+                        </button>
+                    </>
                 )}
             </div>
         );

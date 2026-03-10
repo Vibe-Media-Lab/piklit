@@ -91,14 +91,22 @@ const IntroOptimizer = () => {
 
     const handleApply = (newIntroText) => {
         const processed = humanizeText(`<p>${newIntroText}</p>`, suggestedTone || 'friendly');
+        let searchArea, startOffset;
         if (infoCardState.hasInfoCard && infoCardState.afterCardIndex > 0) {
-            // 정보카드 뒤에 삽입
-            const before = content.substring(0, infoCardState.afterCardIndex);
-            const after = content.substring(infoCardState.afterCardIndex);
+            searchArea = content.substring(infoCardState.afterCardIndex);
+            startOffset = infoCardState.afterCardIndex;
+        } else {
+            searchArea = content;
+            startOffset = 0;
+        }
+        // 기존 첫 번째 <p>...</p>를 찾아서 교체
+        const firstP = searchArea.match(/<p[^>]*>[\s\S]*?<\/p>/i);
+        if (firstP) {
+            const before = content.substring(0, startOffset + firstP.index);
+            const after = content.substring(startOffset + firstP.index + firstP[0].length);
             setContent(before + processed + after);
         } else {
-            // 기존대로 맨 앞에 prepend
-            setContent(processed + content);
+            setContent(content.substring(0, startOffset) + processed + content.substring(startOffset));
         }
         setAlternatives([]);
     };

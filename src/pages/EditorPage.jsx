@@ -18,7 +18,7 @@ import KeywordStep, { recommendLength, getKw } from '../components/wizard/Keywor
 import ToneStep from '../components/wizard/ToneStep';
 import PhotoStep from '../components/wizard/PhotoStep';
 import OutlineStep from '../components/wizard/OutlineStep';
-import { fileToBase64 } from '../utils/image';
+import { fileToBase64, fileToDataUrl } from '../utils/image';
 import { copyToClipboard } from '../utils/clipboard';
 import { CATEGORIES } from '../data/categories';
 import { callBetaStatus } from '../services/firebase';
@@ -186,16 +186,17 @@ const EditorPage = () => {
             mainKeyword.trim() || selectedKeywords.length > 0 ||
             Object.values(photoData.metadata).some(v => v > 0)
         );
-        if (hasWizardInput) {
+        const hasEditorContent = editorMode === 'direct' && content && content.trim().length > 20;
+        if (hasWizardInput || hasEditorContent) {
             navigationGuardRef.current = {
-                message: '작성 중인 내용이 있습니다. 페이지를 떠나시겠습니까?',
-                type: 'wizard',
+                message: '작성 중인 내용이 저장되지 않을 수 있습니다.',
+                type: hasWizardInput ? 'wizard' : 'editor',
             };
         } else {
             navigationGuardRef.current = null;
         }
         return () => { navigationGuardRef.current = null; };
-    }, [editorMode, isNewPost, mainKeyword, selectedKeywords, photoData.metadata, navigationGuardRef]);
+    }, [editorMode, isNewPost, mainKeyword, selectedKeywords, photoData.metadata, content, navigationGuardRef]);
 
     // 에디터 첫 진입 온보딩 (한 번만 표시)
     useEffect(() => {
@@ -288,11 +289,27 @@ const EditorPage = () => {
         const slotAliases = slotCfg.aliases;
         const slotLabels = slotCfg.labels;
 
+        // 모든 사진 File → base64 data URL 미리 변환 (병렬 처리로 속도 최적화)
+        const dataUrlCache = {};
+        const allConversions = [];
+        for (const [slotName, files] of Object.entries(photoData.files || {})) {
+            if (files && files.length > 0) {
+                files.forEach((file, idx) => {
+                    allConversions.push(
+                        fileToDataUrl(file).then(url => {
+                            if (!dataUrlCache[slotName]) dataUrlCache[slotName] = [];
+                            dataUrlCache[slotName][idx] = url;
+                        })
+                    );
+                });
+            }
+        }
+        await Promise.all(allConversions);
+
         // [[IMAGE:slot]], [IMAGE:slot], [IMAGE:1] 등 다양한 형식 대응 (공백 포함 슬롯명 지원)
-        let slotInsertIndex = 0; // 인식 못 하는 슬롯명은 순서대로 매핑
-        const insertedSlots = new Set(); // 중복 삽입 방지
+        let slotInsertIndex = 0;
+        const insertedSlots = new Set();
         injectedHtml = injectedHtml.replace(/\[{1,2}IMAGE\s*:\s*([^\]]+)\]{1,2}/gi, (match, rawType) => {
-            // 공백 제거 + 숫자면 슬롯 순서로 매핑, 아니면 별칭 매핑
             let slotName = rawType.trim().replace(/\s+/g, '').toLowerCase();
             if (/^\d+$/.test(slotName)) {
                 const idx = parseInt(slotName, 10) - 1;
@@ -300,22 +317,18 @@ const EditorPage = () => {
             }
             slotName = slotAliases[slotName] || slotName;
 
-            // 별칭에 없으면 부분 매칭 시도 (예: '카페외관정면' → '외관' 포함 → entrance)
             if (!slotLabels[slotName]) {
                 const partialMatch = Object.keys(slotAliases).find(alias => slotName.includes(alias) && alias.length > 1);
                 slotName = partialMatch ? slotAliases[partialMatch] : slotOrder[slotInsertIndex] || 'extra';
             }
             slotInsertIndex++;
 
-            // 이미 삽입된 슬롯이면 태그만 제거 (중복 방지)
-            if (insertedSlots.has(slotName)) {
-                return '';
-            }
+            if (insertedSlots.has(slotName)) return '';
             insertedSlots.add(slotName);
 
+            const cachedUrls = dataUrlCache[slotName];
             const files = photoData.files[slotName];
-            if (files && files.length > 0) {
-                // SEO 최적화: 개별 이미지별 ALT 배열 + 캡션 → fallback
+            if (files && files.length > 0 && cachedUrls) {
                 const altArr = imageAlts[slotName];
                 const captionArr = imageCaptions[slotName];
                 return files.map((file, idx) => {
@@ -325,14 +338,46 @@ const EditorPage = () => {
                     const captionHtml = caption
                         ? `<p style="text-align:center;color:#787774;font-size:0.85rem;margin:4px 0 16px;">${caption}</p>`
                         : '';
-                    const imageUrl = URL.createObjectURL(file);
+                    const imageUrl = cachedUrls[idx] || '';
                     return `</p><p><img src="${imageUrl}" alt="${altText}" style="width: 100%; max-width: 800px; border-radius: 8px; margin: 10px 0;" /></p>${captionHtml}<p>`;
                 }).join('');
             }
-            // 파일 없는 슬롯 → TIP 박스로 변환 (한국어 라벨 사용)
             const label = slotLabels[slotName] || slotName;
             return `</p><blockquote style="border-left: 4px solid #FF6B35; background: #FFF3ED; padding: 12px 16px; margin: 16px 0; border-radius: 0 8px 8px 0; color: #FF6B35; font-size: 0.9rem;">📸 <b>${label}</b> 사진을 추가하면 더 좋아요!</blockquote><p>`;
         });
+
+        // 1.5. 폴백: AI가 [[IMAGE:slot]] 태그를 누락한 경우, 업로드된 사진을 본문에 자동 삽입
+        const uploadedSlots = Object.entries(photoData.files || {}).filter(([, f]) => f && f.length > 0);
+        const missingSlots = uploadedSlots.filter(([name]) => !insertedSlots.has(name));
+
+
+        if (missingSlots.length > 0) {
+            console.warn('[이미지 폴백] AI가 누락한 슬롯:', missingSlots.map(([n]) => n));
+            let fallbackHtml = '';
+            for (const [slotName, files] of missingSlots) {
+                const cachedUrls = dataUrlCache[slotName];
+                if (!cachedUrls) continue;
+                const altArr = imageAlts[slotName];
+                const captionArr = imageCaptions[slotName];
+                fallbackHtml += files.map((file, idx) => {
+                    const altText = (Array.isArray(altArr) ? altArr[idx] : altArr)
+                        || `${mainKeyword} ${slotLabels[slotName] || slotName}`;
+                    const caption = Array.isArray(captionArr) ? captionArr[idx] : '';
+                    const captionHtml = caption
+                        ? `<p style="text-align:center;color:#787774;font-size:0.85rem;margin:4px 0 16px;">${caption}</p>`
+                        : '';
+                    const imageUrl = cachedUrls[idx] || '';
+                    return `<p><img src="${imageUrl}" alt="${altText}" style="width: 100%; max-width: 800px; border-radius: 8px; margin: 10px 0;" /></p>${captionHtml}`;
+                }).join('');
+            }
+            // 가게 정보카드(📍) 앞에 삽입, 없으면 맨 끝에 삽입
+            const infoCardIdx = injectedHtml.indexOf('<h2>📍');
+            if (infoCardIdx > 0) {
+                injectedHtml = injectedHtml.slice(0, infoCardIdx) + fallbackHtml + injectedHtml.slice(infoCardIdx);
+            } else {
+                injectedHtml += fallbackHtml;
+            }
+        }
 
         // 2. [[VIDEO]] / [[VIDEO:텍스트]] → 동영상 TIP 박스 변환 ([VIDEO] 단일 대괄호도 대응)
         injectedHtml = injectedHtml.replace(/\[{1,2}VIDEO(?::[^\]]*?)?\]{1,2}/gi, '<blockquote style="border-left: 4px solid #2EAADC; background: #EBF7FC; padding: 12px 16px; margin: 16px 0; border-radius: 0 8px 8px 0; color: #2EAADC; font-size: 0.9rem;">🎬 <b>TIP</b> 동영상을 추가하면 체류 시간이 올라갑니다!</blockquote>');
@@ -351,12 +396,16 @@ const EditorPage = () => {
         // eslint-disable-next-line no-misleading-character-class
         injectedHtml = injectedHtml.replace(/<p>\s*([\u{1F300}-\u{1FAD6}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{200D}\u{20E3}\u{E0020}-\u{E007F}\s]{1,6})\s*<\/p>\s*<p>/gu, '<p>$1 ');
 
-        const chunkSize = 20;
+        // base64 이미지가 포함되면 HTML이 매우 커지므로 텍스트 부분만 스트리밍
+        // img 태그의 src="data:..." 부분을 제외한 실제 텍스트 길이 기준으로 청크 계산
+        const textOnly = injectedHtml.replace(/<img[^>]*>/g, '').replace(/<[^>]*>/g, '');
+        const textLen = textOnly.length;
+        const totalLen = injectedHtml.length;
+        const chunkSize = Math.max(20, Math.round(totalLen / Math.min(textLen, 200)));
         let currentPos = 0;
-        while (currentPos < injectedHtml.length) {
-            const nextChunk = injectedHtml.substring(0, currentPos + chunkSize);
-            setContent(nextChunk);
+        while (currentPos < totalLen) {
             currentPos += chunkSize;
+            setContent(injectedHtml.substring(0, currentPos));
             await new Promise(r => setTimeout(r, 10));
         }
         setContent(injectedHtml);

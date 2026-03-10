@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { analyzePost } from '../utils/analysis';
 import {
     migratePosts, computeSeoScore,
@@ -17,7 +17,9 @@ export const EditorProvider = ({ children }) => {
     const [posts, setPosts] = useState(() => {
         const savedPosts = localStorage.getItem('naver_blog_posts');
         if (savedPosts) {
-            return migratePosts(JSON.parse(savedPosts));
+            const parsed = migratePosts(JSON.parse(savedPosts));
+            // 빈 글 자동 정리 (제목 없음 + 내용 20자 미만)
+            return parsed.filter(p => p.title?.trim() || (p.content?.replace(/<[^>]*>/g, '').trim().length > 20));
         }
         return [];
     });
@@ -54,34 +56,50 @@ export const EditorProvider = ({ children }) => {
         localStorage.setItem('naver_blog_posts', JSON.stringify(posts));
     }, [posts]);
 
-    // 3. Auto-save (Debounced) — with SEO snapshot update
+    // 3. Auto-save (Debounced 3초) — with SEO snapshot update
+    const autoSave = useCallback(() => {
+        setPosts(prevPosts => prevPosts.map(p => {
+            if (p.id !== currentPostIdRef.current) return p;
+            const result = analyzePost(titleRef.current, contentRef.current, keywordsRef.current, targetLengthRef.current, p.categoryId || 'daily');
+            const seoScore = result.totalChars < 10 ? 0 : computeSeoScore(result.checks);
+            return {
+                ...p,
+                title: titleRef.current,
+                content: contentRef.current,
+                keywords: keywordsRef.current,
+                updatedAt: new Date().toISOString(),
+                seoScore,
+                charCount: result.totalChars,
+                imageCount: result.imageCount,
+                headingCount: result.headingCount,
+            };
+        }));
+    }, []);
+
+    // Refs for latest values (페이지 이탈 시 즉시 저장에 사용)
+    const currentPostIdRef = useRef(currentPostId);
+    const titleRef = useRef(title);
+    const contentRef = useRef(content);
+    const keywordsRef = useRef(keywords);
+    const targetLengthRef = useRef(targetLength);
+    useEffect(() => { currentPostIdRef.current = currentPostId; }, [currentPostId]);
+    useEffect(() => { titleRef.current = title; }, [title]);
+    useEffect(() => { contentRef.current = content; }, [content]);
+    useEffect(() => { keywordsRef.current = keywords; }, [keywords]);
+    useEffect(() => { targetLengthRef.current = targetLength; }, [targetLength]);
+
     useEffect(() => {
         if (!currentPostId) return;
-
-        const timer = setTimeout(() => {
-            setPosts(prevPosts => prevPosts.map(p => {
-                if (p.id !== currentPostId) return p;
-
-                // Compute SEO snapshot — 빈 글(10자 미만)은 0점 처리
-                const result = analyzePost(title, content, keywords, targetLength, p.categoryId || 'daily');
-                const seoScore = result.totalChars < 10 ? 0 : computeSeoScore(result.checks);
-
-                return {
-                    ...p,
-                    title,
-                    content,
-                    keywords,
-                    updatedAt: new Date().toISOString(),
-                    seoScore,
-                    charCount: result.totalChars,
-                    imageCount: result.imageCount,
-                    headingCount: result.headingCount,
-                };
-            }));
-        }, 1000);
-
+        const timer = setTimeout(autoSave, 3000);
         return () => clearTimeout(timer);
-    }, [title, content, keywords, currentPostId, targetLength]);
+    }, [title, content, keywords, currentPostId, targetLength, autoSave]);
+
+    // 페이지 이탈 시 즉시 저장
+    useEffect(() => {
+        const handleBeforeUnload = () => { if (currentPostIdRef.current) autoSave(); };
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [autoSave]);
 
     // 4. Analysis — 현재 포스트의 categoryId 반영
     const currentCategoryId = useMemo(() => {
@@ -232,13 +250,22 @@ export const EditorProvider = ({ children }) => {
 
     const savePost = useCallback(() => {
         if (!currentPostId) return false;
+        const now = new Date().toISOString();
         setPosts(prevPosts => prevPosts.map(p =>
             p.id === currentPostId
-                ? { ...p, title, content, keywords, updatedAt: new Date().toISOString() }
+                ? { ...p, title, content, keywords, updatedAt: now, savedAt: now,
+                    _snapshot: { title, content, keywords } }
                 : p
         ));
         return true;
     }, [currentPostId, title, content, keywords]);
+
+    const revertPost = useCallback((id) => {
+        setPosts(prev => prev.map(p => {
+            if (p.id !== id || !p._snapshot) return p;
+            return { ...p, title: p._snapshot.title, content: p._snapshot.content, keywords: p._snapshot.keywords, updatedAt: p.savedAt };
+        }));
+    }, []);
 
     const deletePost = useCallback((id) => {
         setPosts(prev => prev.filter(p => p.id !== id));
@@ -283,6 +310,7 @@ export const EditorProvider = ({ children }) => {
         openPost: openPostStable,
         savePost,
         deletePost,
+        revertPost,
 
         keywords,
         updateMainKeyword,
@@ -312,7 +340,7 @@ export const EditorProvider = ({ children }) => {
 
         // 에디터 이탈 방지 가드
         navigationGuardRef,
-    }), [posts, currentPostId, createPost, openPostStable, savePost, deletePost, keywords, updateMainKeyword, updateSubKeyword, updateSubKeywords, title, content, analysis, suggestedTone, targetLength, closeSession, recordAiAction, updatePostMeta, photoPreviewUrls]);
+    }), [posts, currentPostId, createPost, openPostStable, savePost, deletePost, revertPost, keywords, updateMainKeyword, updateSubKeyword, updateSubKeywords, title, content, analysis, suggestedTone, targetLength, closeSession, recordAiAction, updatePostMeta, photoPreviewUrls]);
 
     return (
         <EditorContext.Provider value={value}>
