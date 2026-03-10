@@ -21,6 +21,7 @@ const EditorPage = React.lazy(() => import('./pages/EditorPage'));
 const HistoryPage = React.lazy(() => import('./pages/HistoryPage'));
 const AdminBugsPage = React.lazy(() => import('./pages/AdminBugsPage'));
 const AdminBetaPage = React.lazy(() => import('./pages/AdminBetaPage'));
+const AdminUsersPage = React.lazy(() => import('./pages/AdminUsersPage'));
 
 // 베타 만료 감지 훅
 const useBetaExpired = () => {
@@ -134,6 +135,11 @@ function AppRoutes() {
             <Route path="/admin/beta" element={
                 <ProtectedRoute {...protectedProps}>
                     <AdminBetaPage />
+                </ProtectedRoute>
+            } />
+            <Route path="/admin/users" element={
+                <ProtectedRoute {...protectedProps}>
+                    <AdminUsersPage />
                 </ProtectedRoute>
             } />
         </Routes>

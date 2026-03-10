@@ -14,6 +14,7 @@ import {
     AlertTriangle,
     Bug,
     Users,
+    Shield,
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -139,6 +140,13 @@ const Sidebar = () => {
                             >
                                 <Users size={18} />
                                 {!collapsed && <span>베타 테스터</span>}
+                            </NavLink>
+                            <NavLink
+                                to="/admin/users"
+                                className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}
+                            >
+                                <Shield size={18} />
+                                {!collapsed && <span>관리자 목록</span>}
                             </NavLink>
                         </>
                     )}

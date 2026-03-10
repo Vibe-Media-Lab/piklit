@@ -12,6 +12,7 @@ const PAGE_TITLES = {
     '/dashboard': '성장 리포트',
     '/admin/bugs': '버그 리포트',
     '/admin/beta': '베타 테스터',
+    '/admin/users': '관리자 목록',
 };
 
 const TopBar = () => {
