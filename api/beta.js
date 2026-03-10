@@ -129,7 +129,7 @@ export default async function handler(req, res) {
 }
 
 async function sendDiscordAlert({ name, affiliation, count }) {
-    const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+    const webhookUrl = process.env.DISCORD_WEBHOOK_URL_BETA || process.env.DISCORD_WEBHOOK_URL;
     if (!webhookUrl) return;
 
     const time = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
