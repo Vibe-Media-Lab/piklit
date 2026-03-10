@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { callListBetaUsers } from '../services/firebase';
+import { callListBetaUsers, callDeleteBetaUser } from '../services/firebase';
 import '../styles/components.css';
 
 const AdminBetaPage = () => {
@@ -8,16 +8,35 @@ const AdminBetaPage = () => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [filter, setFilter] = useState('all'); // all, active, expired
+    const [filter, setFilter] = useState('all');
+    const [deleteConfirm, setDeleteConfirm] = useState(null);
 
-    useEffect(() => {
-        if (!isAdmin) return;
+    const fetchData = () => {
         setLoading(true);
         callListBetaUsers()
             .then(result => setData(result.data))
             .catch(err => setError(err.message))
             .finally(() => setLoading(false));
+    };
+
+    useEffect(() => {
+        if (!isAdmin) return;
+        fetchData();
     }, [isAdmin]);
+
+    const handleDelete = async (userId, userName) => {
+        if (deleteConfirm !== userId) {
+            setDeleteConfirm(userId);
+            return;
+        }
+        try {
+            await callDeleteBetaUser(userId);
+            setDeleteConfirm(null);
+            fetchData();
+        } catch (err) {
+            alert('삭제 실패: ' + err.message);
+        }
+    };
 
     if (!isAdmin) {
         return <div className="admin-bugs-center">접근 권한이 없습니다.</div>;
@@ -92,6 +111,7 @@ const AdminBetaPage = () => {
                                 <th>상태</th>
                                 <th>글 생성</th>
                                 <th>이미지</th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -113,6 +133,14 @@ const AdminBetaPage = () => {
                                     </td>
                                     <td className="admin-beta-count">{user.draftCount} / 21</td>
                                     <td className="admin-beta-count">{user.imageCount} / 5</td>
+                                    <td>
+                                        <button
+                                            className={`admin-beta-delete-btn ${deleteConfirm === user.id ? 'admin-beta-delete-btn--confirm' : ''}`}
+                                            onClick={() => handleDelete(user.id, user.name)}
+                                        >
+                                            {deleteConfirm === user.id ? '확인' : '삭제'}
+                                        </button>
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>

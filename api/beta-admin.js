@@ -1,8 +1,12 @@
 import { verifyFirebaseToken } from './lib/auth.js';
-import { listDocs, getDoc } from './lib/firestore.js';
+import { listDocs, getDoc, setDoc, removeFields } from './lib/firestore.js';
 import { isAdmin } from './lib/adminEmails.js';
 
 const BETA_DAYS = 7;
+const BETA_FIELDS = [
+    'betaActivatedAt', 'betaPlan', 'betaName', 'betaAffiliation',
+    'betaDraftCount', 'betaImageCount',
+];
 
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -23,11 +27,37 @@ export default async function handler(req, res) {
         return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
     }
 
+    const { action, userId } = req.body || {};
+
+    // 베타 테스터 삭제
+    if (action === 'delete') {
+        if (!userId) {
+            return res.status(400).json({ error: 'userId가 필요합니다.' });
+        }
+        try {
+            await removeFields('users', userId, BETA_FIELDS);
+
+            // 카운트 차감
+            const betaMeta = await getDoc('meta', 'beta');
+            const currentCount = betaMeta?.activatedCount || 0;
+            if (currentCount > 0) {
+                await setDoc('meta', 'beta', {
+                    activatedCount: currentCount - 1,
+                });
+            }
+
+            return res.status(200).json({ success: true });
+        } catch (err) {
+            console.error('Beta delete error:', err);
+            return res.status(500).json({ error: err.message });
+        }
+    }
+
+    // 기본: 목록 조회
     try {
         const users = await listDocs('users');
         const betaMeta = await getDoc('meta', 'beta');
 
-        // 베타 활성화된 사용자만 필터
         const betaUsers = users
             .filter(u => u.betaActivatedAt)
             .map(u => {

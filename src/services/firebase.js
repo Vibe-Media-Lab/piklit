@@ -102,6 +102,7 @@ export const callBetaStatus = () => callVercelFunction('/api/beta', { action: 's
 export const callBetaActivate = (code, name, affiliation) => callVercelFunction('/api/beta', { action: 'activate', code, name, affiliation });
 
 export const callListBetaUsers = () => callVercelFunction('/api/beta-admin', {});
+export const callDeleteBetaUser = (userId) => callVercelFunction('/api/beta-admin', { action: 'delete', userId });
 
 export const callSubmitBugReport = (data) => callVercelFunction('/api/bug-report', { action: 'submit', ...data });
 export const callListBugReports = () => callVercelFunction('/api/bug-report', { action: 'list' });

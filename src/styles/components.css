@@ -4793,3 +4793,24 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
     background: #FFF0F0;
     color: #EB5757;
 }
+
+.admin-beta-delete-btn {
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: white;
+    color: var(--color-text-sub);
+    cursor: pointer;
+}
+
+.admin-beta-delete-btn:hover {
+    border-color: #EB5757;
+    color: #EB5757;
+}
+
+.admin-beta-delete-btn--confirm {
+    background: #EB5757;
+    color: white;
+    border-color: #EB5757;
+}

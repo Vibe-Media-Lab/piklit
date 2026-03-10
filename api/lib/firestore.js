@@ -96,6 +96,28 @@ export async function setDoc(collection, docId, data) {
     return await res.json();
 }
 
+// Firestore 필드 삭제 (updateMask에 포함하되 body에서 제외하면 삭제됨)
+export async function removeFields(collection, docId, fieldNames) {
+    const token = await getAccessToken();
+    const params = new URLSearchParams();
+    fieldNames.forEach(f => params.append('updateMask.fieldPaths', f));
+
+    const res = await fetch(`${docUrl(collection, docId)}?${params.toString()}`, {
+        method: 'PATCH',
+        headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ fields: {} }),
+    });
+
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(`Firestore removeFields error: ${err.error?.message || res.status}`);
+    }
+    return await res.json();
+}
+
 // Firestore 컬렉션 전체 문서 조회 (필터 조건 없음)
 export async function listDocs(collection, { pageSize = 100 } = {}) {
     const token = await getAccessToken();
