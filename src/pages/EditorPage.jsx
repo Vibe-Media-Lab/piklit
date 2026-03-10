@@ -33,10 +33,11 @@ import '../styles/ImageSeoGuide.css';
 const EditorPage = () => {
     const { id } = useParams();
     const location = useLocation();
-    const { openPost, posts, currentPostId, title, updateMainKeyword, updateSubKeywords, setSuggestedTone, setContent, content, setTargetLength, editorRef, lastCursorPosRef, closeSession, recordAiAction, updatePostMeta, setPhotoPreviewUrls } = useEditor();
+    const { openPost, posts, currentPostId, title, updateMainKeyword, updateSubKeywords, setSuggestedTone, setContent, content, setTargetLength, editorRef, lastCursorPosRef, closeSession, recordAiAction, updatePostMeta, setPhotoPreviewUrls, navigationGuardRef } = useEditor();
     const { showToast } = useToast();
 
     const locationStateProcessed = useRef(false);
+    const prevIdRef = useRef(id);
 
     // DUAL MODE STATE
     const isNewPost = !!location.state?.isNew;
@@ -130,6 +131,37 @@ const EditorPage = () => {
     // 에디터 온보딩 툴팁 상태
     const [showEditorTip, setShowEditorTip] = useState(false);
 
+    // id 변경 감지 — 다른 에디터 페이지로 이동 시 위자드 상태 초기화
+    useEffect(() => {
+        if (prevIdRef.current !== id) {
+            prevIdRef.current = id;
+            locationStateProcessed.current = false;
+            // 위자드 상태 리셋
+            setEditorMode(location.state?.isNew ? 'ai' : (location.state?.initialMode || 'direct'));
+            setAiStepRaw(1);
+            setIsGenerating(false);
+            setGenerationStep(0);
+            setWizardData(null);
+            setSelectedCategory(null);
+            setTopicInput('');
+            setMainKeyword('');
+            setSelectedKeywords([]);
+            setCompetitorData(null);
+            setPhotoData({ metadata: {}, previews: {}, files: {} });
+            setPhotoAnalysis(null);
+            setImageAlts({});
+            setImageCaptions({});
+            setCachedPhotoAssets([]);
+            setOutlineItems([]);
+            setSelectedLengthLocal(null);
+            setToneState(null);
+            setParagraphStyle('normal');
+            setSelectedWannabeStyle(null);
+            setShowCompletionCard(false);
+            setCompletionStats(null);
+        }
+    }, [id, location.state]);
+
     // Close session on unmount (route change)
     useEffect(() => {
         return () => { closeSession(); };
@@ -147,6 +179,23 @@ const EditorPage = () => {
         window.addEventListener('beforeunload', handleBeforeUnload);
         return () => window.removeEventListener('beforeunload', handleBeforeUnload);
     }, [editorMode, isNewPost, mainKeyword, selectedKeywords, photoData.metadata]);
+
+    // 에디터 이탈 방지 가드 — Sidebar 등 in-app 내비게이션용
+    useEffect(() => {
+        const hasWizardInput = editorMode === 'ai' && isNewPost && (
+            mainKeyword.trim() || selectedKeywords.length > 0 ||
+            Object.values(photoData.metadata).some(v => v > 0)
+        );
+        if (hasWizardInput) {
+            navigationGuardRef.current = {
+                message: '작성 중인 내용이 있습니다. 페이지를 떠나시겠습니까?',
+                type: 'wizard',
+            };
+        } else {
+            navigationGuardRef.current = null;
+        }
+        return () => { navigationGuardRef.current = null; };
+    }, [editorMode, isNewPost, mainKeyword, selectedKeywords, photoData.metadata, navigationGuardRef]);
 
     // 에디터 첫 진입 온보딩 (한 번만 표시)
     useEffect(() => {

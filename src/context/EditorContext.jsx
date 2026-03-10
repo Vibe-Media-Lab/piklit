@@ -62,9 +62,9 @@ export const EditorProvider = ({ children }) => {
             setPosts(prevPosts => prevPosts.map(p => {
                 if (p.id !== currentPostId) return p;
 
-                // Compute SEO snapshot
+                // Compute SEO snapshot — 빈 글(10자 미만)은 0점 처리
                 const result = analyzePost(title, content, keywords, targetLength, p.categoryId || 'daily');
-                const seoScore = computeSeoScore(result.checks);
+                const seoScore = result.totalChars < 10 ? 0 : computeSeoScore(result.checks);
 
                 return {
                     ...p,
@@ -265,6 +265,9 @@ export const EditorProvider = ({ children }) => {
         setKeywords(prev => ({ ...prev, sub: subArray }));
     }, []);
 
+    // 에디터 이탈 방지 가드 — EditorPage가 설정, Sidebar가 체크
+    const navigationGuardRef = React.useRef(null);
+
     // Update post metadata (categoryId, tone, mode)
     const updatePostMeta = useCallback((postId, meta) => {
         setPosts(prev => prev.map(p =>
@@ -306,6 +309,9 @@ export const EditorProvider = ({ children }) => {
         // Photo previews (for ThumbnailPanel)
         photoPreviewUrls,
         setPhotoPreviewUrls,
+
+        // 에디터 이탈 방지 가드
+        navigationGuardRef,
     }), [posts, currentPostId, createPost, openPostStable, savePost, deletePost, keywords, updateMainKeyword, updateSubKeyword, updateSubKeywords, title, content, analysis, suggestedTone, targetLength, closeSession, recordAiAction, updatePostMeta, photoPreviewUrls]);
 
     return (
