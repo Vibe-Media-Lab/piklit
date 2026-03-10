@@ -24,6 +24,35 @@ const AI_PATTERNS = [
     '추천드립니다', '추천해 드립니다',
     '~에 대해 알아보', '장점과 단점',
     '결론적으로', '종합적으로', '궁극적으로',
+    // 수동태·추측 종결어미
+    '판단됩니다', '사료됩니다', '보여집니다', '여겨집니다',
+    '것으로 보입니다', '것으로 판단됩니다', '것으로 예상됩니다',
+    '할 수 있을 것입니다', '될 것으로 보입니다',
+    // 죽은 은유 (AI 선호 비유)
+    '양날의 검', '첫걸음', '등대', '이정표', '초석',
+    '새로운 지평', '패러다임', '변화의 바람', '혁신적인 변화',
+    '게임 체인저', '전환점', '촉매제', '디딤돌',
+];
+
+// 접속사 과다 사전
+const EXCESSIVE_CONNECTORS = [
+    '또한', '게다가', '더불어', '아울러', '뿐만 아니라',
+    '더 나아가', '나아가', '한편', '반면에', '이에 따라',
+    '이와 같이', '이처럼', '마찬가지로',
+];
+
+// 양비론 결론 패턴 (마지막 문단 감지용)
+const FENCE_SITTING_PATTERNS = [
+    /조화로운 공존이 필요/,
+    /균형 잡힌 시각이 필요/,
+    /지속적인 논의가 필요/,
+    /함께 노력해야/,
+    /조화를 이루어야/,
+    /균형을? 찾아야/,
+    /관심이 필요합니다/,
+    /중요할 것입니다/,
+    /기대됩니다/,
+    /지켜봐야 할 것/,
 ];
 
 // 구어체 마커
@@ -187,6 +216,26 @@ function measureAiPatterns(text, maxScore) {
         }
     });
 
+    // 접속사 과다 감지
+    let connectorCount = 0;
+    const foundConnectors = [];
+    EXCESSIVE_CONNECTORS.forEach(c => {
+        const matches = text.match(new RegExp(c, 'g'));
+        if (matches) {
+            connectorCount += matches.length;
+            foundConnectors.push(c);
+        }
+    });
+    totalFound += connectorCount;
+
+    // 양비론 결론 감지 (마지막 200자)
+    const lastChunk = text.slice(-200);
+    let fenceSitting = false;
+    for (const pat of FENCE_SITTING_PATTERNS) {
+        if (pat.test(lastChunk)) { fenceSitting = true; break; }
+    }
+    if (fenceSitting) totalFound += 3; // 양비론 결론은 가중 감점
+
     const charPer1000 = totalFound / (text.replace(/\s/g, '').length / 1000 || 1);
     let ratio;
     if (charPer1000 <= 1) ratio = 1.0;
@@ -200,6 +249,16 @@ function measureAiPatterns(text, maxScore) {
         suggestions.push({ type: 'warning', text: `AI 단골 표현이 많습니다 (${totalFound}개): "${foundPatterns.slice(0, 3).join('", "')}". 자연스러운 표현으로 바꿔보세요.`, priority: 10 });
     } else if (charPer1000 > 3) {
         suggestions.push({ type: 'info', text: `"${foundPatterns.slice(0, 2).join('", "')}" 같은 AI 패턴 표현을 줄여보세요.`, priority: 6 });
+    }
+
+    if (connectorCount >= 5) {
+        suggestions.push({ type: 'warning', text: `접속사가 많습니다 (${connectorCount}개): "${foundConnectors.slice(0, 3).join('", "')}". 80% 이상 삭제해도 글이 자연스럽게 이어집니다.`, priority: 9 });
+    } else if (connectorCount >= 3) {
+        suggestions.push({ type: 'info', text: `"${foundConnectors.slice(0, 2).join('", "')}" 같은 접속사를 줄이면 더 자연스럽습니다.`, priority: 5 });
+    }
+
+    if (fenceSitting) {
+        suggestions.push({ type: 'warning', text: '글 마무리가 "~필요합니다", "~중요합니다" 식의 공허한 결론입니다. 글쓴이의 솔직한 생각이나 구체적인 추천으로 바꿔보세요.', priority: 10 });
     }
 
     return { score, label: 'AI 패턴', maxScore, totalFound, suggestions };
@@ -359,6 +418,26 @@ const AI_REPLACEMENTS = [
     { pattern: /꼭 확인해 보세요/g, replace: '한번 보세요' },
     { pattern: /에 대해 알아보/g, replace: '에 대해 얘기해 볼' },
     { pattern: /장점과 단점/g, replace: '좋은 점과 아쉬운 점' },
+    // 수동태·추측 종결어미 → 능동태
+    { pattern: /판단됩니다/g, replace: '생각해요' },
+    { pattern: /사료됩니다/g, replace: '봐요' },
+    { pattern: /보여집니다/g, replace: '보여요' },
+    { pattern: /여겨집니다/g, replace: '느껴져요' },
+    { pattern: /것으로 보입니다/g, replace: '것 같아요' },
+    { pattern: /것으로 판단됩니다/g, replace: '거라고 봐요' },
+    { pattern: /것으로 예상됩니다/g, replace: '것 같아요' },
+    // 죽은 은유 → 제거 또는 구체화
+    { pattern: /양날의 검/g, replace: '장단점이 있는' },
+    { pattern: /새로운 지평/g, replace: '새로운 가능성' },
+    { pattern: /혁신적인 변화/g, replace: '큰 변화' },
+    { pattern: /게임 체인저/g, replace: '판을 바꿀 만한 것' },
+    // 접속사 경량화
+    { pattern: /뿐만 아니라/g, replace: '그리고' },
+    { pattern: /더 나아가/g, replace: '더' },
+    { pattern: /이와 같이/g, replace: '이렇게' },
+    { pattern: /이처럼/g, replace: '이렇게' },
+    { pattern: /마찬가지로/g, replace: '마찬가지로' },
+    { pattern: /아울러/g, replace: '또' },
 ];
 
 // "~합니다/~됩니다" 종결어미 변환 풀
