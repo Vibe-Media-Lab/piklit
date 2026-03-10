@@ -106,6 +106,13 @@ export default async function handler(req, res) {
                 lastActivatedAt: now,
             });
 
+            // 디스코드 알림
+            await sendDiscordAlert({
+                name: name.trim(),
+                affiliation: (affiliation || '').trim() || '소속없음',
+                count: currentCount + 1,
+            });
+
             return res.status(200).json({
                 active: true,
                 plan: 'beta',
@@ -119,4 +126,32 @@ export default async function handler(req, res) {
     }
 
     return res.status(400).json({ error: 'action은 "status" 또는 "activate"만 가능합니다.' });
+}
+
+async function sendDiscordAlert({ name, affiliation, count }) {
+    const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+    if (!webhookUrl) return;
+
+    const time = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
+
+    try {
+        await fetch(webhookUrl.trim(), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                embeds: [{
+                    title: '🎉 새 베타 테스터 등록',
+                    color: 0x27AE60,
+                    fields: [
+                        { name: '이름', value: name, inline: true },
+                        { name: '소속', value: affiliation, inline: true },
+                        { name: '등록 시간', value: time },
+                        { name: '누적 등록', value: `${count} / 100명`, inline: true },
+                    ],
+                }],
+            }),
+        });
+    } catch (e) {
+        console.error('Discord webhook error:', e.message);
+    }
 }
