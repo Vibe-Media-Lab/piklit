@@ -107,5 +107,6 @@ export const callDeleteBetaUser = (userId) => callVercelFunction('/api/beta-admi
 export const callSubmitBugReport = (data) => callVercelFunction('/api/bug-report', { action: 'submit', ...data });
 export const callListBugReports = () => callVercelFunction('/api/bug-report', { action: 'list' });
 export const callUpdateBugStatus = (reportId, status) => callVercelFunction('/api/bug-report', { action: 'updateStatus', reportId, status });
+export const callDeleteBugReport = (reportId) => callVercelFunction('/api/bug-report', { action: 'delete', reportId });
 
 export default app;

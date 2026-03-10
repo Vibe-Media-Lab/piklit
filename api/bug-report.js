@@ -1,7 +1,6 @@
 import { verifyFirebaseToken } from './lib/auth.js';
-import { getDoc, setDoc } from './lib/firestore.js';
-
-const ADMIN_EMAIL = 'sylee@datable.co.kr';
+import { getDoc, setDoc, deleteDoc } from './lib/firestore.js';
+import { isAdmin as checkAdmin } from './lib/adminEmails.js';
 
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -57,7 +56,7 @@ export default async function handler(req, res) {
 
     // 버그 목록 조회 (관리자 전용)
     if (action === 'list') {
-        if (email !== ADMIN_EMAIL) {
+        if (!checkAdmin(email)) {
             return res.status(403).json({ error: '접근 권한이 없습니다.' });
         }
 
@@ -71,7 +70,7 @@ export default async function handler(req, res) {
 
     // 버그 상태 업데이트 (관리자 전용)
     if (action === 'updateStatus') {
-        if (email !== ADMIN_EMAIL) {
+        if (!checkAdmin(email)) {
             return res.status(403).json({ error: '접근 권한이 없습니다.' });
         }
 
@@ -88,7 +87,26 @@ export default async function handler(req, res) {
         }
     }
 
-    return res.status(400).json({ error: 'action은 "submit", "list", "updateStatus"만 가능합니다.' });
+    // 버그 리포트 삭제 (관리자 전용)
+    if (action === 'delete') {
+        if (!checkAdmin(email)) {
+            return res.status(403).json({ error: '접근 권한이 없습니다.' });
+        }
+
+        const { reportId } = req.body;
+        if (!reportId) {
+            return res.status(400).json({ error: 'reportId가 필요합니다.' });
+        }
+
+        try {
+            await deleteDoc('bug-reports', reportId);
+            return res.status(200).json({ success: true });
+        } catch (err) {
+            return res.status(500).json({ error: err.message });
+        }
+    }
+
+    return res.status(400).json({ error: 'action은 "submit", "list", "updateStatus", "delete"만 가능합니다.' });
 }
 
 // 디스코드 웹훅으로 버그 알림 전송

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { callListBugReports, callUpdateBugStatus } from '../services/firebase';
+import { callListBugReports, callUpdateBugStatus, callDeleteBugReport } from '../services/firebase';
 import '../styles/components.css';
 
 const STATUS_LABELS = {
@@ -16,15 +16,34 @@ const AdminBugsPage = () => {
     const [error, setError] = useState(null);
     const [expandedId, setExpandedId] = useState(null);
     const [screenshotId, setScreenshotId] = useState(null);
+    const [deleteConfirm, setDeleteConfirm] = useState(null);
 
-    useEffect(() => {
-        if (!isAdmin) return;
+    const fetchData = () => {
         setLoading(true);
         callListBugReports()
             .then(result => setReports(result.data?.reports || []))
             .catch(err => setError(err.message))
             .finally(() => setLoading(false));
+    };
+
+    useEffect(() => {
+        if (!isAdmin) return;
+        fetchData();
     }, [isAdmin]);
+
+    const handleDelete = async (reportId) => {
+        if (deleteConfirm !== reportId) {
+            setDeleteConfirm(reportId);
+            return;
+        }
+        try {
+            await callDeleteBugReport(reportId);
+            setDeleteConfirm(null);
+            fetchData();
+        } catch (err) {
+            alert('삭제 실패: ' + err.message);
+        }
+    };
 
     const handleStatusChange = async (reportId, newStatus) => {
         try {
@@ -173,7 +192,7 @@ const AdminBugsPage = () => {
                                             </div>
                                         )}
 
-                                        {/* 상태 변경 */}
+                                        {/* 상태 변경 + 삭제 */}
                                         <div className="admin-bugs-actions">
                                             {Object.entries(STATUS_LABELS).map(([key, { label, color }]) => (
                                                 <button
@@ -190,6 +209,13 @@ const AdminBugsPage = () => {
                                                     {label}
                                                 </button>
                                             ))}
+                                            <button
+                                                className={`admin-beta-delete-btn ${deleteConfirm === report.id ? 'admin-beta-delete-btn--confirm' : ''}`}
+                                                onClick={() => handleDelete(report.id)}
+                                                style={{ marginLeft: 'auto' }}
+                                            >
+                                                {deleteConfirm === report.id ? '확인' : '삭제'}
+                                            </button>
                                         </div>
                                     </div>
                                 )}

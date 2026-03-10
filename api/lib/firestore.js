@@ -96,6 +96,20 @@ export async function setDoc(collection, docId, data) {
     return await res.json();
 }
 
+// Firestore 문서 삭제
+export async function deleteDoc(collection, docId) {
+    const token = await getAccessToken();
+    const res = await fetch(docUrl(collection, docId), {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!res.ok && res.status !== 404) {
+        const err = await res.json();
+        throw new Error(`Firestore delete error: ${err.error?.message || res.status}`);
+    }
+}
+
 // Firestore 필드 삭제 (updateMask에 포함하되 body에서 제외하면 삭제됨)
 export async function removeFields(collection, docId, fieldNames) {
     const token = await getAccessToken();
