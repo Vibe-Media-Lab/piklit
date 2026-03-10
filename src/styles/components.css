@@ -4180,6 +4180,60 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
     opacity: 0.5;
 }
 
+.settings-beta-fields {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-sm);
+}
+
+.settings-beta-fields .settings-beta-input {
+    font-weight: 400;
+    letter-spacing: 0;
+}
+
+.settings-beta-consent {
+    margin-top: var(--spacing-sm);
+}
+
+.settings-beta-consent-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: var(--color-text-sub);
+    cursor: pointer;
+}
+
+.settings-beta-consent-label input[type="checkbox"] {
+    margin: 0;
+    cursor: pointer;
+}
+
+.settings-beta-consent-toggle {
+    background: none;
+    border: none;
+    color: var(--color-brand);
+    font-size: 0.75rem;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 4px;
+    text-decoration: underline;
+}
+
+.settings-beta-consent-detail {
+    margin-top: 6px;
+    padding: 10px 12px;
+    background: var(--color-bg-secondary, #F7F6F3);
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    color: var(--color-text-sub);
+    line-height: 1.6;
+}
+
+.settings-beta-consent-detail p {
+    margin: 0;
+}
+
 .settings-beta-hint {
     font-size: 0.75rem;
     color: var(--color-text-sub);
@@ -4623,4 +4677,119 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
 .admin-bugs-status-btn:disabled {
     cursor: default;
     opacity: 1;
+}
+
+/* ─── Admin Beta ─── */
+.admin-beta-summary {
+    display: flex;
+    gap: 16px;
+}
+
+.admin-beta-filter {
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 10px;
+    border-radius: var(--radius-md);
+    transition: background 0.15s;
+}
+
+.admin-beta-filter:hover {
+    background: var(--color-bg-hover);
+}
+
+.admin-beta-filter--active {
+    background: var(--color-bg-hover);
+    text-decoration: underline;
+}
+
+.admin-beta-progress {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.admin-beta-progress-track {
+    flex: 1;
+    height: 8px;
+    background: var(--color-border);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.admin-beta-progress-bar {
+    height: 100%;
+    background: var(--color-brand);
+    border-radius: 4px;
+    transition: width 0.3s;
+}
+
+.admin-beta-progress-label {
+    font-size: 0.8rem;
+    color: var(--color-text-sub);
+    white-space: nowrap;
+}
+
+.admin-beta-table-wrap {
+    overflow-x: auto;
+}
+
+.admin-beta-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.admin-beta-table th {
+    text-align: left;
+    padding: 10px 12px;
+    font-weight: 600;
+    color: var(--color-text-sub);
+    border-bottom: 2px solid var(--color-border);
+    white-space: nowrap;
+}
+
+.admin-beta-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.admin-beta-table tbody tr:hover {
+    background: var(--color-bg-hover);
+}
+
+.admin-beta-name {
+    font-weight: 600;
+}
+
+.admin-beta-affiliation {
+    color: var(--color-text-sub);
+}
+
+.admin-beta-date {
+    font-size: 0.8rem;
+    color: var(--color-text-sub);
+}
+
+.admin-beta-count {
+    font-variant-numeric: tabular-nums;
+}
+
+.admin-beta-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.admin-beta-badge--active {
+    background: #F0FFF4;
+    color: #27AE60;
+}
+
+.admin-beta-badge--expired {
+    background: #FFF0F0;
+    color: #EB5757;
 }

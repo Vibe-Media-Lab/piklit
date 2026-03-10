@@ -99,7 +99,9 @@ export const callGeminiImageProxy = import.meta.env.DEV
 export const callGetUsageInfo = () => callVercelFunction('/api/usage', {});
 
 export const callBetaStatus = () => callVercelFunction('/api/beta', { action: 'status' });
-export const callBetaActivate = (code) => callVercelFunction('/api/beta', { action: 'activate', code });
+export const callBetaActivate = (code, name, affiliation) => callVercelFunction('/api/beta', { action: 'activate', code, name, affiliation });
+
+export const callListBetaUsers = () => callVercelFunction('/api/beta-admin', {});
 
 export const callSubmitBugReport = (data) => callVercelFunction('/api/bug-report', { action: 'submit', ...data });
 export const callListBugReports = () => callVercelFunction('/api/bug-report', { action: 'list' });

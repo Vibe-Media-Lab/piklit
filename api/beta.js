@@ -2,7 +2,7 @@ import { verifyFirebaseToken } from './lib/auth.js';
 import { getDoc, setDoc } from './lib/firestore.js';
 
 const BETA_CODE = process.env.BETA_CODE || 'PIKLIT-VIP';
-const BETA_MAX_USERS = 30;
+const BETA_MAX_USERS = 100;
 const BETA_DAYS = 7;
 
 export default async function handler(req, res) {
@@ -19,7 +19,7 @@ export default async function handler(req, res) {
         return res.status(401).json({ error: '로그인이 필요합니다.' });
     }
 
-    const { action, code } = req.body || {};
+    const { action, code, name, affiliation } = req.body || {};
 
     // 베타 상태 조회
     if (action === 'status') {
@@ -83,7 +83,12 @@ export default async function handler(req, res) {
             const currentCount = betaMeta?.activatedCount || 0;
 
             if (currentCount >= BETA_MAX_USERS) {
-                return res.status(400).json({ error: '베타 테스터 모집이 마감되었습니다. (30명 선착순)' });
+                return res.status(400).json({ error: '베타 테스터 모집이 마감되었습니다. (100명 선착순)' });
+            }
+
+            // 이름 필수 검증
+            if (!name || !name.trim()) {
+                return res.status(400).json({ error: '이름을 입력해주세요.' });
             }
 
             // 활성화 저장
@@ -91,6 +96,8 @@ export default async function handler(req, res) {
             await setDoc('users', uid, {
                 betaActivatedAt: now,
                 betaPlan: 'beta',
+                betaName: name.trim(),
+                betaAffiliation: (affiliation || '').trim() || '소속없음',
             });
 
             // 카운트 증가

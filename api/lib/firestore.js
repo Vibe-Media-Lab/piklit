@@ -96,6 +96,39 @@ export async function setDoc(collection, docId, data) {
     return await res.json();
 }
 
+// Firestore 컬렉션 전체 문서 조회 (필터 조건 없음)
+export async function listDocs(collection, { pageSize = 100 } = {}) {
+    const token = await getAccessToken();
+    const baseUrl = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/${collection}`;
+    const docs = [];
+    let pageToken = '';
+
+    do {
+        const params = new URLSearchParams({ pageSize: String(pageSize) });
+        if (pageToken) params.set('pageToken', pageToken);
+
+        const res = await fetch(`${baseUrl}?${params.toString()}`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(`Firestore list error: ${err.error?.message || res.status}`);
+        }
+
+        const data = await res.json();
+        if (data.documents) {
+            for (const doc of data.documents) {
+                const id = doc.name.split('/').pop();
+                docs.push({ id, ...parseFields(doc.fields || {}) });
+            }
+        }
+        pageToken = data.nextPageToken || '';
+    } while (pageToken);
+
+    return docs;
+}
+
 // Firestore value → JS value
 function parseFields(fields) {
     const result = {};

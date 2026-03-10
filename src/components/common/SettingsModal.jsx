@@ -10,6 +10,10 @@ const SettingsModal = ({ isOpen, onClose }) => {
     const [usage, setUsage] = useState(null);
     const [usageLoading, setUsageLoading] = useState(false);
     const [betaCode, setBetaCode] = useState('');
+    const [betaName, setBetaName] = useState('');
+    const [betaAffiliation, setBetaAffiliation] = useState('');
+    const [betaConsent, setBetaConsent] = useState(false);
+    const [betaConsentOpen, setBetaConsentOpen] = useState(false);
     const [betaStatus, setBetaStatus] = useState(null);
     const [betaLoading, setBetaLoading] = useState(false);
 
@@ -27,15 +31,19 @@ const SettingsModal = ({ isOpen, onClose }) => {
                 callBetaStatus()
                     .then(result => setBetaStatus(result.data))
                     .catch(err => console.error('베타 상태 조회 실패:', err));
+                // 구글 프로필 이름 자동 채움
+                if (user.displayName) setBetaName(user.displayName);
             }
         }
     }, [isOpen, user]);
 
     const handleBetaActivate = async () => {
         if (!betaCode.trim()) return showToast('베타 코드를 입력해주세요.', 'warning');
+        if (!betaName.trim()) return showToast('이름을 입력해주세요.', 'warning');
+        if (!betaConsent) return showToast('개인정보 수집·이용에 동의해주세요.', 'warning');
         setBetaLoading(true);
         try {
-            const result = await callBetaActivate(betaCode.trim());
+            const result = await callBetaActivate(betaCode.trim(), betaName.trim(), betaAffiliation.trim());
             setBetaStatus(result.data);
             setBetaCode('');
             showToast(result.data.message || '베타 테스터 활성화 완료!', 'success');
@@ -79,7 +87,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
                             </span>
                         </div>
                         <p className="settings-beta-desc">
-                            베타 테스트 기간 중 모든 Pro 기능을 무제한 사용할 수 있습니다.
+                            글 생성 21회, AI 이미지 5장을 사용할 수 있습니다.
                         </p>
                     </div>
                 ) : (
@@ -97,27 +105,71 @@ const SettingsModal = ({ isOpen, onClose }) => {
                                 type="text"
                                 value={betaCode}
                                 onChange={(e) => setBetaCode(e.target.value.toUpperCase())}
-                                placeholder="베타 코드 입력"
+                                placeholder="초대 코드 입력"
                                 disabled={betaStatus?.expired}
                                 className="settings-beta-input"
                                 onKeyDown={(e) => e.key === 'Enter' && handleBetaActivate()}
                             />
-                            <button
-                                onClick={handleBetaActivate}
-                                disabled={betaLoading || betaStatus?.expired}
-                                className="settings-beta-activate-btn"
-                            >
-                                {betaLoading ? '확인 중...' : '활성화'}
-                            </button>
                         </div>
+                        <div className="settings-beta-fields">
+                            <input
+                                type="text"
+                                value={betaName}
+                                onChange={(e) => setBetaName(e.target.value)}
+                                placeholder="이름"
+                                disabled={betaStatus?.expired}
+                                className="settings-beta-input"
+                            />
+                            <input
+                                type="text"
+                                value={betaAffiliation}
+                                onChange={(e) => setBetaAffiliation(e.target.value)}
+                                placeholder="소속"
+                                disabled={betaStatus?.expired}
+                                className="settings-beta-input"
+                            />
+                        </div>
+                        <div className="settings-beta-consent">
+                            <label className="settings-beta-consent-label">
+                                <input
+                                    type="checkbox"
+                                    checked={betaConsent}
+                                    onChange={(e) => setBetaConsent(e.target.checked)}
+                                    disabled={betaStatus?.expired}
+                                />
+                                <span>개인정보 수집·이용에 동의합니다</span>
+                                <button
+                                    type="button"
+                                    className="settings-beta-consent-toggle"
+                                    onClick={() => setBetaConsentOpen(!betaConsentOpen)}
+                                >
+                                    {betaConsentOpen ? '접기' : '자세히 보기'}
+                                </button>
+                            </label>
+                            {betaConsentOpen && (
+                                <div className="settings-beta-consent-detail">
+                                    <p>• 수집 항목: 이름, 소속, 이메일(Google 로그인)</p>
+                                    <p>• 수집 목적: 클로즈드 베타 서비스 제공 및 안내</p>
+                                    <p>• 보유 기간: 정식 서비스 출시 후 1개월 이내 파기</p>
+                                </div>
+                            )}
+                        </div>
+                        <button
+                            onClick={handleBetaActivate}
+                            disabled={betaLoading || betaStatus?.expired}
+                            className="settings-beta-activate-btn"
+                            style={{ width: '100%', marginTop: '8px' }}
+                        >
+                            {betaLoading ? '확인 중...' : '베타 테스터 활성화'}
+                        </button>
                         <p className="settings-beta-hint">
-                            선착순 30명 한정, 활성화 후 7일간 Pro 기능을 무료로 체험할 수 있습니다.
+                            선착순 100명 한정, 활성화 후 7일간 Pro 기능을 무료로 체험할 수 있습니다.
                         </p>
                     </div>
                 )}
 
-                {/* 사용량 표시 (베타 활성 시 숨김) */}
-                {!hasOwnKey && !betaStatus?.active && (
+                {/* 사용량 표시 (베타 활성 시 숨김, 로딩 완료 전 숨김) */}
+                {!hasOwnKey && !betaStatus?.active && usage && (
                     <div
                         className="settings-usage-card"
                         style={{
@@ -165,41 +217,14 @@ const SettingsModal = ({ isOpen, onClose }) => {
                     </div>
                 )}
 
-                {hasOwnKey && (
-                    <div className="settings-own-key-badge">
-                        직접 API 키 사용 중 (무제한)
-                    </div>
-                )}
-
-                {/* API 키 입력 */}
-                <div className="settings-api-section">
-                    <label className="settings-label">
-                        Google Gemini API Key (선택)
-                    </label>
-                    <input
-                        type="password"
-                        value={apiKey}
-                        onChange={(e) => setApiKey(e.target.value)}
-                        placeholder="AIza..."
-                        className="settings-api-input"
-                    />
-                    <p className="settings-api-hint">
-                        직접 API 키를 등록하면 무료 체험 횟수와 관계없이 무제한으로 사용할 수 있습니다.
-                    </p>
-                </div>
+                {/* API 키 섹션 — 베타 기간 중 숨김 */}
 
                 <div className="settings-actions">
                     <button
                         onClick={onClose}
-                        className="settings-cancel-btn"
-                    >
-                        취소
-                    </button>
-                    <button
-                        onClick={handleSave}
                         className="settings-save-btn"
                     >
-                        저장
+                        닫기
                     </button>
                 </div>
             </div>

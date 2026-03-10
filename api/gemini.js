@@ -4,6 +4,8 @@ import { getDoc, setDoc } from './lib/firestore.js';
 const DRAFT_ACTIONS = ['본문 생성', '맛집 본문 생성'];
 const MONTHLY_LIMIT = 3;
 const PROMO_DAYS = 30;
+const BETA_DAYS = 7;
+const BETA_DRAFT_LIMIT = 21;
 
 function isWithinPromo(createdAt) {
     if (!createdAt) return false;
@@ -59,8 +61,20 @@ export default async function handler(req, res) {
                 userData.createdAt = now.toISOString();
             }
 
-            // 첫 달 프로모션: quota 체크 건너뜀
-            if (!isWithinPromo(userData.createdAt)) {
+            // 베타 테스터: 7일간 21회 제한
+            const isBeta = userData.betaActivatedAt &&
+                (Date.now() - new Date(userData.betaActivatedAt).getTime()) / (1000 * 60 * 60 * 24) <= BETA_DAYS;
+
+            if (isBeta) {
+                const betaDraftCount = userData.betaDraftCount || 0;
+                if (betaDraftCount >= BETA_DRAFT_LIMIT) {
+                    return res.status(429).json({
+                        error: `베타 테스터 글 생성 ${BETA_DRAFT_LIMIT}회를 모두 사용했습니다. 정식 출시 시 무제한 플랜을 이용해주세요.`,
+                        code: 'BETA_QUOTA_EXCEEDED',
+                    });
+                }
+            } else if (!isWithinPromo(userData.createdAt)) {
+                // 무료 체험: 월 3회 제한
                 if (userData.lastDraftMonth === currentMonth) {
                     draftCount = userData.draftCount || 0;
                 }
@@ -95,6 +109,17 @@ export default async function handler(req, res) {
                 currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
             }
             const userData = await getDoc('users', uid);
+
+            // 베타 테스터 카운트
+            const isBeta = userData?.betaActivatedAt &&
+                (Date.now() - new Date(userData.betaActivatedAt).getTime()) / (1000 * 60 * 60 * 24) <= BETA_DAYS;
+            if (isBeta) {
+                await setDoc('users', uid, {
+                    betaDraftCount: (userData.betaDraftCount || 0) + 1,
+                });
+            }
+
+            // 월별 카운트 (항상 기록)
             let count = 0;
             if (userData && userData.lastDraftMonth === currentMonth) {
                 count = userData.draftCount || 0;
