@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useEditor } from '../../context/EditorContext';
 import { useToast } from '../common/Toast';
 import { AIService } from '../../services/openai';
@@ -8,8 +8,23 @@ import { Sparkles, Loader2 } from 'lucide-react';
 import '../../styles/ThumbnailPanel.css';
 
 const ThumbnailPanel = () => {
-    const { title, keywords, posts, currentPostId, photoPreviewUrls, editorRef, recordAiAction } = useEditor();
+    const { title, keywords, posts, currentPostId, photoPreviewUrls, editorRef, content, recordAiAction } = useEditor();
     const { showToast } = useToast();
+
+    // photoPreviewUrls가 비어있으면 에디터 본문의 이미지 src를 fallback으로 사용
+    const availablePhotos = useMemo(() => {
+        if (photoPreviewUrls.length > 0) return photoPreviewUrls;
+        if (!content) return [];
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(content, 'text/html');
+        const imgs = doc.querySelectorAll('img[src]');
+        const urls = [];
+        imgs.forEach(img => {
+            const src = img.getAttribute('src');
+            if (src && !urls.includes(src)) urls.push(src);
+        });
+        return urls;
+    }, [photoPreviewUrls, content]);
 
     const [isOpen, setIsOpen] = useState(false);
     const [style, setStyle] = useState('A');
@@ -71,10 +86,10 @@ const ThumbnailPanel = () => {
     }, [fontDropdownOpen]);
 
     useEffect(() => {
-        if (photoPreviewUrls.length > 0 && !selectedPhoto) {
-            setSelectedPhoto(photoPreviewUrls[0]);
+        if (availablePhotos.length > 0 && !selectedPhoto) {
+            setSelectedPhoto(availablePhotos[0]);
         }
-    }, [photoPreviewUrls, selectedPhoto]);
+    }, [availablePhotos, selectedPhoto]);
 
     useEffect(() => {
         setZoom(1);
@@ -213,7 +228,7 @@ const ThumbnailPanel = () => {
         showToast('썸네일이 본문에 삽입되었습니다.', 'success');
     };
 
-    const hasPhotos = photoPreviewUrls.length > 0;
+    const hasPhotos = availablePhotos.length > 0;
     const showTextControls = style !== 'G';
 
     return (
@@ -243,7 +258,7 @@ const ThumbnailPanel = () => {
                         <>
                             {/* 사진 선택 */}
                             <div className="thumbnail-photo-grid">
-                                {photoPreviewUrls.map((url, i) => (
+                                {availablePhotos.map((url, i) => (
                                     <div
                                         key={i}
                                         className={`thumbnail-photo-option ${selectedPhoto === url ? 'selected' : ''}`}
