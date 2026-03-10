@@ -90,7 +90,7 @@ const extractSummary = (group) => {
  * 초간결 이미지 SEO 가이드
  * 기본: 한 줄 요약 + 파일명 복사. 상세 보기 토글로 전체 분석 펼침.
  */
-const ImageSeoGuide = ({ mainKeyword, imageCaptions = {}, photoMetadata, photoAnalysis, photoFiles }) => {
+const ImageSeoGuide = ({ imageCaptions = {}, photoMetadata, photoAnalysis, photoFiles }) => {
     const [copiedKey, setCopiedKey] = useState(null);
     const [expandedCards, setExpandedCards] = useState({});
 

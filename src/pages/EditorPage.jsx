@@ -767,7 +767,6 @@ const EditorPage = () => {
                         </div>
                         <div className="image-seo-drawer-body">
                             <ImageSeoGuide
-                                mainKeyword={mainKeyword}
                                 imageAlts={imageAlts}
                                 imageCaptions={imageCaptions}
                                 photoMetadata={photoData.metadata}

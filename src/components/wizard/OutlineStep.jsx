@@ -12,7 +12,6 @@ import {
 
 const OutlineStep = ({
     mainKeyword,
-    selectedCategory,
     selectedKeywords,
     selectedTone,
     competitorData,

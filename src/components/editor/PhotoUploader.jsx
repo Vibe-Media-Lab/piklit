@@ -278,28 +278,6 @@ const PhotoUploader = ({ keyword, onUpdate, categoryId }) => {
 
     // ── AI Image Generation ──
 
-    const openAiModal = async (e, slotId, slotLabel) => {
-        e.stopPropagation();
-        const rawInput = AIService.buildImagePrompt(keyword || '', slotId);
-        const defaultStyle = 'illustration';
-        setAiModal({
-            open: true,
-            slotId,
-            slotLabel,
-            userInput: rawInput,
-            prompt: '',
-            style: defaultStyle,
-            loading: false,
-            isEnhancing: true,
-            preview: null,
-            error: null,
-            isCropping: false,
-        });
-        // 자동 프롬프트 최적화
-        const enhanced = await AIService.enhanceImagePrompt(rawInput, defaultStyle);
-        setAiModal(prev => ({ ...prev, prompt: enhanced, isEnhancing: false }));
-    };
-
     const closeAiModal = () => {
         setAiModal(prev => ({ ...prev, open: false, loading: false, preview: null, error: null }));
     };

@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { BarChart3, CheckCircle, Loader2, AlertTriangle, ChevronDown } from 'lucide-react';
 
 const CompetitorAnalysis = ({ data, loading, onAnalyze, compact }) => {
-    const [expanded, setExpanded] = useState(false);
 
     if (!data && !loading) {
         return (

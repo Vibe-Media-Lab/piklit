@@ -10,7 +10,6 @@ import { getKw } from './KeywordStep';
 
 const PhotoStep = ({
     mainKeyword,
-    selectedCategory,
     selectedKeywords,
     selectedTone,
     photoData,
@@ -128,7 +127,6 @@ const PhotoStep = ({
             {(photoAnalysis || Object.keys(imageAlts).length > 0) && (
                 <div className="wizard-mt-16">
                     <ImageSeoGuide
-                        mainKeyword={mainKeyword}
                         imageAlts={imageAlts}
                         imageCaptions={imageCaptions}
                         photoMetadata={photoData.metadata}
