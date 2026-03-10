@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useEditor } from '../../context/EditorContext';
@@ -8,14 +8,21 @@ import {
     BarChart3,
     Settings,
     Plus,
-    LogOut,
-    ChevronLeft,
-    ChevronRight,
     AlertTriangle,
     Bug,
     Users,
     Shield,
+    Menu,
 } from 'lucide-react';
+import { callBetaStatus } from '../../services/firebase';
+
+const PLAN_LABELS = {
+    free: '무료 체험',
+    beta: 'Beta',
+    byok: 'BYOK',
+    pro: 'Pro',
+    master: 'Master',
+};
 
 const Sidebar = () => {
     const { user, logout, isAdmin } = useAuth();
@@ -24,8 +31,20 @@ const Sidebar = () => {
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [collapsed, setCollapsed] = useState(false);
 
-    // 이탈 방지 모달 상태
-    const [leaveModal, setLeaveModal] = useState(null); // { pendingAction: () => void }
+    const [leaveModal, setLeaveModal] = useState(null);
+
+    // 사용자 플랜 판별
+    const [userPlan, setUserPlan] = useState('free');
+    useEffect(() => {
+        if (!user) return;
+        if (isAdmin) { setUserPlan('master'); return; }
+        if (localStorage.getItem('openai_api_key')) { setUserPlan('byok'); return; }
+        callBetaStatus()
+            .then(result => {
+                if (result.data?.active) setUserPlan('beta');
+            })
+            .catch(() => {});
+    }, [user, isAdmin]);
 
     // 가드 체크 후 내비게이션 실행
     const guardedNavigate = useCallback((action) => {
@@ -152,16 +171,8 @@ const Sidebar = () => {
                     )}
                 </nav>
 
-                {/* 하단: 설정 + 프로필 */}
+                {/* 하단: 프로필 + 접기 */}
                 <div className="sidebar-bottom">
-                    <button
-                        className="sidebar-nav-item"
-                        onClick={() => setIsSettingsOpen(true)}
-                    >
-                        <Settings size={18} />
-                        {!collapsed && <span>설정</span>}
-                    </button>
-
                     {user && (
                         <div className="sidebar-profile">
                             <img
@@ -172,24 +183,39 @@ const Sidebar = () => {
                             />
                             {!collapsed && (
                                 <div className="sidebar-profile-info">
-                                    <span className="sidebar-profile-name">{user.displayName}</span>
-                                    <button className="sidebar-logout-btn" onClick={handleLogout}>
-                                        <LogOut size={14} />
-                                        <span>로그아웃</span>
-                                    </button>
+                                    <div className="sidebar-profile-row">
+                                        <span className="sidebar-profile-name">{user.displayName}</span>
+                                        <button
+                                            className="sidebar-settings-btn"
+                                            onClick={() => setIsSettingsOpen(true)}
+                                            title="설정"
+                                        >
+                                            <Settings size={18} />
+                                        </button>
+                                    </div>
+                                    <span className={`sidebar-plan-badge sidebar-plan-badge--${userPlan}`}>
+                                        {PLAN_LABELS[userPlan]}
+                                    </span>
                                 </div>
+                            )}
+                            {collapsed && (
+                                <button
+                                    className="sidebar-settings-btn"
+                                    onClick={() => setIsSettingsOpen(true)}
+                                    title="설정"
+                                >
+                                    <Settings size={18} />
+                                </button>
                             )}
                         </div>
                     )}
 
-                    {/* 접기/펼치기 버튼 */}
                     <button
                         className="sidebar-collapse-btn"
                         onClick={() => setCollapsed(!collapsed)}
                         title={collapsed ? '펼치기' : '접기'}
                     >
-                        {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-                        {!collapsed && <span>접기</span>}
+                        <Menu size={18} />
                     </button>
                 </div>
             </aside>
