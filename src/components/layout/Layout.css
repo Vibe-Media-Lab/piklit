@@ -146,6 +146,12 @@
     display: none;
 }
 
+.sidebar-nav-divider {
+    height: 1px;
+    background: var(--color-border);
+    margin: 6px 8px;
+}
+
 /* 하단 영역 */
 .sidebar-bottom {
     margin-top: auto;

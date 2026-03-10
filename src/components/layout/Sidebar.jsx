@@ -12,10 +12,12 @@ import {
     ChevronLeft,
     ChevronRight,
     AlertTriangle,
+    Bug,
+    Users,
 } from 'lucide-react';
 
 const Sidebar = () => {
-    const { user, logout } = useAuth();
+    const { user, logout, isAdmin } = useAuth();
     const { createPost, navigationGuardRef, posts, currentPostId, deletePost, revertPost } = useEditor();
     const navigate = useNavigate();
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -120,6 +122,25 @@ const Sidebar = () => {
                         <BarChart3 size={18} />
                         {!collapsed && <span>성장 리포트</span>}
                     </NavLink>
+                    {isAdmin && (
+                        <>
+                            <div className="sidebar-nav-divider" />
+                            <NavLink
+                                to="/admin/bugs"
+                                className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}
+                            >
+                                <Bug size={18} />
+                                {!collapsed && <span>버그 리포트</span>}
+                            </NavLink>
+                            <NavLink
+                                to="/admin/beta"
+                                className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}
+                            >
+                                <Users size={18} />
+                                {!collapsed && <span>베타 테스터</span>}
+                            </NavLink>
+                        </>
+                    )}
                 </nav>
 
                 {/* 하단: 설정 + 프로필 */}

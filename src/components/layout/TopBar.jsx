@@ -10,11 +10,13 @@ import { useToast } from '../common/Toast';
 const PAGE_TITLES = {
     '/posts': '내 글',
     '/dashboard': '성장 리포트',
+    '/admin/bugs': '버그 리포트',
+    '/admin/beta': '베타 테스터',
 };
 
 const TopBar = () => {
     const { title, content, savePost, posts } = useEditor();
-    const { logout } = useAuth();
+    const { logout, isAdmin } = useAuth();
     const { showToast } = useToast();
     const location = useLocation();
     const { id } = useParams();
@@ -79,6 +81,16 @@ const TopBar = () => {
                 <NavLink to="/dashboard" className={({ isActive }) => `topbar-mobile-nav-item${isActive ? ' active' : ''}`}>
                     리포트
                 </NavLink>
+                {isAdmin && (
+                    <>
+                        <NavLink to="/admin/bugs" className={({ isActive }) => `topbar-mobile-nav-item${isActive ? ' active' : ''}`}>
+                            버그
+                        </NavLink>
+                        <NavLink to="/admin/beta" className={({ isActive }) => `topbar-mobile-nav-item${isActive ? ' active' : ''}`}>
+                            베타
+                        </NavLink>
+                    </>
+                )}
                 <button
                     className={`topbar-mobile-nav-item${myMenuOpen ? ' active' : ''}`}
                     onClick={() => setMyMenuOpen(true)}
