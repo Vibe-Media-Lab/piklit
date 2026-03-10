@@ -179,10 +179,8 @@ const OutlineStep = ({
                                             className="outline-row-read"
                                             onClick={() => handleRowClick(idx)}
                                         >
-                                            <span className="outline-level-badge h2">
-                                                H2
-                                            </span>
-                                            <span className="outline-text h2">
+                                            <span className="outline-dot" />
+                                            <span className="outline-text">
                                                 {item.title || '소제목 입력...'}
                                             </span>
                                         </div>
@@ -192,9 +190,7 @@ const OutlineStep = ({
                                     {isActive && (
                                         <div className="outline-row-edit">
                                             <div className="outline-edit-top">
-                                                <span className="outline-level-badge h2" style={{ padding: '2px 8px', lineHeight: '24px' }}>
-                                                    H2
-                                                </span>
+                                                <span className="outline-dot" />
                                                 <input
                                                     type="text"
                                                     value={item.title}

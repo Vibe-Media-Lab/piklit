@@ -118,7 +118,7 @@ const AIAnalysisDashboard = ({ onLocate, compact }) => {
                     <div className="metric-info-bar">
                         {activeMetric === 'density' && '(출현 횟수 × 키워드 글자수) ÷ 전체 글자수 × 100 — 적정: 1~3%'}
                         {activeMetric === 'intro' && '첫 번째 문단의 글자수 — 권장: 140~160자'}
-                        {activeMetric === 'heading' && 'H2, H3 태그 합산 개수 — 1,500자당 3~5개 권장'}
+                        {activeMetric === 'heading' && '소제목 개수 — 1,500자당 3~5개 권장'}
                     </div>
                 )}
 

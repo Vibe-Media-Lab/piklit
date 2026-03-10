@@ -1404,27 +1404,12 @@
 }
 
 /* 읽기용 레벨 뱃지 (클릭 불가, 표시 전용) */
-.outline-level-badge {
+.outline-dot {
     flex-shrink: 0;
-    padding: 2px 0;
-    width: 30px;
-    text-align: center;
-    font-weight: 700;
-    font-size: 0.68rem;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--color-border);
-    line-height: 1.4;
-}
-
-.outline-level-badge.h2 {
-    background: var(--color-brand-light, #FFF3ED);
-    color: var(--color-brand, #FF6B35);
-    border-color: rgba(255, 107, 53, 0.25);
-}
-
-.outline-level-badge.h3 {
-    background: var(--color-surface-hover);
-    color: var(--color-text-sub);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-brand, #FF6B35);
 }
 
 /* 읽기용 텍스트 */
@@ -1433,13 +1418,10 @@
     font-size: var(--font-size-sm, 0.875rem);
     color: var(--color-text-main);
     line-height: 1.5;
+    font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-}
-
-.outline-text.h2 {
-    font-weight: 600;
 }
 
 .outline-text.h3 {
@@ -3579,16 +3561,16 @@
         bottom: 0;
         left: 0;
         right: 0;
-        height: calc(56px + var(--safe-area-bottom));
-        padding-bottom: calc(8px + var(--safe-area-bottom));
-        background: rgba(255, 255, 255, 0.97);
+        height: calc(72px + var(--safe-area-bottom));
+        padding-bottom: calc(10px + var(--safe-area-bottom));
+        background: rgba(255, 255, 255, 0.98);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
         border-top: 1px solid var(--color-border);
-        box-shadow: 0 -1px 8px rgba(0, 0, 0, 0.06);
+        box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.06);
         z-index: 100;
-        align-items: flex-start;
-        padding-top: 6px;
+        align-items: center;
+        padding-top: 8px;
         justify-content: space-around;
     }
 
@@ -3596,14 +3578,14 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 2px;
+        gap: 4px;
         padding: 6px 0;
         border: none;
         background: none;
         cursor: pointer;
         color: var(--color-text-sub);
-        min-width: 44px;
-        min-height: 44px;
+        min-width: 52px;
+        min-height: 48px;
         justify-content: center;
     }
 
@@ -3635,8 +3617,9 @@
     }
 
     .mobile-analysis-tab-label {
-        font-size: 0.65rem;
+        font-size: 0.7rem;
         font-weight: 600;
+        letter-spacing: -0.02em;
     }
 
     .mobile-analysis-dim {

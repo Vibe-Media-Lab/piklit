@@ -112,7 +112,7 @@ const MobileAnalysisBar = ({ seoScore, children }) => {
                             onClick={() => handleTabClick(tab.id)}
                         >
                             <div className="mobile-analysis-tab-icon">
-                                <Icon size={20} />
+                                <Icon size={24} />
                                 {tab.id === 'seo' && seoScore != null && (
                                     <span
                                         className="mobile-analysis-seo-badge"
@@ -122,7 +122,7 @@ const MobileAnalysisBar = ({ seoScore, children }) => {
                                     </span>
                                 )}
                             </div>
-                            {isActive && <span className="mobile-analysis-tab-label">{tab.label}</span>}
+                            <span className="mobile-analysis-tab-label">{tab.label}</span>
                         </button>
                     );
                 })}

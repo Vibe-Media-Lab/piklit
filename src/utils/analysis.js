@@ -154,10 +154,10 @@ export const analyzePost = (title, htmlContent, keywords, targetLength = 1500, c
         mainKeyFirstPara: false,
         subKeyPresence: false,
         contentLength: false,
-        structure: false, // H2/H3 usage
+        structure: false, // 소제목(H2) 사용
         imageCount: false, // 5-15장 권장
         videoPresence: false, // 동영상 1개 이상 권장 (체류 시간 증가)
-        headingKeywords: false, // H2/H3에 메인 키워드 포함 여부
+        headingKeywords: false, // 소제목에 메인 키워드 포함 여부
         keywordDensityPercent: false, // 키워드 밀도 1~3%
         imageAltText: false, // 이미지 Alt 속성 존재 + 중복 여부
         introParagraphLength: false // 첫 문단 140~160자
@@ -241,13 +241,12 @@ export const analyzePost = (title, htmlContent, keywords, targetLength = 1500, c
         checks.subKeyPresence = true;
     }
 
-    // 5. Structure (H2/H3)
+    // 5. Structure (소제목 H2 사용)
     const hasH2 = !!doc.querySelector('h2');
-    const hasH3 = !!doc.querySelector('h3');
-    if (hasH2 && hasH3) {
+    if (hasH2) {
         checks.structure = true;
     } else {
-        issues.push({ id: 'structure_missing', type: 'info', text: 'H2+H3 구조화 필요', metric: '' });
+        issues.push({ id: 'structure_missing', type: 'info', text: '소제목 구조화 필요', metric: '' });
     }
 
     // 6. Image Count (5-15장 권장)
@@ -278,8 +277,8 @@ export const analyzePost = (title, htmlContent, keywords, targetLength = 1500, c
         issues.push({ id: 'video_missing', type: 'info', text: '동영상 추가 권장', metric: '체류 시간↑' });
     }
 
-    // 8. Heading Keywords — H2/H3 텍스트에 메인 키워드 포함 여부
-    const headings = doc.querySelectorAll('h2, h3');
+    // 8. Heading Keywords — 소제목에 메인 키워드 포함 여부
+    const headings = doc.querySelectorAll('h2');
     const headingCount = headings.length;
     if (mainKeyword && headingCount > 0) {
         const headingWithKeyword = Array.from(headings).some(

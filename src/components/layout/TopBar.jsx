@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useLocation, useParams, NavLink } from 'react-router-dom';
+import { useLocation, useParams, NavLink, useNavigate } from 'react-router-dom';
 import { useEditor } from '../../context/EditorContext';
 import { useAuth } from '../../context/AuthContext';
 import { copyToClipboard, exportAsMarkdown, exportAsHtml, exportAsText } from '../../utils/clipboard';
@@ -19,6 +19,7 @@ const TopBar = () => {
     const { title, content, savePost, posts } = useEditor();
     const { logout, isAdmin } = useAuth();
     const { showToast } = useToast();
+    const navigate = useNavigate();
     const location = useLocation();
     const { id } = useParams();
     const [copyStatus, setCopyStatus] = useState('idle');
@@ -82,16 +83,6 @@ const TopBar = () => {
                 <NavLink to="/dashboard" className={({ isActive }) => `topbar-mobile-nav-item${isActive ? ' active' : ''}`}>
                     리포트
                 </NavLink>
-                {isAdmin && (
-                    <>
-                        <NavLink to="/admin/bugs" className={({ isActive }) => `topbar-mobile-nav-item${isActive ? ' active' : ''}`}>
-                            버그
-                        </NavLink>
-                        <NavLink to="/admin/beta" className={({ isActive }) => `topbar-mobile-nav-item${isActive ? ' active' : ''}`}>
-                            베타
-                        </NavLink>
-                    </>
-                )}
                 <button
                     className={`topbar-mobile-nav-item${myMenuOpen ? ' active' : ''}`}
                     onClick={() => setMyMenuOpen(true)}
@@ -105,6 +96,20 @@ const TopBar = () => {
                 <div className="my-menu-overlay" onClick={() => setMyMenuOpen(false)}>
                     <div className="my-menu-sheet" onClick={(e) => e.stopPropagation()}>
                         <div className="my-menu-handle" />
+                        {isAdmin && (
+                            <>
+                                <button className="my-menu-item" onClick={() => { setMyMenuOpen(false); navigate('/admin/bugs'); }}>
+                                    버그 리포트
+                                </button>
+                                <button className="my-menu-item" onClick={() => { setMyMenuOpen(false); navigate('/admin/beta'); }}>
+                                    베타 테스터
+                                </button>
+                                <button className="my-menu-item" onClick={() => { setMyMenuOpen(false); navigate('/admin/users'); }}>
+                                    관리자 목록
+                                </button>
+                                <div className="my-menu-divider" />
+                            </>
+                        )}
                         <button className="my-menu-item" onClick={() => { setSettingsOpen(true); setMyMenuOpen(false); }}>
                             설정
                         </button>
