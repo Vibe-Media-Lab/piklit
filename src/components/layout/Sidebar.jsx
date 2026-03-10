@@ -125,6 +125,7 @@ const Sidebar = () => {
                     {isAdmin && (
                         <>
                             <div className="sidebar-nav-divider" />
+                            {!collapsed && <span className="sidebar-nav-section-label">관리자</span>}
                             <NavLink
                                 to="/admin/bugs"
                                 className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}

@@ -152,6 +152,16 @@
     margin: 6px 8px;
 }
 
+.sidebar-nav-section-label {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--color-text-sub);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 4px 12px 2px;
+}
+
 /* 하단 영역 */
 .sidebar-bottom {
     margin-top: auto;
