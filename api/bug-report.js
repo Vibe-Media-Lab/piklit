@@ -100,7 +100,7 @@ async function sendDiscordAlert({ email, description, url, reportId }) {
     const desc = (description || '(설명 없음)').slice(0, 200);
 
     try {
-        await fetch(webhookUrl, {
+        const resp = await fetch(webhookUrl.trim(), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -117,6 +117,10 @@ async function sendDiscordAlert({ email, description, url, reportId }) {
                 }],
             }),
         });
+        if (!resp.ok) {
+            const body = await resp.text();
+            console.error('Discord webhook failed:', resp.status, body);
+        }
     } catch (e) {
         console.error('Discord webhook error:', e.message);
     }
