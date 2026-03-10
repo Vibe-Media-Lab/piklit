@@ -2598,10 +2598,14 @@
     }
 
     .persona-grid,
-    .pricing-grid,
     .reviews-grid {
         grid-template-columns: 1fr;
         gap: var(--spacing-md);
+    }
+
+    .pricing-grid {
+        grid-template-columns: 1fr;
+        gap: 32px;
     }
 
     .comparison-table th,

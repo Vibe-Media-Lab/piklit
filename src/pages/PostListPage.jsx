@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useEditor } from '../context/EditorContext';
 import { useAuth } from '../context/AuthContext';
-import { callGetUsageInfo } from '../services/firebase';
+import { callGetUsageInfo, callBetaStatus } from '../services/firebase';
 import { Upload, Bot, Rocket, Plus, AlertTriangle, Sparkles } from 'lucide-react';
 import '../styles/components.css';
 import '../styles/history.css';
@@ -16,6 +16,7 @@ const stripHtml = (html) => {
 const UsageBar = () => {
     const { user } = useAuth();
     const [usage, setUsage] = useState(null);
+    const [betaStatus, setBetaStatus] = useState(null);
     const [loading, setLoading] = useState(false);
 
     const hasOwnKey = !!localStorage.getItem('openai_api_key');
@@ -23,8 +24,10 @@ const UsageBar = () => {
     useEffect(() => {
         if (!user || hasOwnKey) return;
         setLoading(true);
-        callGetUsageInfo()
-            .then(result => setUsage(result.data))
+        Promise.all([
+            callGetUsageInfo().then(r => setUsage(r.data)),
+            callBetaStatus().then(r => setBetaStatus(r.data)).catch(() => {})
+        ])
             .catch(err => console.error('사용량 조회 실패:', err))
             .finally(() => setLoading(false));
     }, [user, hasOwnKey]);
@@ -33,6 +36,26 @@ const UsageBar = () => {
     if (hasOwnKey || !user) return null;
     if (loading) return <div className="usage-bar"><span className="usage-bar-text">사용량 확인 중...</span></div>;
     if (!usage) return null;
+
+    // 베타 테스터 모드 (프로모보다 우선)
+    if (betaStatus?.active) {
+        return (
+            <div className="usage-bar beta">
+                <div className="usage-bar-info">
+                    <span className="usage-bar-text">
+                        <strong>Beta Tester</strong> (D-{betaStatus.daysLeft})
+                    </span>
+                    <span className="usage-bar-beta-badge">Pro 무제한</span>
+                </div>
+                <div className="usage-bar-track">
+                    <div className="usage-bar-fill beta" style={{ width: '100%' }} />
+                </div>
+                <span className="usage-bar-text usage-bar-text-block">
+                    모든 Pro 기능 무제한 사용 가능
+                </span>
+            </div>
+        );
+    }
 
     // 프로모션 모드
     if (usage.isPromo) {

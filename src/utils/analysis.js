@@ -199,17 +199,25 @@ export const analyzePost = (title, htmlContent, keywords, targetLength = 1500, c
         issues.push({ id: 'length_short', type: 'info', text: '글자 수 부족', metric: `${totalChars}/${targetLength}자` });
     }
 
-    // 3. Keyword Density
+    // 3. Keyword Density — 글자수 비례 기준
     if (mainKeyword) {
         const escapedKey = mainKeyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const regex = new RegExp(escapedKey, 'gi');
         const matches = fullText.match(regex);
         const count = matches ? matches.length : 0;
 
-        if (count >= 3 && count <= 5) {
+        // 글자수 비례 적정 반복 횟수
+        let minRepeat, maxRepeat;
+        if (totalChars < 1500) { minRepeat = 3; maxRepeat = 5; }
+        else if (totalChars < 2500) { minRepeat = 5; maxRepeat = 8; }
+        else { minRepeat = 8; maxRepeat = 12; }
+
+        if (count >= minRepeat && count <= maxRepeat) {
             checks.mainKeyDensity = true;
+        } else if (count < minRepeat) {
+            issues.push({ id: 'key_density', type: 'warning', text: '키워드 반복 부족', metric: `${count}회 → ${minRepeat}~${maxRepeat}회` });
         } else {
-            issues.push({ id: 'key_density', type: 'warning', text: '키워드 반복 과다', metric: `${count}회 → 3~5회` });
+            issues.push({ id: 'key_density', type: 'warning', text: '키워드 반복 과다', metric: `${count}회 → ${minRepeat}~${maxRepeat}회` });
         }
 
         // First Paragraph Check
@@ -289,7 +297,7 @@ export const analyzePost = (title, htmlContent, keywords, targetLength = 1500, c
         issues.push({ id: 'heading_keyword', type: 'info', text: '소제목 없음', metric: '' });
     }
 
-    // 9. Keyword Density Percent — 글 길이 대비 키워드 밀도 (적정: 1~3%)
+    // 9. Keyword Density Percent — 글 길이 대비 키워드 밀도 (적정: 0.8~2%)
     let keywordDensity = 0;
     if (mainKeyword && totalChars > 0) {
         const escapedKey = mainKeyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -297,12 +305,12 @@ export const analyzePost = (title, htmlContent, keywords, targetLength = 1500, c
         const densityMatches = fullText.match(densityRegex);
         const keywordCharTotal = (densityMatches ? densityMatches.length : 0) * mainKeyword.length;
         keywordDensity = Math.round((keywordCharTotal / totalChars) * 1000) / 10; // 소수점 1자리
-        if (keywordDensity >= 1 && keywordDensity <= 3) {
+        if (keywordDensity >= 0.8 && keywordDensity <= 2) {
             checks.keywordDensityPercent = true;
-        } else if (keywordDensity < 1) {
-            issues.push({ id: 'keyword_density_low', type: 'warning', text: '키워드 밀도 낮음', metric: `${keywordDensity}% → 1~3%` });
+        } else if (keywordDensity < 0.8) {
+            issues.push({ id: 'keyword_density_low', type: 'warning', text: '키워드 밀도 낮음', metric: `${keywordDensity}% → 1~2%` });
         } else {
-            issues.push({ id: 'keyword_density_high', type: 'warning', text: '키워드 밀도 과다', metric: `${keywordDensity}% → 1~3%` });
+            issues.push({ id: 'keyword_density_high', type: 'warning', text: '키워드 밀도 과다', metric: `${keywordDensity}% → 1~2%` });
         }
     } else {
         checks.keywordDensityPercent = true; // 키워드 없으면 패스

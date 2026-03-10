@@ -76,6 +76,7 @@ const EditorPage = () => {
         files: {}
     });
     const [photoAnalysis, setPhotoAnalysis] = useState(null);
+    const [verifiedDetails, setVerifiedDetails] = useState('');
     const [imageAlts, setImageAlts] = useState({});
     const [imageCaptions, setImageCaptions] = useState({});
     const [cachedPhotoAssets, setCachedPhotoAssets] = useState([]);
@@ -495,7 +496,8 @@ const EditorPage = () => {
                 competitorData,
                 outlineItems.length > 0 ? outlineItems : null,
                 buildStyleRules(selectedWannabeStyle),
-                paragraphStyle || 'normal'
+                paragraphStyle || 'normal',
+                verifiedDetails
             );
 
             console.log('[AI Generate] API 응답:', result);
@@ -653,6 +655,7 @@ const EditorPage = () => {
                                 setImageAlts={setImageAlts}
                                 setImageCaptions={setImageCaptions}
                                 setCachedPhotoAssets={setCachedPhotoAssets}
+                                setVerifiedDetails={setVerifiedDetails}
                                 onPrev={() => setAiStep(3)}
                                 onNext={() => setAiStep(5)}
                                 renderStepIndicator={renderStepIndicator}

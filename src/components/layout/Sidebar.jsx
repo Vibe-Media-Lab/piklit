@@ -171,14 +171,14 @@ const Sidebar = () => {
                     <div className="leave-guard-modal" onClick={(e) => e.stopPropagation()}>
                         <div className="leave-guard-header">
                             <AlertTriangle size={22} className="leave-guard-icon" />
-                            <span className="leave-guard-title">페이지를 떠나시겠습니까?</span>
+                            <span className="leave-guard-title">작성 중인 내용이 있어요</span>
                         </div>
                         <p className="leave-guard-desc">
-                            작성 중인 내용이 저장되지 않을 수 있습니다.
+                            저장하지 않고 나가면 내용이 사라질 수 있어요.
                         </p>
                         <div className="leave-guard-actions">
-                            <button className="leave-guard-btn-cancel" onClick={handleStay}>취소</button>
-                            <button className="leave-guard-btn-leave" onClick={handleLeave}>저장 안 함</button>
+                            <button className="leave-guard-btn-cancel" onClick={handleStay}>계속 작성</button>
+                            <button className="leave-guard-btn-leave" onClick={handleLeave}>나가기</button>
                         </div>
                     </div>
                 </div>

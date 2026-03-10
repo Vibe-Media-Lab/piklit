@@ -116,8 +116,8 @@ const SettingsModal = ({ isOpen, onClose }) => {
                     </div>
                 )}
 
-                {/* 사용량 표시 */}
-                {!hasOwnKey && (
+                {/* 사용량 표시 (베타 활성 시 숨김) */}
+                {!hasOwnKey && !betaStatus?.active && (
                     <div
                         className="settings-usage-card"
                         style={{

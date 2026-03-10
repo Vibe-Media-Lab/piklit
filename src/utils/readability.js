@@ -399,29 +399,22 @@ function analyzeParagraphStructure(doc) {
 // ──────────────────────────────────────────────
 function analyzeHeadingUsage(doc, totalChars) {
     const h2s = doc.querySelectorAll('h2');
-    const h3s = doc.querySelectorAll('h3');
     const h2Count = h2s.length;
-    const h3Count = h3s.length;
-    const headingCount = h2Count + h3Count;
 
     let score = 0;
     const suggestions = [];
 
-    if (headingCount === 0) {
+    if (h2Count === 0) {
         score = 2;
         suggestions.push({ type: 'warning', text: '소제목 없음 · 구조화 필요', priority: 10, locateType: 'noHeading' });
     } else {
-        // H2 존재 (8점)
-        if (h2Count >= 2) score += 8;
-        else if (h2Count >= 1) score += 5;
-        else suggestions.push({ type: 'info', text: 'H2 소제목 2개 이상 권장', priority: 6, locateType: 'noHeading' });
-
-        // H3 존재 (6점)
-        if (h3Count >= 2) score += 6;
-        else if (h3Count >= 1) score += 4;
+        // H2 존재 (14점)
+        if (h2Count >= 3) score += 14;
+        else if (h2Count >= 2) score += 10;
+        else score += 6;
 
         // 소제목 간격 (6점) — 300~500자마다 소제목이 적당
-        const avgGap = totalChars / (headingCount + 1);
+        const avgGap = totalChars / (h2Count + 1);
         if (avgGap >= 200 && avgGap <= 600) {
             score += 6;
         } else if (avgGap >= 100 && avgGap <= 800) {
@@ -433,7 +426,7 @@ function analyzeHeadingUsage(doc, totalChars) {
         }
     }
 
-    return { score, label: '소제목 활용', maxScore: 20, h2Count, h3Count, suggestions };
+    return { score, label: '소제목 활용', maxScore: 20, h2Count, h3Count: 0, suggestions };
 }
 
 // ──────────────────────────────────────────────
@@ -531,11 +524,13 @@ function analyzeEmphasis(doc, totalChars) {
     let score = 0;
     const suggestions = [];
 
-    if (emphasisTotal >= idealCount && emphasisTotal <= idealCount * 3) {
+    const upperLimit = Math.min(idealCount * 2, 8);
+
+    if (emphasisTotal >= idealCount && emphasisTotal <= upperLimit) {
         score = 10;
     } else if (emphasisTotal > 0) {
         score = 6;
-        if (emphasisTotal > idealCount * 3) {
+        if (emphasisTotal > upperLimit) {
             suggestions.push({ type: 'info', text: `강조 과다 · ${emphasisTotal}개 → 핵심만`, priority: 3, locateType: 'excessEmphasis' });
         }
     } else {

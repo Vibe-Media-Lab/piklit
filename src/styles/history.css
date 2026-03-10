@@ -965,6 +965,25 @@
     border-radius: 10px;
 }
 
+/* Beta Tester */
+.usage-bar.beta {
+    background: #FFF8F0;
+    border-color: var(--color-brand);
+}
+
+.usage-bar-fill.beta {
+    background: linear-gradient(90deg, var(--color-brand), #FF8F5A);
+}
+
+.usage-bar-beta-badge {
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    color: var(--color-brand);
+    background: #FFF0E5;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
 /* ===== Posts CTA ===== */
 .posts-cta {
     display: flex;

@@ -80,7 +80,7 @@ const OutlineStep = ({
     const handleOutlineAdd = (afterIndex) => {
         setOutlineItems(prev => {
             const arr = [...prev];
-            arr.splice(afterIndex + 1, 0, { level: 'h3', title: '' });
+            arr.splice(afterIndex + 1, 0, { level: 'h2', title: '' });
             return arr;
         });
         setActiveIndex(afterIndex + 1);
@@ -162,8 +162,8 @@ const OutlineStep = ({
                         <label>
                             <ClipboardList size={16} /> 소제목 구조
                         </label>
-                        <span className={`outline-count ${outlineItems.filter(i => i.level === 'h3').length === 0 ? 'outline-count-warn' : ''}`}>
-                            H2 {outlineItems.filter(i => i.level === 'h2').length} · H3 {outlineItems.filter(i => i.level === 'h3').length || '없음'}
+                        <span className="outline-count">
+                            소제목 {outlineItems.length}개
                         </span>
                     </div>
 
@@ -172,17 +172,17 @@ const OutlineStep = ({
                             const isActive = activeIndex === idx;
 
                             return (
-                                <div key={idx} className={`outline-row ${item.level === 'h3' ? 'is-h3' : ''} ${isActive ? 'is-active' : ''}`}>
+                                <div key={idx} className={`outline-row ${isActive ? 'is-active' : ''}`}>
                                     {/* 읽기 모드: 탭하면 편집 */}
                                     {!isActive && (
                                         <div
                                             className="outline-row-read"
                                             onClick={() => handleRowClick(idx)}
                                         >
-                                            <span className={`outline-level-badge ${item.level}`}>
-                                                {item.level.toUpperCase()}
+                                            <span className="outline-level-badge h2">
+                                                H2
                                             </span>
-                                            <span className={`outline-text ${item.level}`}>
+                                            <span className="outline-text h2">
                                                 {item.title || '소제목 입력...'}
                                             </span>
                                         </div>
@@ -192,13 +192,9 @@ const OutlineStep = ({
                                     {isActive && (
                                         <div className="outline-row-edit">
                                             <div className="outline-edit-top">
-                                                <button
-                                                    onClick={() => handleOutlineToggleLevel(idx)}
-                                                    className={`outline-level-btn ${item.level}`}
-                                                    title="H2/H3 전환"
-                                                >
-                                                    {item.level.toUpperCase()}
-                                                </button>
+                                                <span className="outline-level-badge h2" style={{ padding: '2px 8px', lineHeight: '24px' }}>
+                                                    H2
+                                                </span>
                                                 <input
                                                     type="text"
                                                     value={item.title}

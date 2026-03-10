@@ -50,7 +50,11 @@ const HumannessPanel = () => {
         setAppliedIndices(new Set());
         recordAiAction('humanness');
         try {
-            const res = await AIService.analyzeHumanness(text, keywords.main);
+            // 감점 항목 추출 (만점 미달인 지표만)
+            const weakMetrics = Object.values(metrics)
+                .filter(m => m.score < m.maxScore)
+                .sort((a, b) => (a.score / a.maxScore) - (b.score / b.maxScore));
+            const res = await AIService.analyzeHumanness(text, keywords.main, suggestedTone, weakMetrics);
             if (res?.suggestions) {
                 setAiSuggestions(res);
             } else {

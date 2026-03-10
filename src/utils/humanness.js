@@ -365,7 +365,7 @@ function measureInformalElements(text, maxScore) {
     const score = Math.round(maxScore * ratio);
     const suggestions = [];
     if (per1000 < 0.5) {
-        suggestions.push({ type: 'info', text: '이모지, ~, !! 같은 비격식 요소를 추가하면 사람다운 느낌이 납니다.', priority: 2 });
+        suggestions.push({ type: 'info', text: '이모지, ~, !! 같은 비격식 요소를 추가하면 사람다운 느낌이 납니다.', priority: 6 });
     }
 
     return { score, label: '이모지/비격식', maxScore, totalInformal, suggestions };

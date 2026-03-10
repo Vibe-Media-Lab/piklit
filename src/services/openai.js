@@ -493,6 +493,72 @@ ${photoList}
         return result?.text || '';
     },
 
+    /**
+     * 사진 분석 결과의 구체적 이름을 google_search로 검증
+     * 정확한 이름 > 제너럴 명칭 > 모호한 표현 우선순위 적용
+     * @param {string} photoAnalysis - analyzePhotos() 결과 텍스트
+     * @param {string} mainKeyword - 메인 키워드 (검색 쿼리용)
+     * @param {string} category - 카테고리
+     * @returns {Promise<string>} 검증된 정보가 포함된 보강 텍스트
+     */
+    async verifyPhotoDetails(photoAnalysis, mainKeyword, category) {
+        if (!photoAnalysis) return '';
+
+        const categoryGuide = {
+            food: { target: '메뉴명', search: '메뉴', example: '정확한 메뉴명(예: "제주한우 타르트덮밥")을 찾을 수 없으면 일반 명칭(예: "육회 비빔밥")으로' },
+            cafe: { target: '메뉴명/음료명', search: '메뉴', example: '정확한 음료명(예: "제주 한라봉 에이드")을 찾을 수 없으면 일반 명칭(예: "과일 에이드")으로' },
+            travel: { target: '장소명/관광지명', search: '관광지', example: '정확한 장소명(예: "협재해수욕장")을 찾을 수 없으면 일반 명칭(예: "해변")으로' },
+            shopping: { target: '제품명/모델명', search: '제품', example: '정확한 제품명(예: "다이슨 에어랩 HS05")을 찾을 수 없으면 일반 명칭(예: "헤어 스타일러")으로' },
+            pet: { target: '사료명/용품명', search: '반려동물 용품', example: '정확한 제품명(예: "로얄캐닌 인도어")을 찾을 수 없으면 일반 명칭(예: "실내용 사료")으로' },
+            daily: { target: '장소명/제품명', search: '', example: '파악된 이름이 있으면 사용, 없으면 일반 명칭으로' },
+        };
+
+        const catKey = (category === '카페&맛집' || category === '맛집') ? 'food'
+            : category === 'cafe' ? 'cafe'
+            : category === 'travel' ? 'travel'
+            : category === 'shopping' ? 'shopping'
+            : (category === 'pet' || category === '반려동물') ? 'pet'
+            : 'daily';
+
+        const guide = categoryGuide[catKey] || categoryGuide.daily;
+
+        // 일상 카테고리는 검색 불필요 — 분석 그대로 반환
+        if (catKey === 'daily' && !guide.search) return '';
+
+        const prompt = `너는 블로그 팩트체커야.
+
+[사진 분석 결과]
+${photoAnalysis}
+
+[작업]
+"${mainKeyword}" 검색 결과를 참고하여, 사진 분석에서 언급된 ${guide.target}이 실제로 맞는지 검증해줘.
+
+[우선순위 규칙 — 필수]
+1. 검색으로 정확한 이름이 확인되면 → 정확한 이름 사용
+2. 확인 안 되면 → 사진에서 보이는 형태 기반 일반 명칭 사용
+3. ${guide.example}
+4. 절대 추측으로 구체적 고유명사를 만들어내지 마
+
+Output strictly a valid JSON:
+{"verified":[{"original":"사진 분석에서 나온 이름","verified_name":"검증된 이름 또는 일반 명칭","confidence":"high|medium|low"}]}`;
+
+        try {
+            const result = await this.generateContent([{ text: prompt }], {
+                tools: [{ google_search: {} }],
+                thinkingBudget: 0
+            }, '사진 정보 검증');
+
+            if (result?.verified && Array.isArray(result.verified)) {
+                return result.verified
+                    .map(v => `• ${v.verified_name} (${v.confidence === 'high' ? '확인됨' : v.confidence === 'medium' ? '추정' : '일반 명칭'})`)
+                    .join('\n');
+            }
+            return '';
+        } catch {
+            return '';
+        }
+    },
+
     // 공통 톤 지시문
     _toneMap: {
         'friendly': `친근한 이웃 톤.
@@ -557,7 +623,7 @@ ${photoList}
     },
 
     _htmlRules(keyword, paragraphStyle = 'normal') {
-        return `[HTML규칙] ${this._paragraphRule(paragraphStyle)} <b>로 강조. <h2>/<h3> 계층 구조. 이미지([[IMAGE:...]])는 별도 <p>. h1 금지. "${keyword}" 본문 3~5회 반복, 첫 <p>에 필수 포함.
+        return `[HTML규칙] ${this._paragraphRule(paragraphStyle)} <b>로 강조 (글 전체 3~5개 이내, 핵심 키워드·수치·결론만). <h2>만 사용 (h3 금지). 이미지([[IMAGE:...]])는 별도 <p>. h1 금지. "${keyword}" 키워드 밀도 1~2% 유지 (소제목 포함, 자연스럽게 분산. 연속 문단에 같은 키워드 반복 금지). 첫 <p>에 필수 포함.
 [문장 규칙 — 필수!!!] 한 문장은 반드시 80자(한글 기준) 이내로 작성. 80자를 넘길 것 같으면 두 문장으로 나눠. 짧고 읽기 쉬운 문장이 핵심. 쉼표로 문장을 늘리지 말고 마침표로 끊어.
 [반복 금지] 동일한 표현·문구·문장 구조를 반복하지 마. 각 문단마다 다른 표현과 시작어를 사용. 같은 내용을 다른 말로 바꿔 쓰는 것도 반복임.
 [AI 패턴 표현 — 절대 금지!!!] 아래 단어·표현을 쓰면 안 돼. 반드시 대체 예시처럼 구체적으로 바꿔 써:
@@ -663,15 +729,18 @@ ${photoList}
     },
 
     // 사진 관련 프롬프트 생성 헬퍼
-    _photoPrompt(photoAnalysis, photoAssets, category) {
+    _photoPrompt(photoAnalysis, photoAssets, category, verifiedDetails = '') {
         const slots = this._getSlotsForCategory(category);
         const slotTags = slots.map(s => `[[IMAGE:${s}]]`).join(', ');
         const experienceRule = `\n[1인칭 체험 전환 — 필수] 사진 속 내용을 객관적으로 나열하지 말고, 1인칭 경험으로 전환해서 써.
 예시: "빨간 국물 사진" → "국물 한 숟갈 떠보니 칼칼한 맛이 확 올라왔다"
 예시: "카페 외관 사진" → "골목 끝에 숨어있는 이 가게, 간판이 작아서 두 번이나 지나쳤다"
 사진을 '본' 게 아니라 '겪은' 것처럼 써.`;
+        const verifiedSection = verifiedDetails
+            ? `\n[검증된 이름 정보 — 본문에 반드시 사용할 것]\n${verifiedDetails}\n→ "확인됨"은 그대로 사용, "추정"/"일반 명칭"은 자연스럽게 활용.`
+            : '';
         if (photoAnalysis) {
-            return `\n[사진 분석 결과]\n${photoAnalysis}\n사진 위치: ${slotTags}${experienceRule}`;
+            return `\n[사진 분석 결과]\n${photoAnalysis}${verifiedSection}\n사진 위치: ${slotTags}${experienceRule}`;
         }
         if (photoAssets.length > 0) {
             return `\n[사진] 첨부 ${photoAssets.length}장의 시각적 특징을 본문에 녹여줘. 위치: ${slotTags}${experienceRule}`;
@@ -727,21 +796,18 @@ ${blogSummary}
 톤: ${this._toneMap[tone] || this._toneMap['friendly']}
 
 [작업]
-"${mainKeyword}" 주제로 블로그 글의 소제목 아웃라인(H2/H3 계층 구조)을 생성해줘.
+"${mainKeyword}" 주제로 블로그 글의 소제목 아웃라인을 H2로만 생성해줘.
 
 [규칙]
 1. ${headingTarget}
-2. **반드시 H2와 H3를 모두 사용할 것. H2만으로 구성하지 말 것.**
-3. 각 H2 아래에 H3를 최소 1개 이상 배치 (필수)
-4. H2는 글의 큰 섹션, H3는 H2 아래 세부 항목
-5. 메인 키워드를 H2에 1~2회 자연스럽게 포함
-6. 서브 키워드도 소제목에 적절히 반영
-7. 독자가 훑어보기 좋은 논리적 흐름 유지
-8. 각 소제목은 10~25자 이내
-9. 검색 결과의 상위 블로그 소제목 패턴을 참고하되 그대로 복사하지 말 것
+2. H2만 사용 (H3 사용 금지)
+3. 메인 키워드, 서브 키워드를 H2에 자연스럽게 포함
+4. 독자가 훑어보기 좋은 논리적 흐름 유지
+5. 각 소제목은 10~25자 이내
+6. 검색 결과의 상위 블로그 소제목 패턴을 참고하되 그대로 복사하지 말 것
 
 Output strictly a valid JSON:
-{"outline":[{"level":"h2","title":"큰 주제"},{"level":"h3","title":"세부 항목1"},{"level":"h3","title":"세부 항목2"},{"level":"h2","title":"큰 주제2"},{"level":"h3","title":"세부 항목3"}]}`;
+{"outline":[{"level":"h2","title":"소제목1"},{"level":"h2","title":"소제목2"},{"level":"h2","title":"소제목3"}]}`;
 
         return this.generateContent([{ text: prompt }], {
             tools: [{ google_search: {} }],
@@ -753,20 +819,20 @@ Output strictly a valid JSON:
     _outlinePrompt(outline) {
         if (!outline || !Array.isArray(outline) || outline.length === 0) return '';
         const tree = outline.map(item =>
-            `${item.level === 'h3' ? '  - ' : '- '}[${item.level.toUpperCase()}] ${item.title}`
+            `- [H2] ${item.title}`
         ).join('\n');
         return `\n[아웃라인 — 반드시 이 소제목 구조를 따를 것!!!]
 ${tree}
-→ 위 아웃라인의 소제목 텍스트를 그대로 HTML h2/h3 태그로 사용할 것. 소제목을 임의로 변경하거나 생략하면 안 됨.
+→ 위 아웃라인의 소제목 텍스트를 그대로 HTML <h2> 태그로 사용할 것. 소제목을 임의로 변경하거나 생략하면 안 됨.
 → 각 섹션에 맞는 내용을 채우되, 첫 문단에서 바로 핵심 경험을 던져.`;
     },
 
-    async generateFullDraft(category, mainKeyword, tone, imageMetadata = {}, photoAssets = [], subKeywords = [], targetLength = '1200~1800자', photoAnalysis = null, competitorData = null, outline = null, wannabeStyleRules = '', paragraphStyle = 'normal') {
+    async generateFullDraft(category, mainKeyword, tone, imageMetadata = {}, photoAssets = [], subKeywords = [], targetLength = '1200~1800자', photoAnalysis = null, competitorData = null, outline = null, wannabeStyleRules = '', paragraphStyle = 'normal', verifiedDetails = '') {
         if (category === 'cafe' || category === 'food' || category === '맛집' || category === '카페&맛집') {
-            return this.generateRestaurantDraft(mainKeyword, tone, imageMetadata, photoAssets, subKeywords, targetLength, photoAnalysis, competitorData, outline, wannabeStyleRules, paragraphStyle);
+            return this.generateRestaurantDraft(mainKeyword, tone, imageMetadata, photoAssets, subKeywords, targetLength, photoAnalysis, competitorData, outline, wannabeStyleRules, paragraphStyle, verifiedDetails);
         }
         if (category === 'shopping' || category === '쇼핑') {
-            return this.generateShoppingDraft(mainKeyword, tone, imageMetadata, photoAssets, subKeywords, targetLength, photoAnalysis, competitorData, outline, wannabeStyleRules, paragraphStyle);
+            return this.generateShoppingDraft(mainKeyword, tone, imageMetadata, photoAssets, subKeywords, targetLength, photoAnalysis, competitorData, outline, wannabeStyleRules, paragraphStyle, verifiedDetails);
         }
 
         // 카테고리별 슬롯 확인
@@ -784,7 +850,7 @@ ${this._htmlRules(mainKeyword, paragraphStyle)}
 주제: ${category} | 키워드: ${mainKeyword} | 글자수: ${targetLength}
 톤: ${this._toneMap[tone] || this._toneMap['friendly']}${toneBoost ? `\n[카테고리 맞춤 톤 보정] ${toneBoost}` : ''}${wannabeStyleRules}
 ${this._subKeywordPrompt(subKeywords)}
-${this._photoPrompt(photoAnalysis, photoAssets, category)}
+${this._photoPrompt(photoAnalysis, photoAssets, category, verifiedDetails)}
 ${this._competitorPrompt(competitorData)}
 ${this._outlinePrompt(outline)}
 
@@ -796,7 +862,7 @@ ${imageInstructions}
 
 [구조 — 반드시 이 순서!!!]
 ${this._introPromptByCategory(category, mainKeyword)}
-2. 본문: h2/h3 사용. 구글 검색으로 '${mainKeyword}' 실제 정보를 찾아 작성. 서브 키워드는 문맥에 맞게 자연스럽게 녹여넣기. [[VIDEO]] 1개 배치.
+2. 본문: h2 사용. 구글 검색으로 '${mainKeyword}' 실제 정보를 찾아 작성. 서브 키워드는 문맥에 맞게 자연스럽게 녹여넣기. [[VIDEO]] 1개 배치.
 Output strictly a valid JSON: {"html": "..."}`;
 
         const parts = [{ text: prompt }];
@@ -840,7 +906,7 @@ Output strictly a valid JSON:
         return result;
     },
 
-    async generateRestaurantDraft(keyword, tone = 'friendly', imageMetadata = {}, photoAssets = [], subKeywords = [], targetLength = '1200~1800자', photoAnalysis = null, competitorData = null, outline = null, wannabeStyleRules = '', paragraphStyle = 'normal') {
+    async generateRestaurantDraft(keyword, tone = 'friendly', imageMetadata = {}, photoAssets = [], subKeywords = [], targetLength = '1200~1800자', photoAnalysis = null, competitorData = null, outline = null, wannabeStyleRules = '', paragraphStyle = 'normal', verifiedDetails = '') {
         const { entrance = 0, parking = 0, menu = 0, interior = 0, food = 0, extra = 0 } = imageMetadata;
 
         const slots = [['entrance',entrance],['parking',parking],['menu',menu],['interior',interior],['food',food],['extra',extra]]
@@ -871,7 +937,7 @@ ${this._htmlRules(keyword, paragraphStyle)}
 키워드: ${keyword} | 톤: ${this._toneMap[tone] || this._toneMap['friendly']}${toneBoost ? `\n[카테고리 맞춤 톤 보정] ${toneBoost}` : ''}${wannabeStyleRules} | 글자수: ${targetLength}
 사진: ${slots}
 ${this._subKeywordPrompt(subKeywords)}
-${this._photoPrompt(photoAnalysis, photoAssets, 'food')}
+${this._photoPrompt(photoAnalysis, photoAssets, 'food', verifiedDetails)}
 ${this._competitorPrompt(competitorData)}
 ${this._outlinePrompt(outline)}
 누락 사진은 <blockquote>💡 TIP: 사진 추가 권장!</blockquote>
@@ -884,7 +950,7 @@ ${imageInstructions}
 
 [구조 — 반드시 이 순서!!!]
 ${this._introPromptByCategory('food', keyword)}
-2. 본문: 아웃라인의 h2/h3 소제목을 반드시 그대로 사용. 각 섹션에 서브 키워드를 자연스럽게 포함. [[VIDEO]] 1개 배치.
+2. 본문: 아웃라인의 h2 소제목을 반드시 그대로 사용. 각 섹션에 서브 키워드를 자연스럽게 포함. [[VIDEO]] 1개 배치.
 3. 가게 정보카드 — 글 하단 마무리에 배치 (아래 HTML 그대로 삽입):
 ${infoCard}
 → 가게 정보는 반드시 글의 맨 마지막에 위치해야 함. 도입부나 본문 중간에 넣지 말 것. 독자가 글을 끝까지 읽고 방문을 결심한 후 확인하는 정보임.
@@ -930,7 +996,7 @@ Output strictly a valid JSON:
         return result;
     },
 
-    async generateShoppingDraft(keyword, tone = 'friendly', imageMetadata = {}, photoAssets = [], subKeywords = [], targetLength = '1200~1800자', photoAnalysis = null, competitorData = null, outline = null, wannabeStyleRules = '', paragraphStyle = 'normal') {
+    async generateShoppingDraft(keyword, tone = 'friendly', imageMetadata = {}, photoAssets = [], subKeywords = [], targetLength = '1200~1800자', photoAnalysis = null, competitorData = null, outline = null, wannabeStyleRules = '', paragraphStyle = 'normal', verifiedDetails = '') {
         const { unboxing = 0, product = 0, detail = 0, usage = 0, compare = 0, extra = 0 } = imageMetadata;
 
         const slots = [['unboxing',unboxing],['product',product],['detail',detail],['usage',usage],['compare',compare],['extra',extra]]
@@ -960,7 +1026,7 @@ ${this._htmlRules(keyword, paragraphStyle)}
 키워드: ${keyword} | 톤: ${this._toneMap[tone] || this._toneMap['friendly']}${toneBoost ? `\n[카테고리 맞춤 톤 보정] ${toneBoost}` : ''}${wannabeStyleRules} | 글자수: ${targetLength}
 사진: ${slots}
 ${this._subKeywordPrompt(subKeywords)}
-${this._photoPrompt(photoAnalysis, photoAssets, 'shopping')}
+${this._photoPrompt(photoAnalysis, photoAssets, 'shopping', verifiedDetails)}
 ${this._competitorPrompt(competitorData)}
 ${this._outlinePrompt(outline)}
 
@@ -974,10 +1040,10 @@ ${imageInstructions}
 ${this._introPromptByCategory('shopping', keyword)}
 2. 제품 정보카드 (아래 HTML 그대로 삽입):
 ${infoCard}
-3. 본문: 가장 기억에 남는 경험부터 시작. h2/h3 사용. 구매계기·실사용·장단점을 자유 순서로 구성. [[VIDEO]] 1개 배치.
+3. 본문: 가장 기억에 남는 경험부터 시작. h2 사용. 구매계기·실사용·장단점을 자유 순서로 구성. [[VIDEO]] 1개 배치.
 
 [장단점 섹션 — 필수]
-본문 후반부에 장점과 아쉬운 점을 <h3>✅ 장점</h3>과 <h3>❌ 아쉬운 점</h3> 소제목 아래 <ul><li> 리스트로 각각 3~5개씩 정리.
+본문 후반부에 장점과 아쉬운 점을 <h2>✅ 장점</h2>과 <h2>❌ 아쉬운 점</h2> 소제목 아래 <ul><li> 리스트로 각각 3~5개씩 정리.
 Output strictly a valid JSON: {"html": "..."}`;
 
         const parts = [{ text: prompt }];
@@ -1512,17 +1578,23 @@ Output strictly a valid JSON: {"mainText":"메인","subText":"서브"}`;
         return result || { mainText: '', subText: '' };
     },
 
-    async analyzeHumanness(content, mainKeyword = '') {
+    async analyzeHumanness(content, mainKeyword = '', tone = 'friendly', weakMetrics = []) {
+        const weakSection = weakMetrics.length > 0
+            ? `\n[현재 감점 항목 — 이 항목들을 우선 개선해줘]\n${weakMetrics.map(m => `- ${m.label}: ${m.score}/${m.maxScore}점`).join('\n')}\n`
+            : '';
+
         const prompt = `너는 네이버 블로그 AI 감지 회피 전문가야.
 아래 블로그 본문에서 "AI가 쓴 것 같은" 부분을 찾아 사람처럼 고쳐줘.
 ${mainKeyword ? `주제: "${mainKeyword}"` : ''}
-
-[분석 기준]
+톤앤무드: ${tone} (이 톤에 맞게 수정해줘)
+${weakSection}
+[분석 기준 — 감점 항목을 최우선으로]
 1. AI 단골 표현 ("다양한", "효과적인", "살펴보겠습니다" 등) → 자연스러운 구어체로
 2. 너무 균일한 문장 구조 → 길이·톤에 변화 주기
 3. 1인칭/경험체 부족 → "제가 직접~", "솔직히~" 추가 제안
 4. 과도한 나열 표현 → 대화체로 변환
 5. 감정·반응 부재 → 감탄, 질문, 솔직한 감상 추가
+6. 이모지/비격식 요소 부족 → ~, !!, 이모지(🍽️ 등), ㅋㅋ 등 자연스럽게 추가 제안
 
 [본문]
 ${content.substring(0, 4000)}
@@ -1534,7 +1606,7 @@ Output strictly a valid JSON:
   ],
   "overallTip": "전체적인 개선 조언 1문장"
 }
-suggestions는 최대 5개, 가장 효과적인 수정부터 정렬.`;
+suggestions는 최대 5개, 감점 항목 개선이 최우선, 이미 만점인 항목은 건드리지 마.`;
 
         return this.generateContent(
             [{ text: prompt }],

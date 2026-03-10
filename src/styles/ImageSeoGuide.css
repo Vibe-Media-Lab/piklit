@@ -337,7 +337,7 @@
 /* 모바일: 플로팅 버튼 탭바 위로 올림 */
 @media (max-width: 768px) {
     .image-seo-floating-btn {
-        bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+        bottom: calc(68px + env(safe-area-inset-bottom, 0px));
         right: 12px;
         width: 44px;
         height: 44px;
@@ -345,7 +345,7 @@
     }
 
     .image-gen-floating-btn {
-        bottom: calc(112px + env(safe-area-inset-bottom, 0px));
+        bottom: calc(120px + env(safe-area-inset-bottom, 0px));
         right: 12px;
         width: 40px;
         height: 40px;
@@ -353,7 +353,7 @@
     }
 
     .image-gen-floating-btn.shift-up {
-        bottom: calc(112px + env(safe-area-inset-bottom, 0px));
+        bottom: calc(120px + env(safe-area-inset-bottom, 0px));
     }
 }
 

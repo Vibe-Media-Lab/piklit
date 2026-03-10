@@ -474,7 +474,7 @@
 
     /* 하단 탭바 공간 확보 */
     .main-container {
-        padding-bottom: calc(56px + var(--safe-area-bottom));
+        padding-bottom: calc(64px + var(--safe-area-bottom));
     }
 }
 

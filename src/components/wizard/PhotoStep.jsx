@@ -22,6 +22,7 @@ const PhotoStep = ({
     setImageAlts,
     setImageCaptions,
     setCachedPhotoAssets,
+    setVerifiedDetails,
     onPrev,
     onNext,
     renderStepIndicator,
@@ -54,6 +55,14 @@ const PhotoStep = ({
             const result = await AIService.analyzePhotos(photoAssets, mainKeyword);
             if (result) {
                 setPhotoAnalysis(result);
+
+                // 사진 정보 검증 (메뉴명/장소명/제품명 등)
+                try {
+                    const verified = await AIService.verifyPhotoDetails(result, mainKeyword, categoryId);
+                    if (verified) setVerifiedDetails(verified);
+                } catch (verifyErr) {
+                    console.warn('[사진 정보 검증] 실패, 분석 결과 그대로 사용:', verifyErr.message);
+                }
 
                 // 사진 분석 완료 후 이미지 ALT 텍스트 자동 생성 (개별 이미지별)
                 const uploadedSlots = Object.entries(photoData.metadata)
