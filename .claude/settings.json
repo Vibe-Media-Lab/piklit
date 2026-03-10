@@ -1,12 +1,12 @@
 {
   "hooks": {
-    "PostToolUse": [
+    "PreToolUse": [
       {
-        "matcher": "Edit|Write",
+        "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/check-build.sh \"$TOOL_INPUT\""
+            "command": "bash .claude/hooks/pre-commit-build.sh \"$TOOL_INPUT\""
           }
         ]
       }
