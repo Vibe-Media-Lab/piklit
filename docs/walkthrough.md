@@ -4,24 +4,30 @@
 네이버 블로그 SEO 최적화 AI 작성기 (React 19 + Vite 7 + TipTap + Google Gemini 2.5 Flash API)
 
 ## 이번 세션 요약
-QA/디자인QA 보고서 기반 린트 정리 + 베타 테스터 피드백 반영 모바일 UX 버그 11건 수정 + 로딩 중복 제거
+AI 편집 도구 4종 구현 (인라인 TIP, SEO 자동수정, 워너비/내스타일 이원화, AI 전체 재작성) + 배포 캐시 자동 새로고침 + 에디터 위자드 재진입 경로 추가
 
 ## 수정 파일
 
 | 파일 | 변경 사항 |
 |------|----------|
-| `eslint.config.js` | functions/, api/ Node.js 폴더 린트 제외 (33개 false positive 해소) |
-| `docs/design-system.md` | --color-accent, --color-accent-bg 값 코드와 동기화 |
-| `src/styles/components.css` | --color-bg-hover→surface-hover 교체, 메타 박스 세로 레이아웃, 추가 버튼 nowrap, FAB 위치 보정 |
-| `src/components/layout/Layout.css` | --color-bg-hover→surface-hover 교체 |
-| `src/styles/ImageSeoGuide.css` | 모바일 FAB 크기 통일 40→44px |
-| `src/components/wizard/KeywordStep.jsx` | 강도 라벨 텍스트 병기, 고급 옵션 dot 클릭 전까지 유지, 키워드 분석 로딩 중복 제거, 시즌 트렌드 중복 힌트 제거 |
-| `src/components/wizard/OutlineStep.jsx` | 메타 박스 세로 레이아웃, 아웃라인 생성 로딩 중복 제거 |
-| `src/components/editor/TitleInput.jsx` | 로딩 시 Bot→Loader2 스피너 교체 |
-| `src/components/editor/TiptapEditor.jsx` | AI 고지 사이즈 점프 수정, "..." 표시 해소 |
-| `src/components/analysis/ThumbnailPanel.jsx` | 모바일 기본 펼침 상태 |
-| `src/services/openai.js` | API 에러 메시지 한국어 변환 |
+| `src/components/analysis/HumannessPanel.jsx` | 인라인 TIP 카드 — 원문 클릭 시 본문 하이라이트 + 수정안 표시 |
+| `src/components/analysis/AIAnalysisDashboard.jsx` | SEO 체크리스트 AI 자동수정 버튼 + 이중 setContent 버그 수정 |
+| `src/components/analysis/MobileAnalysisBar.jsx` | 모바일 미니바 null 처리 |
+| `src/components/editor/TiptapEditor.jsx` | 인라인 TIP 카드 UI + AI 전체 재작성 버튼 |
+| `src/components/editor/WannabeStylePanel.jsx` | URL→스크린샷 슬롯 기반 분석, 워너비/내스타일 타입 분리 |
+| `src/components/wizard/ToneStep.jsx` | 워너비/내스타일 이원화 UI (프리셋 카드 + 분석 버튼) |
+| `src/components/common/SettingsModal.jsx` | 로그아웃 버튼 추가 |
+| `src/components/layout/MainContainer.jsx` | HumannessPanel onLocate prop 전달 |
+| `src/context/EditorContext.jsx` | humanTip/setHumanTip 공유 상태 추가 |
+| `src/pages/EditorPage.jsx` | 내스타일 상태 + 위자드 재진입 설정 변경 바 |
+| `src/services/openai.js` | rewriteFullContent, fixSeoIssues, analyzeWannabeStyle 스크린샷 방식 |
+| `src/utils/wannabeStyle.js` | type 필드 + getPresetsByType + 타입별 스타일 규칙 헤더 |
+| `src/styles/tiptap.css` | 인라인 TIP 카드 + 하이라이트 + 리라이트 바 스타일 |
+| `src/styles/WannabeStyle.css` | 타입 세그먼트 + 슬롯 그리드 + 내스타일 프리셋 스타일 |
+| `src/styles/components.css` | SEO 수정 버튼 + 로그아웃 버튼 + 위자드 재진입 바 스타일 |
+| `src/App.jsx` | safeImport 래퍼 — 청크 로드 실패 시 자동 새로고침 |
+| `vercel.json` | HTML no-cache + assets immutable 캐시 헤더 |
 
 ## 현재 릴리즈 상태
-- 빌드: 정상 (2.36s)
-- 커밋: 69e93d7 — pushed to origin/main
+- 빌드: 정상 (2.13s)
+- 커밋: 1632862 — pushed to origin/main (7f572b1까지)
