@@ -16,8 +16,8 @@
 | `--color-text-sub` | `#787774` | 보조 텍스트, 라벨 |
 | `--color-border` | `#E3E2E0` | 기본 보더 |
 | `--color-border-hover` | `#D3D1CB` | 호버 보더 |
-| `--color-accent` | `#2EAADC` | 포커스, 선택 (Notion 블루) |
-| `--color-accent-bg` | `#E3F2FD` | 악센트 배경 |
+| `--color-accent` | `#FF6B35` | 포커스, 선택 (브랜드 오렌지) |
+| `--color-accent-bg` | `#FFF3ED` | 악센트 배경 |
 
 ### 상태 컬러
 | 토큰 | 값 | 용도 |

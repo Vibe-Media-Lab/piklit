@@ -4678,11 +4678,11 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
 }
 
 .admin-beta-filter:hover {
-    background: var(--color-bg-hover);
+    background: var(--color-surface-hover);
 }
 
 .admin-beta-filter--active {
-    background: var(--color-bg-hover);
+    background: var(--color-surface-hover);
     text-decoration: underline;
 }
 
@@ -4739,7 +4739,7 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
 }
 
 .admin-beta-table tbody tr:hover {
-    background: var(--color-bg-hover);
+    background: var(--color-surface-hover);
 }
 
 .admin-beta-name {

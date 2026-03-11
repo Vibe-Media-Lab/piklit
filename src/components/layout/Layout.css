@@ -241,7 +241,7 @@
 }
 
 .sidebar-plan-badge--free {
-    background: var(--color-bg-hover);
+    background: var(--color-surface-hover);
     color: var(--color-text-sub);
 }
 
