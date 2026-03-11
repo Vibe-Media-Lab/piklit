@@ -394,10 +394,14 @@ const FeatureMockup = ({ id }) => {
     );
     if (id === 'wannabe') return (
         <div className="feat-mockup feat-mockup-wannabe">
-            <div className="fm-wannabe-url">
-                <span className="fm-wannabe-icon">🔗</span>
-                <span className="fm-wannabe-input">blog.naver.com/foodie_j...</span>
-                <span className="fm-wannabe-btn">분석</span>
+            <div className="fm-wannabe-segment">
+                <span className="fm-seg-active">워너비</span>
+                <span className="fm-seg-inactive">내스타일</span>
+            </div>
+            <div className="fm-wannabe-slots">
+                <div className="fm-slot filled">📸</div>
+                <div className="fm-slot filled">📸</div>
+                <div className="fm-slot empty">+</div>
             </div>
             <div className="fm-wannabe-result">
                 <div className="fm-wannabe-axis">
@@ -408,11 +412,8 @@ const FeatureMockup = ({ id }) => {
                     <span className="fm-wannabe-label">구조</span>
                     <span className="fm-wannabe-value">짧은 문단 + 사진 교차</span>
                 </div>
-                <div className="fm-wannabe-axis">
-                    <span className="fm-wannabe-label">어휘</span>
-                    <span className="fm-wannabe-value">감성 묘사 + 이모지</span>
-                </div>
             </div>
+            <div className="fm-wannabe-apply">프리셋 저장</div>
         </div>
     );
     if (id === 'seo') return (

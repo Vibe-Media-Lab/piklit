@@ -4,7 +4,7 @@ import { useToast } from '../common/Toast';
 import { useEditor, EditorContent } from '@tiptap/react';
 import { BubbleMenu } from '@tiptap/react/menus';
 import BottomSheet from '../common/BottomSheet';
-import { Wand2, Minimize2, Zap, PenLine, MoreHorizontal, Check, X, RefreshCw } from 'lucide-react';
+import { Wand2, Minimize2, Zap, PenLine, MoreHorizontal, Check, X, RefreshCw, Undo2 } from 'lucide-react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Highlight from '@tiptap/extension-highlight';
@@ -12,6 +12,7 @@ import { LongSentenceExtension } from '../../extensions/LongSentenceExtension';
 import { SEO_TEMPLATES } from '../../data/templates';
 import { AIService } from '../../services/openai';
 import { humanizeText } from '../../utils/humanness';
+import { analyzePost } from '../../utils/analysis';
 import '../../styles/tiptap.css';
 
 // 톤별 CTA 템플릿
@@ -183,7 +184,7 @@ const AI_FOOTER_HTML = '<p style="text-align: center; padding: 14px 16px; margin
 const AI_FOOTER_MARKER = 'AI 생성 도구를 사용하여 제작되었습니다';
 
 const TiptapEditor = () => {
-    const { content, setContent, keywords, suggestedTone, editorRef, lastCursorPosRef, humanTip, setHumanTip, recordAiAction } = useEditorContext();
+    const { content, setContent, keywords, suggestedTone, editorRef, lastCursorPosRef, humanTip, setHumanTip, recordAiAction, title, analysis, targetLength, posts, currentPostId } = useEditorContext();
     const { showToast } = useToast();
     const [aiDropdownOpen, setAiDropdownOpen] = useState(false);
     const [aiLoading, setAiLoading] = useState(false);
@@ -410,8 +411,17 @@ const TiptapEditor = () => {
         }
     }, [editor, aiFooterEnabled]);
 
-    // AI 전체 재작성
+    // AI 전체 재작성 + 점수 비교
     const [rewriteLoading, setRewriteLoading] = useState(false);
+    const [rewriteScores, setRewriteScores] = useState(null);
+    const [previousContent, setPreviousContent] = useState(null);
+
+    const calcSeoPercentage = (a) => {
+        const s = Object.values(a.checks).filter(Boolean).length;
+        const m = Object.keys(a.checks).length || 1;
+        return Math.round((s / m) * 100);
+    };
+
     const handleFullRewrite = useCallback(async () => {
         if (!editor || !content || content === '<p></p>') {
             showToast('본문을 먼저 작성해주세요.', 'warning');
@@ -419,6 +429,9 @@ const TiptapEditor = () => {
         }
         if (!window.confirm('본문 전체를 AI가 다시 작성합니다.\n기존 내용이 교체됩니다. 계속하시겠습니까?')) return;
 
+        const beforeScore = calcSeoPercentage(analysis);
+        setPreviousContent(content);
+        setRewriteScores(null);
         setRewriteLoading(true);
         recordAiAction('fullRewrite');
         try {
@@ -429,14 +442,33 @@ const TiptapEditor = () => {
             );
             if (result?.html) {
                 editor.commands.setContent(result.html);
-                showToast('전체 재작성이 완료되었습니다.', 'success');
+                const currentPost = posts.find(p => p.id === currentPostId);
+                const categoryId = currentPost?.categoryId || 'daily';
+                const newAnalysis = analyzePost(title, result.html, keywords, targetLength, categoryId);
+                const afterScore = calcSeoPercentage(newAnalysis);
+                setRewriteScores({ before: beforeScore, after: afterScore });
             }
         } catch (e) {
             showToast('재작성 오류: ' + e.message, 'error');
+            setPreviousContent(null);
         } finally {
             setRewriteLoading(false);
         }
-    }, [editor, content, keywords, suggestedTone, showToast, recordAiAction]);
+    }, [editor, content, keywords, suggestedTone, showToast, recordAiAction, analysis, title, targetLength, posts, currentPostId]);
+
+    const handleRewriteUndo = useCallback(() => {
+        if (!editor || !previousContent) return;
+        editor.commands.setContent(previousContent);
+        setPreviousContent(null);
+        setRewriteScores(null);
+        showToast('원본이 복원되었습니다.', 'success');
+    }, [editor, previousContent, showToast]);
+
+    const handleRewriteClose = useCallback(() => {
+        if (previousContent && !window.confirm('카드를 닫으면 원본 복원이 불가합니다.\n닫으시겠습니까?')) return;
+        setPreviousContent(null);
+        setRewriteScores(null);
+    }, [previousContent]);
 
     // 휴먼라이징 TIP 적용
     const handleApplyTip = useCallback(() => {
@@ -544,7 +576,7 @@ const TiptapEditor = () => {
         <div className="tiptap-editor-wrapper" style={{ position: 'relative' }}>
             <MenuBar editor={editor} tone={suggestedTone || 'friendly'} aiFooterEnabled={aiFooterEnabled} onToggleAiFooter={toggleAiFooter} />
 
-            {/* AI 전체 재작성 버튼 */}
+            {/* AI 전체 재작성 버튼 + 점수 비교 카드 */}
             <div className="editor-rewrite-bar">
                 <button
                     className="editor-rewrite-btn"
@@ -558,6 +590,30 @@ const TiptapEditor = () => {
                     }
                 </button>
             </div>
+
+            {rewriteScores && (
+                <div className="rewrite-score-card">
+                    <div className="rewrite-score-content">
+                        <span className="rewrite-score-label">SEO 점수</span>
+                        <span className="rewrite-score-before">{rewriteScores.before}점</span>
+                        <span className="rewrite-score-arrow">→</span>
+                        <span className="rewrite-score-after">{rewriteScores.after}점</span>
+                        <span className={`rewrite-score-diff ${rewriteScores.after >= rewriteScores.before ? 'up' : 'down'}`}>
+                            {rewriteScores.after >= rewriteScores.before ? '+' : ''}{rewriteScores.after - rewriteScores.before}점 {rewriteScores.after >= rewriteScores.before ? '↑' : '↓'}
+                        </span>
+                    </div>
+                    <div className="rewrite-score-actions">
+                        {previousContent && (
+                            <button className="rewrite-undo-btn" onClick={handleRewriteUndo}>
+                                <Undo2 size={13} /> 되돌리기
+                            </button>
+                        )}
+                        <button className="rewrite-close-btn" onClick={handleRewriteClose}>
+                            <X size={14} />
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {editor && (
                 <BubbleMenu editor={editor}>

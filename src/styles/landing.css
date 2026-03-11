@@ -1209,37 +1209,52 @@
     gap: 12px;
 }
 
-.fm-wannabe-url {
+.fm-wannabe-segment {
     display: flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--color-surface-hover);
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
-    padding: 8px 10px;
-    font-size: 0.75rem;
-}
-
-.fm-wannabe-icon {
-    flex-shrink: 0;
-}
-
-.fm-wannabe-input {
-    flex: 1;
-    color: var(--color-text-sub);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.fm-wannabe-btn {
-    background: var(--color-brand);
-    color: white;
+    background: var(--color-border);
     border-radius: 6px;
-    padding: 4px 10px;
+    overflow: hidden;
     font-size: 0.7rem;
     font-weight: 600;
-    flex-shrink: 0;
+}
+
+.fm-seg-active {
+    padding: 5px 12px;
+    background: var(--color-brand);
+    color: white;
+}
+
+.fm-seg-inactive {
+    padding: 5px 12px;
+    color: var(--color-text-sub);
+}
+
+.fm-wannabe-slots {
+    display: flex;
+    gap: 8px;
+}
+
+.fm-slot {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+}
+
+.fm-slot.filled {
+    background: var(--color-surface-hover, #F7F6F3);
+    border: 1px solid var(--color-border);
+}
+
+.fm-slot.empty {
+    background: none;
+    border: 1.5px dashed var(--color-border);
+    color: var(--color-text-sub);
+    font-size: 1rem;
+    font-weight: 600;
 }
 
 .fm-wannabe-result {

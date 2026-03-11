@@ -60,6 +60,130 @@
     cursor: not-allowed;
 }
 
+/* 재작성 점수 비교 카드 */
+.rewrite-score-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: var(--color-surface-hover, #F7F6F3);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    margin: 0 12px 8px;
+    animation: rewriteCardFadeIn 0.3s ease;
+}
+
+@keyframes rewriteCardFadeIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.rewrite-score-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.rewrite-score-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--color-text-sub, #787774);
+    margin-right: 4px;
+}
+
+.rewrite-score-before {
+    font-size: 0.85rem;
+    color: var(--color-text-sub, #787774);
+    text-decoration: line-through;
+}
+
+.rewrite-score-after {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-brand, #FF6B35);
+}
+
+.rewrite-score-arrow {
+    font-size: 0.85rem;
+    color: var(--color-text-sub, #787774);
+}
+
+.rewrite-score-diff {
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+.rewrite-score-diff.up {
+    background: #DCFCE7;
+    color: #16A34A;
+}
+
+.rewrite-score-diff.down {
+    background: #FEE2E2;
+    color: #EF4444;
+}
+
+.rewrite-score-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.rewrite-undo-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 10px;
+    background: none;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-sub, #787774);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.rewrite-undo-btn:hover {
+    background: var(--color-surface);
+    border-color: var(--color-text-sub, #787774);
+    color: var(--color-text);
+}
+
+.rewrite-close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: none;
+    border: none;
+    border-radius: 4px;
+    color: var(--color-text-sub, #787774);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.rewrite-close-btn:hover {
+    background: var(--color-border);
+}
+
+@media (max-width: 768px) {
+    .rewrite-score-card {
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-start;
+        margin: 0 8px 8px;
+    }
+    .rewrite-score-actions {
+        align-self: flex-end;
+    }
+}
+
 .toolbar-group {
     display: flex;
     gap: 4px;
