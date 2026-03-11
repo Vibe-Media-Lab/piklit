@@ -26,7 +26,7 @@ const ThumbnailPanel = () => {
         return urls;
     }, [photoPreviewUrls, content]);
 
-    const [isOpen, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(window.innerWidth < 768);
     const [style, setStyle] = useState('A');
     const [mainText, setMainText] = useState('');
     const [subText, setSubText] = useState('');

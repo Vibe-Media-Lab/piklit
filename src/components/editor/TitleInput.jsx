@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useEditor } from '../../context/EditorContext';
 import { useToast } from '../common/Toast';
 import { AIService } from '../../services/openai';
-import { Bot, RefreshCw, AlertCircle } from 'lucide-react';
+import { Bot, RefreshCw, AlertCircle, Loader2 } from 'lucide-react';
 
 const TitleInput = () => {
     const { title, setTitle, keywords, content, suggestedTone, posts, currentPostId } = useEditor();
@@ -46,8 +46,7 @@ const TitleInput = () => {
                     className="title-ai-btn"
                     title={!mainKeyword ? "메인 키워드를 먼저 설정해주세요" : "AI가 SEO 최적화 제목을 추천합니다"}
                 >
-                    <Bot size={13} />
-                    {loading ? '생성 중...' : '타이틀 AI 추천'}
+                    {loading ? <><Loader2 size={13} className="spin" /> 생성 중...</> : <><Bot size={13} /> 타이틀 AI 추천</>}
                 </button>
                 <span className={`title-counter ${title.length > 30 ? 'warning' : ''}`}>
                     {title.length}/25

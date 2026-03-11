@@ -169,7 +169,14 @@ export const AIService = {
                     continue;
                 }
                 console.error('AI Error:', error);
-                throw error;
+                const msg = error.message || '';
+                if (msg.includes('high demand') || msg.includes('overloaded') || msg.includes('503')) {
+                    throw new Error('AI 서버가 일시적으로 바쁩니다. 잠시 후 다시 시도해 주세요.');
+                }
+                if (msg.includes('quota') || msg.includes('limit')) {
+                    throw new Error('이용량이 초과되었습니다. 잠시 후 다시 시도해 주세요.');
+                }
+                throw new Error(msg ? `AI 분석 오류: ${msg.slice(0, 80)}` : 'AI 요청 중 오류가 발생했습니다.');
             }
         }
     },

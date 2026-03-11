@@ -1641,6 +1641,23 @@
     font-weight: 400;
 }
 
+.wizard-summary-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 14px;
+    margin-bottom: 20px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    font-size: 0.8rem;
+    color: var(--color-text-sub);
+}
+
+.wizard-summary-vertical span:first-child {
+    color: var(--color-text-main);
+}
+
 /* ── Button Loading Spinner (공통) ── */
 .btn-loading-spinner {
     display: inline-flex;

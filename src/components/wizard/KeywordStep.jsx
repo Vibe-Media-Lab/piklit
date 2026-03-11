@@ -40,7 +40,7 @@ const DifficultyBadge = ({ difficulty }) => {
         hard: { emoji: '🔴', label: '어려움' },
     };
     const d = map[difficulty] || map.medium;
-    return <span title={d.label} className="difficulty-badge">{d.emoji}</span>;
+    return <span title={d.label} className="difficulty-badge">{d.emoji} {d.label}</span>;
 };
 
 // ── KeywordStep 컴포넌트 ──

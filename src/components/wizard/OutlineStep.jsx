@@ -101,13 +101,10 @@ const OutlineStep = ({
             <p className="wizard-step-desc">
                 AI가 소제목 구조를 생성합니다. 수정 후 본문을 생성하세요.
             </p>
-            <div className="wizard-summary-inline">
-                <span>{mainKeyword}</span>
-                <span className="wizard-summary-dot">·</span>
+            <div className="wizard-summary-vertical">
+                <span><strong>{mainKeyword}</strong></span>
                 <span>서브키워드 {selectedKeywords.length}개</span>
-                <span className="wizard-summary-dot">·</span>
                 <span>{TONES.find(t => t.id === selectedTone)?.label?.replace(/^[^\s]+\s/, '') || '미선택'}</span>
-                <span className="wizard-summary-dot">·</span>
                 <span>사진 {(() => {
                     const total = Object.values(photoData.metadata).reduce((sum, v) => sum + v, 0);
                     return total > 0 ? `${total}장` : '없음';
