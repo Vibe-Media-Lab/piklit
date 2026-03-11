@@ -1946,6 +1946,8 @@
     font-weight: 600;
     display: flex;
     align-items: center;
+    white-space: nowrap;
+    flex-shrink: 0;
     gap: 4px;
     transition: opacity 0.2s;
 }
@@ -4057,7 +4059,7 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
 
 @media (max-width: 768px) {
     .bug-report-fab {
-        bottom: calc(68px + var(--safe-area-bottom));
+        bottom: calc(80px + var(--safe-area-bottom));
         left: 16px;
         width: 36px;
         height: 36px;

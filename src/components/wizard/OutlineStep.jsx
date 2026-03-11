@@ -111,17 +111,13 @@ const OutlineStep = ({
                 })()}</span>
             </div>
 
-            {outlineItems.length === 0 && (
+            {outlineItems.length === 0 && !isGeneratingOutline && (
                 <div className="wizard-section-mb">
                     <button
                         onClick={handleGenerateOutline}
-                        disabled={isGeneratingOutline}
                         className="wizard-btn-accent"
                     >
-                        {isGeneratingOutline
-                            ? <><Loader2 size={16} className="spin" /> 아웃라인 생성 중...</>
-                            : <><Bot size={16} /> AI 아웃라인 생성하기</>
-                        }
+                        <Bot size={16} /> AI 아웃라인 생성하기
                     </button>
                 </div>
             )}

@@ -238,23 +238,17 @@ const KeywordStep = ({
             </div>
 
             {/* ── 1단계: AI 키워드 분석 버튼 (분석 전에만 상단) ── */}
-            {suggestedKeywords.length === 0 && selectedKeywords.length === 0 && (
+            {suggestedKeywords.length === 0 && selectedKeywords.length === 0 && !isAnalyzingKeywords && (
                 <>
                     <button
                         onClick={handleAnalyzeKeywords}
-                        disabled={isAnalyzingKeywords}
                         className="wizard-btn-accent"
                     >
-                        {isAnalyzingKeywords
-                            ? <><Loader2 size={16} className="spin" /> 키워드 분석 중...</>
-                            : <><Bot size={16} /> AI 키워드 분석하기</>
-                        }
+                        <Bot size={16} /> AI 키워드 분석하기
                     </button>
-                    {!isAnalyzingKeywords && (
-                        <p className="wizard-hint-text">
-                            네이버 검색 데이터 기반으로 SEO 키워드를 추천받을 수 있습니다
-                        </p>
-                    )}
+                    <p className="wizard-hint-text">
+                        네이버 검색 데이터 기반으로 SEO 키워드를 추천받을 수 있습니다
+                    </p>
                 </>
             )}
 
@@ -371,12 +365,11 @@ const KeywordStep = ({
                             className="wizard-advanced-toggle"
                             onClick={() => {
                                 setAdvancedOpen(prev => !prev);
-                                const count = parseInt(localStorage.getItem('piklit_advanced_seen') || '0', 10);
-                                localStorage.setItem('piklit_advanced_seen', String(count + 1));
+                                localStorage.setItem('piklit_advanced_opened', '1');
                             }}
                         >
                             <span>고급 옵션</span>
-                            {parseInt(localStorage.getItem('piklit_advanced_seen') || '0', 10) < 2 && !advancedOpen && (
+                            {!localStorage.getItem('piklit_advanced_opened') && !advancedOpen && (
                                 <span className="wizard-advanced-dot" />
                             )}
                             <ChevronDown size={16} className={`wizard-advanced-arrow ${advancedOpen ? 'open' : ''}`} />
@@ -416,12 +409,7 @@ const KeywordStep = ({
                                     </button>
                                 </div>
 
-                                {/* #4: 시즌 프로그레스 간소화 — 버튼 인라인 로딩만 */}
-                                {isAnalyzingSeason && (
-                                    <p className="wizard-hint-text">
-                                        <Loader2 size={14} className="spin" /> 시즌 트렌드를 검색하고 있습니다...
-                                    </p>
-                                )}
+                                {/* 시즌 로딩은 버튼 내 "분석 중..."으로 표시 */}
 
                                 {/* #5: 시즌 카드 3개 기본 + 더 보기 */}
                                 {seasonKeywords.length > 0 && !isAnalyzingSeason && (
