@@ -1716,14 +1716,16 @@ recommendations는 ${hasStats ? '5' : '3'}개.`;
      */
     async analyzeWannabeStyle(url, screenshots = []) {
         if (!url && (!screenshots || screenshots.length === 0)) {
-            throw new Error('URL 또는 스크린샷을 하나 이상 입력해주세요.');
+            throw new Error('스크린샷을 하나 이상 입력해주세요.');
         }
+
+        // 슬롯 위치 라벨 목록 생성
+        const positionList = screenshots.map(s => s.position || '미지정').join(', ');
 
         const prompt = `너는 네이버 블로그 글쓰기 스타일 분석 전문가야.
 
-${url ? `아래 블로그 글을 구글 검색으로 읽고 스타일을 분석해줘.\nURL: ${url}` : ''}
-${screenshots?.length ? `첨부된 스크린샷 ${screenshots.length}장의 블로그 글 스타일을 분석해줘.` : ''}
-${url && screenshots?.length ? '(URL 내용과 스크린샷을 종합 분석할 것)' : ''}
+첨부된 스크린샷 ${screenshots.length}장(${positionList})의 블로그 글 스타일을 분석해줘.
+각 스크린샷에는 블로그 글의 위치(상단/중단/하단/추가)가 표시되어 있다. 위치별 특성을 종합하여 분석하라.
 
 [분석 기준 — 아래 항목을 모두 분석하라]
 
@@ -1787,9 +1789,10 @@ Output strictly a valid JSON:
 
         const parts = [{ text: prompt }];
 
-        // 스크린샷 이미지 추가
+        // 슬롯별 이미지 + 위치 라벨 추가
         if (screenshots?.length) {
             screenshots.forEach(shot => {
+                parts.push({ text: `[이 스크린샷은 블로그 글의 "${shot.position || '미지정'}" 부분입니다]` });
                 parts.push({
                     inline_data: {
                         mime_type: shot.mimeType || 'image/jpeg',
@@ -1799,10 +1802,7 @@ Output strictly a valid JSON:
             });
         }
 
-        // google_search 사용 시 thinkingBudget 제외 (호환성 문제)
-        const options = url
-            ? { tools: [{ google_search: {} }] }
-            : { thinkingBudget: 2048 };
+        const options = { thinkingBudget: 2048 };
 
         const result = await this.generateContent(parts, options, '워너비 스타일 분석');
 
@@ -1845,6 +1845,109 @@ Output strictly a valid JSON:
             summary: raw?.summary || '',
             sampleSentences: raw?.sampleSentences || [],
             checklist,
+        };
+    },
+
+    /**
+     * SEO 체크리스트 이슈 AI 자동 수정
+     * @param {string} htmlContent - 현재 본문 HTML
+     * @param {string} title - 현재 제목
+     * @param {string} mainKeyword - 메인 키워드
+     * @param {string[]} subKeywords - 서브 키워드 배열
+     * @param {Array} issues - 수정할 이슈 목록 [{ id, text, metric }]
+     * @param {string} tone - 글 톤
+     * @returns {Promise<{ title: string, content: string, fixes: string[] }>}
+     */
+    /**
+     * 본문 전체 AI 재작성
+     * @param {string} htmlContent - 현재 본문 HTML
+     * @param {string} mainKeyword - 메인 키워드
+     * @param {string} tone - 글 톤
+     * @param {string} styleRules - 워너비/내 스타일 규칙 문자열
+     * @returns {Promise<{ html: string }>}
+     */
+    async rewriteFullContent(htmlContent, mainKeyword, tone = 'friendly', styleRules = '') {
+        const toneInstruction = this._toneMap[tone] || this._toneMap['friendly'];
+
+        const prompt = `너는 네이버 블로그 전문 작가야. 아래 블로그 글 전체를 같은 주제·구조를 유지하면서 처음부터 다시 작성해줘.
+
+[메인 키워드] ${mainKeyword || '없음'}
+[톤] ${toneInstruction}
+${styleRules}
+
+[현재 본문 HTML]
+${htmlContent}
+
+[재작성 규칙]
+1. 소제목(h2, h3) 구조와 이미지(<img>) 태그는 그대로 유지. 텍스트만 재작성.
+2. 각 섹션의 주제와 순서를 유지하되, 문장은 완전히 새로 작성.
+3. 한 문장은 80자 이내. 80자를 넘길 것 같으면 두 문장으로 나눠.
+4. "다양한", "풍부한", "완벽한", "특별한" 등 AI 냄새나는 수식어 금지.
+5. "살펴보겠습니다", "알아보겠습니다" 금지.
+6. 구체적 수치·감각 표현·개인 경험 톤으로 작성.
+7. 결과는 HTML로 출력. <h2>, <h3>, <p>, <img>, <strong>, <em> 태그 사용.
+
+Output strictly valid HTML only. No JSON wrapping, no explanation.`;
+
+        const result = await this.generateContent(
+            [{ text: prompt }],
+            { rawText: true, thinkingBudget: 4096 },
+            '전체 재작성'
+        );
+
+        const html = result?.text || '';
+        return { html };
+    },
+
+    async fixSeoIssues(htmlContent, title, mainKeyword, subKeywords, issues, tone = 'friendly') {
+        const issueDescriptions = issues.map(i => `- ${i.id}: ${i.text} ${i.metric || ''}`).join('\n');
+
+        const prompt = `너는 네이버 블로그 SEO 전문가야. 아래 블로그 글의 SEO 문제를 수정해줘.
+
+[메인 키워드] ${mainKeyword}
+[서브 키워드] ${subKeywords.join(', ') || '없음'}
+[톤] ${this._toneMap[tone] || this._toneMap['friendly']}
+[현재 제목] ${title}
+
+[수정할 SEO 이슈]
+${issueDescriptions}
+
+[현재 본문 HTML]
+${htmlContent}
+
+[수정 규칙]
+1. 위 이슈들만 정확히 수정해. 이슈와 무관한 내용은 절대 변경하지 마.
+2. 원문의 톤, 스타일, 의미를 최대한 유지해.
+3. title_start: 제목을 메인 키워드로 시작하도록 자연스럽게 재배치.
+4. title_long/title_short: 제목을 10~30자로 조정.
+5. key_density/keyword_density_low: 본문에 메인 키워드를 자연스럽게 추가 삽입.
+6. keyword_density_high/key_density(과다): 과도한 키워드 반복을 유의어로 대체.
+7. key_first: 첫 문단에 메인 키워드를 자연스럽게 포함.
+8. sub_missing: 서브 키워드를 본문에 자연스럽게 녹여넣기.
+9. structure_missing: 적절한 위치에 <h2> 소제목 추가.
+10. heading_keyword: 소제목 중 하나 이상에 메인 키워드 포함.
+11. intro_short: 첫 문단을 140~160자로 확장.
+12. intro_long: 첫 문단을 140~160자로 축약.
+13. 한 문장은 80자 이내. "다양한", "풍부한" 등 AI 냄새나는 수식어 금지.
+14. 이미지(<img>) 태그는 절대 변경하지 마.
+
+Output strictly a valid JSON:
+{
+  "title": "수정된 제목 (변경 없으면 원본 그대로)",
+  "content": "수정된 본문 HTML (변경 없으면 원본 그대로)",
+  "fixes": ["수정 내용 1줄 요약", "수정 내용 1줄 요약"]
+}`;
+
+        const result = await this.generateContent(
+            [{ text: prompt }],
+            { thinkingBudget: 2048 },
+            'SEO 이슈 수정'
+        );
+
+        return {
+            title: result?.title || title,
+            content: result?.content || htmlContent,
+            fixes: result?.fixes || [],
         };
     }
 };

@@ -46,7 +46,9 @@ const MobileAnalysisBar = ({ seoScore, children }) => {
     // "위치 보기" 클릭 시 호출 — 바텀시트 최소화 + 미니바 표시
     const handleLocate = useCallback((suggestionText) => {
         setActiveTab('editor'); // 바텀시트 닫기
-        setMiniBar({ text: suggestionText });
+        if (suggestionText) {
+            setMiniBar({ text: suggestionText });
+        }
     }, []);
 
     // 미니바에서 "SEO 패널 열기" 클릭

@@ -22,8 +22,17 @@ const SidebarGroup = ({ title, defaultOpen = false, children }) => {
     );
 };
 
+// AI 수정 가능한 이슈 ID
+const AI_FIXABLE_IDS = new Set([
+    'title_start', 'title_long', 'title_short',
+    'key_density', 'key_first', 'sub_missing',
+    'structure_missing', 'heading_keyword',
+    'keyword_density_low', 'keyword_density_high',
+    'intro_short', 'intro_long',
+]);
+
 const AIAnalysisDashboard = ({ onLocate, compact }) => {
-    const { analysis, content, recordAiAction } = useEditor();
+    const { analysis, content, title, setTitle, setContent, keywords, suggestedTone, recordAiAction } = useEditor();
     const { checks, issues, keywordDensity, introLength, headingCount } = analysis;
     const score = Object.values(checks).filter(Boolean).length;
     const maxScore = Object.keys(checks).length || 1;
@@ -31,10 +40,39 @@ const AIAnalysisDashboard = ({ onLocate, compact }) => {
     const { showToast } = useToast();
 
     const [loading, setLoading] = useState(false);
+    const [seoFixLoading, setSeoFixLoading] = useState(false);
     const [extractedTags, setExtractedTags] = useState([]);
     const [copiedTag, setCopiedTag] = useState(null);
     const [copiedAll, setCopiedAll] = useState(false);
     const [activeMetric, setActiveMetric] = useState(null);
+
+    const fixableIssues = issues.filter(i => AI_FIXABLE_IDS.has(i.id));
+
+    const handleFixSeoIssues = async () => {
+        if (fixableIssues.length === 0) return;
+        setSeoFixLoading(true);
+        recordAiAction('seoFix');
+        try {
+            const subKeywords = keywords.sub?.filter(k => k.trim()) || [];
+            const result = await AIService.fixSeoIssues(
+                content, title, keywords.main, subKeywords, fixableIssues, suggestedTone || 'friendly'
+            );
+
+            if (result.title && result.title !== title) {
+                setTitle(result.title);
+            }
+            if (result.content && result.content !== content) {
+                setContent(result.content);
+            }
+
+            const fixCount = result.fixes?.length || fixableIssues.length;
+            showToast(`SEO 이슈 ${fixCount}건 수정 완료`, 'success');
+        } catch (e) {
+            showToast('SEO 수정 오류: ' + e.message, 'error');
+        } finally {
+            setSeoFixLoading(false);
+        }
+    };
 
     const handleExtractTags = async () => {
         if (content.length < 50) return showToast("본문 내용을 좀 더 작성해주세요.", "warning");
@@ -128,15 +166,30 @@ const AIAnalysisDashboard = ({ onLocate, compact }) => {
                     {issues.length === 0 ? (
                         <div className="dashboard-perfect">완벽합니다!</div>
                     ) : (
-                        <ul className="dashboard-issues">
-                            {issues.map((issue, idx) => (
-                                <li key={idx} className={`dashboard-issue dashboard-issue-${issue.type}`}>
-                                    <span className="dashboard-issue-icon">{issue.type === 'error' ? '❌' : issue.type === 'warning' ? '⚠' : 'ℹ'}</span>
-                                    <span className="dashboard-issue-text">{issue.text}</span>
-                                    {issue.metric && <span className="dashboard-issue-metric">{issue.metric}</span>}
-                                </li>
-                            ))}
-                        </ul>
+                        <>
+                            <ul className="dashboard-issues">
+                                {issues.map((issue, idx) => (
+                                    <li key={idx} className={`dashboard-issue dashboard-issue-${issue.type}`}>
+                                        <span className="dashboard-issue-icon">{issue.type === 'error' ? '❌' : issue.type === 'warning' ? '⚠' : 'ℹ'}</span>
+                                        <span className="dashboard-issue-text">{issue.text}</span>
+                                        {issue.metric && <span className="dashboard-issue-metric">{issue.metric}</span>}
+                                        {AI_FIXABLE_IDS.has(issue.id) && <span className="dashboard-issue-ai-badge">AI</span>}
+                                    </li>
+                                ))}
+                            </ul>
+                            {fixableIssues.length > 0 && (
+                                <button
+                                    className="dashboard-seo-fix-btn"
+                                    onClick={handleFixSeoIssues}
+                                    disabled={seoFixLoading}
+                                >
+                                    {seoFixLoading
+                                        ? <span className="btn-loading-spinner"><Loader2 size={14} className="spin" /> 수정 중...</span>
+                                        : `AI SEO 자동 수정 (${fixableIssues.length}건)`
+                                    }
+                                </button>
+                            )}
+                        </>
                     )}
                 </div>
 

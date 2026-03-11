@@ -22,8 +22,8 @@ const GRADE_LABELS = {
     '-': '분석 대기'
 };
 
-const HumannessPanel = () => {
-    const { content, suggestedTone, keywords, recordAiAction, editorRef } = useEditor();
+const HumannessPanel = ({ onLocate }) => {
+    const { content, suggestedTone, keywords, recordAiAction, editorRef, setHumanTip } = useEditor();
     const { showToast } = useToast();
     const [isOpen, setIsOpen] = useState(true);
     const [aiLoading, setAiLoading] = useState(false);
@@ -67,34 +67,35 @@ const HumannessPanel = () => {
         }
     }, [content, keywords.main, recordAiAction, showToast]);
 
-    // 원문 클릭 시 에디터에서 해당 위치로 스크롤 + 형광펜 깜빡임
-    const handleLocateOriginal = useCallback((suggestion) => {
-        const editor = editorRef?.current;
-        if (!editor) return;
+    // 원문 클릭 시 바텀시트 닫기 → 에디터 형광펜 + TIP 카드 표시
+    const handleLocateOriginal = useCallback((suggestion, index) => {
+        // TIP 데이터를 context에 설정 (TiptapEditor에서 TIP 카드 렌더링)
+        setHumanTip({ ...suggestion, index });
 
-        const { original } = suggestion;
-        if (!original) return;
+        // 모바일: 바텀시트 닫기 (미니바 없이 TIP 카드만 표시하도록 빈 문자열)
+        if (onLocate) onLocate(null);
 
-        // 에디터 DOM에서 원문 텍스트가 포함된 요소 찾기
-        const editorEl = document.querySelector('.tiptap-content-area');
-        if (!editorEl) return;
+        // 약간의 딜레이 후 스크롤 + 형광펜 (바텀시트 닫힘 애니메이션 대기)
+        setTimeout(() => {
+            const editorEl = document.querySelector('.tiptap-content-area');
+            if (!editorEl) return;
 
-        // 이전 하이라이트 제거
-        editorEl.querySelectorAll('.readability-blink-highlight').forEach(el => {
-            el.classList.remove('readability-blink-highlight');
-        });
+            // 이전 하이라이트 제거
+            editorEl.querySelectorAll('.humanness-inline-highlight').forEach(el => {
+                el.classList.remove('humanness-inline-highlight');
+            });
 
-        const searchText = original.trim().slice(0, 30);
-        const paragraphs = editorEl.querySelectorAll('p');
-        for (const p of paragraphs) {
-            if (p.textContent.includes(searchText)) {
-                p.classList.add('readability-blink-highlight');
-                p.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                setTimeout(() => p.classList.remove('readability-blink-highlight'), 3300);
-                break;
+            const searchText = (suggestion.original || '').trim().slice(0, 30);
+            const paragraphs = editorEl.querySelectorAll('p');
+            for (const p of paragraphs) {
+                if (p.textContent.includes(searchText)) {
+                    p.classList.add('humanness-inline-highlight');
+                    p.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    break;
+                }
             }
-        }
-    }, [editorRef]);
+        }, 350);
+    }, [setHumanTip, onLocate]);
 
     const handleApplySuggestion = useCallback((suggestion, index) => {
         const editor = editorRef?.current;
@@ -245,7 +246,7 @@ const HumannessPanel = () => {
                                             <div key={i} className={`humanness-ai-card ${isApplied ? 'humanness-ai-card-applied' : ''}`}>
                                                 <div
                                                     className="humanness-ai-original humanness-ai-locatable"
-                                                    onClick={() => handleLocateOriginal(s)}
+                                                    onClick={() => handleLocateOriginal(s, i)}
                                                     title="클릭하면 본문에서 위치를 찾아줍니다"
                                                 >{s.original}</div>
                                                 <div className="humanness-ai-arrow">

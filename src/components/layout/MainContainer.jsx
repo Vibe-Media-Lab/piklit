@@ -16,7 +16,7 @@ const MobilePanelContent = ({ activeTab, onLocate }) => {
         case 'readability':
             return <ReadabilityPanel onLocate={onLocate} />;
         case 'humanness':
-            return <HumannessPanel />;
+            return <HumannessPanel onLocate={onLocate} />;
         case 'thumbnail':
             return <ThumbnailPanel />;
         default:

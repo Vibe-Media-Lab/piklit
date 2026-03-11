@@ -62,71 +62,131 @@
     gap: 20px;
 }
 
-/* ─── Input Section ───────────────────────────────── */
-.wannabe-input-section {
+/* ─── Type Segment ───────────────────────────────── */
+.wannabe-type-segment {
     display: flex;
-    flex-direction: column;
-    gap: 8px;
+    background: var(--color-surface-hover, #F0F0F0);
+    border-radius: 10px;
+    padding: 3px;
+    gap: 2px;
 }
 
-.wannabe-input-label {
+.wannabe-type-btn {
+    flex: 1;
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
     font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-text-sub);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.wannabe-type-btn.active {
+    background: white;
+    color: var(--color-brand, #FF6B35);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.wannabe-type-desc {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-sub);
+    margin: 0;
+    text-align: center;
+}
+
+/* ─── Slot Grid ──────────────────────────────────── */
+.wannabe-slot-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.wannabe-slot {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.wannabe-slot-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.78rem;
     font-weight: 600;
     color: var(--color-text-main);
 }
 
-.wannabe-url-input {
+.wannabe-slot-icon {
+    font-size: 0.7rem;
+    color: var(--color-brand, #FF6B35);
+}
+
+.wannabe-slot-required {
+    font-size: 0.6rem;
+    color: var(--color-brand, #FF6B35);
+    font-weight: 700;
+}
+
+.wannabe-slot-empty {
     width: 100%;
-    padding: 10px 14px;
-    border: 1px solid var(--color-border);
+    aspect-ratio: 3/4;
+    border: 2px dashed var(--color-border);
     border-radius: var(--radius-md);
-    font-size: var(--font-size-sm);
-    color: var(--color-text-main);
-    outline: none;
-    transition: border-color 0.2s;
-}
-
-.wannabe-url-input:focus {
-    border-color: var(--color-brand);
-}
-
-.wannabe-notice {
+    background: none;
+    cursor: pointer;
     display: flex;
+    flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 4px;
-    font-size: 0.75rem;
     color: var(--color-text-sub);
+    font-size: 0.7rem;
+    transition: border-color 0.2s, color 0.2s;
 }
 
-/* ─── Screenshots ─────────────────────────────────── */
-.wannabe-screenshots {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+.wannabe-slot-empty:hover {
+    border-color: var(--color-brand);
+    color: var(--color-brand);
 }
 
-.wannabe-screenshot-thumb {
+.wannabe-slot-empty.small {
+    aspect-ratio: 1;
+    width: 56px;
+    height: 56px;
+}
+
+.wannabe-slot-thumb {
     position: relative;
-    width: 72px;
-    height: 72px;
+    width: 100%;
+    aspect-ratio: 3/4;
     border-radius: var(--radius-md);
     overflow: hidden;
     border: 1px solid var(--color-border);
 }
 
-.wannabe-screenshot-thumb img {
+.wannabe-slot-thumb.small {
+    width: 56px;
+    height: 56px;
+    aspect-ratio: 1;
+}
+
+.wannabe-slot-thumb img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.wannabe-screenshot-thumb button {
+.wannabe-slot-remove {
     position: absolute;
-    top: 2px;
-    right: 2px;
+    top: 3px;
+    right: 3px;
     width: 20px;
     height: 20px;
     border-radius: 50%;
@@ -139,26 +199,38 @@
     justify-content: center;
 }
 
-.wannabe-add-screenshot {
-    width: 72px;
-    height: 72px;
-    border-radius: var(--radius-md);
-    border: 2px dashed var(--color-border);
-    background: none;
-    cursor: pointer;
+/* ─── Extras ─────────────────────────────────────── */
+.wannabe-extras {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 2px;
-    color: var(--color-text-sub);
-    font-size: 0.7rem;
-    transition: border-color 0.2s, color 0.2s;
+    gap: 8px;
 }
 
-.wannabe-add-screenshot:hover {
-    border-color: var(--color-brand);
-    color: var(--color-brand);
+.wannabe-extras-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--color-text-sub);
+}
+
+.wannabe-extras-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* ─── MyStyle card variant ───────────────────────── */
+.wannabe-preset-card.mystyle {
+    border-color: var(--color-accent, #2EAADC);
+}
+
+.wannabe-preset-card.mystyle.selected {
+    border-color: var(--color-accent, #2EAADC);
+    background: #E8F6FC;
+    box-shadow: 0 0 0 1px var(--color-accent, #2EAADC);
+}
+
+.wannabe-preset-card.mystyle .wannabe-preset-card-name {
+    color: var(--color-accent, #2EAADC);
 }
 
 /* ─── Analyze Button ──────────────────────────────── */

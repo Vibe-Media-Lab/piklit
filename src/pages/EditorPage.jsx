@@ -99,6 +99,7 @@ const EditorPage = () => {
     const [selectedTone, setToneState] = useState(null);
     const [paragraphStyle, setParagraphStyle] = useState('normal');
     const [selectedWannabeStyle, setSelectedWannabeStyle] = useState(null);
+    const [selectedMyStyle, setSelectedMyStyle] = useState(null);
     const [userPlan, setUserPlan] = useState('free');
     const { user, isAdmin } = useAuth();
 
@@ -158,6 +159,7 @@ const EditorPage = () => {
             setToneState(null);
             setParagraphStyle('normal');
             setSelectedWannabeStyle(null);
+            setSelectedMyStyle(null);
             setShowCompletionCard(false);
             setCompletionStats(null);
         }
@@ -495,7 +497,7 @@ const EditorPage = () => {
                 photoAnalysis,
                 competitorData,
                 outlineItems.length > 0 ? outlineItems : null,
-                buildStyleRules(selectedWannabeStyle),
+                buildStyleRules(selectedWannabeStyle) + buildStyleRules(selectedMyStyle),
                 paragraphStyle || 'normal',
                 verifiedDetails
             );
@@ -631,6 +633,8 @@ const EditorPage = () => {
                                 setCompetitorData={setCompetitorData}
                                 selectedWannabeStyle={selectedWannabeStyle}
                                 setSelectedWannabeStyle={setSelectedWannabeStyle}
+                                selectedMyStyle={selectedMyStyle}
+                                setSelectedMyStyle={setSelectedMyStyle}
                                 userPlan={userPlan || 'free'}
                                 onPrev={() => setAiStep(2)}
                                 onNext={() => setAiStep(4)}

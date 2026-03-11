@@ -8,7 +8,7 @@ import { useToast } from '../common/Toast';
 import { AIService } from '../../services/openai';
 import CompetitorAnalysis from '../analysis/CompetitorAnalysis';
 import WannabeStylePanel, { WannabePresetCard } from '../editor/WannabeStylePanel';
-import { getPresets, deletePreset, getPresetLimit } from '../../utils/wannabeStyle';
+import { deletePreset, getPresetsByType } from '../../utils/wannabeStyle';
 import { recommendLength, LENGTH_OPTIONS } from './KeywordStep';
 import '../../styles/WannabeStyle.css';
 
@@ -44,6 +44,8 @@ const ToneStep = ({
     setCompetitorData,
     selectedWannabeStyle,
     setSelectedWannabeStyle,
+    selectedMyStyle,
+    setSelectedMyStyle,
     userPlan,
     onPrev,
     onNext,
@@ -53,11 +55,11 @@ const ToneStep = ({
     const { showToast } = useToast();
 
     const [showWannabeModal, setShowWannabeModal] = useState(false);
-    const [wannabePresets, setWannabePresets] = useState(() => getPresets());
+    const [wannabeModalType, setWannabeModalType] = useState('wannabe');
+    const [wannabePresets, setWannabePresets] = useState(() => getPresetsByType('wannabe'));
+    const [myStylePresets, setMyStylePresets] = useState(() => getPresetsByType('mystyle'));
     const [isAnalyzingCompetitors, setIsAnalyzingCompetitors] = useState(false);
     const [advancedOpen, setAdvancedOpen] = useState(false);
-
-    const limit = getPresetLimit(userPlan || 'free');
 
     const handleAnalyzeCompetitors = async () => {
         if (!mainKeyword?.trim()) return showToast('메인 키워드를 먼저 입력해주세요.', 'warning');
@@ -189,6 +191,7 @@ const ToneStep = ({
                     <span className="wizard-advanced-badges">
                         {competitorData && <span className="wizard-advanced-badge done">경쟁분석 완료</span>}
                         {selectedWannabeStyle && <span className="wizard-advanced-badge done">워너비 적용</span>}
+                        {selectedMyStyle && <span className="wizard-advanced-badge done">내 스타일 적용</span>}
                     </span>
                     <ChevronDown size={14} className={`wizard-advanced-arrow ${advancedOpen ? 'open' : ''}`} />
                 </button>
@@ -207,6 +210,9 @@ const ToneStep = ({
 
                         {/* 워너비 스타일 */}
                         <div className="wizard-advanced-item">
+                            <label className="wizard-label" style={{ marginBottom: 8 }}>
+                                <Sparkles size={14} /> 워너비 스타일
+                            </label>
                             {wannabePresets.length > 0 && (
                                 <div className="wannabe-preset-grid-compact">
                                     {wannabePresets.map(p => (
@@ -215,18 +221,12 @@ const ToneStep = ({
                                             preset={p}
                                             selected={selectedWannabeStyle?.id === p.id}
                                             onSelect={(preset) => {
-                                                if (selectedWannabeStyle?.id === preset.id) {
-                                                    setSelectedWannabeStyle(null);
-                                                } else {
-                                                    setSelectedWannabeStyle(preset);
-                                                }
+                                                setSelectedWannabeStyle(selectedWannabeStyle?.id === preset.id ? null : preset);
                                             }}
                                             onDelete={(id) => {
                                                 deletePreset(id);
-                                                setWannabePresets(getPresets());
-                                                if (selectedWannabeStyle?.id === id) {
-                                                    setSelectedWannabeStyle(null);
-                                                }
+                                                setWannabePresets(getPresetsByType('wannabe'));
+                                                if (selectedWannabeStyle?.id === id) setSelectedWannabeStyle(null);
                                             }}
                                         />
                                     ))}
@@ -234,12 +234,41 @@ const ToneStep = ({
                             )}
                             <button
                                 className="wannabe-analyze-compact"
-                                onClick={() => setShowWannabeModal(true)}
+                                onClick={() => { setWannabeModalType('wannabe'); setShowWannabeModal(true); }}
                             >
                                 <Wand2 size={14} /> 워너비 스타일 분석하기
-                                {wannabePresets.length > 0 && (
-                                    <span className="wannabe-usage-badge-inline">{wannabePresets.length}/{limit}</span>
-                                )}
+                            </button>
+                        </div>
+
+                        {/* 내 스타일 */}
+                        <div className="wizard-advanced-item">
+                            <label className="wizard-label" style={{ marginBottom: 8 }}>
+                                👤 내 스타일
+                            </label>
+                            {myStylePresets.length > 0 && (
+                                <div className="wannabe-preset-grid-compact">
+                                    {myStylePresets.map(p => (
+                                        <WannabePresetCard
+                                            key={p.id}
+                                            preset={p}
+                                            selected={selectedMyStyle?.id === p.id}
+                                            onSelect={(preset) => {
+                                                setSelectedMyStyle(selectedMyStyle?.id === preset.id ? null : preset);
+                                            }}
+                                            onDelete={(id) => {
+                                                deletePreset(id);
+                                                setMyStylePresets(getPresetsByType('mystyle'));
+                                                if (selectedMyStyle?.id === id) setSelectedMyStyle(null);
+                                            }}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+                            <button
+                                className="wannabe-analyze-compact"
+                                onClick={() => { setWannabeModalType('mystyle'); setShowWannabeModal(true); }}
+                            >
+                                <Wand2 size={14} /> 내 스타일 분석하기
                             </button>
                         </div>
                     </div>
@@ -250,9 +279,15 @@ const ToneStep = ({
             <WannabeStylePanel
                 isOpen={showWannabeModal}
                 onClose={() => setShowWannabeModal(false)}
+                initialType={wannabeModalType}
                 onSave={(preset) => {
-                    setWannabePresets(getPresets());
-                    setSelectedWannabeStyle(preset);
+                    if ((preset.type || 'wannabe') === 'mystyle') {
+                        setMyStylePresets(getPresetsByType('mystyle'));
+                        setSelectedMyStyle(preset);
+                    } else {
+                        setWannabePresets(getPresetsByType('wannabe'));
+                        setSelectedWannabeStyle(preset);
+                    }
                     recordAiAction('wannabeStyleAnalysis');
                     showToast('스타일 분석 완료! 프리셋이 저장되었습니다.');
                 }}

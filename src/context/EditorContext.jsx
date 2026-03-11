@@ -33,6 +33,7 @@ export const EditorProvider = ({ children }) => {
     const [suggestedTone, setSuggestedTone] = useState('friendly');
     const [targetLength, setTargetLength] = useState(1500);
     const [photoPreviewUrls, setPhotoPreviewUrls] = useState([]);
+    const [humanTip, setHumanTip] = useState(null); // { original, revised, reason, index }
     const editorRef = React.useRef(null);
     const lastCursorPosRef = React.useRef(null);
 
@@ -338,9 +339,13 @@ export const EditorProvider = ({ children }) => {
         photoPreviewUrls,
         setPhotoPreviewUrls,
 
+        // 휴먼라이징 인라인 TIP
+        humanTip,
+        setHumanTip,
+
         // 에디터 이탈 방지 가드
         navigationGuardRef,
-    }), [posts, currentPostId, createPost, openPostStable, savePost, deletePost, revertPost, keywords, updateMainKeyword, updateSubKeyword, updateSubKeywords, title, content, analysis, suggestedTone, targetLength, closeSession, recordAiAction, updatePostMeta, photoPreviewUrls]);
+    }), [posts, currentPostId, createPost, openPostStable, savePost, deletePost, revertPost, keywords, updateMainKeyword, updateSubKeyword, updateSubKeywords, title, content, analysis, suggestedTone, targetLength, closeSession, recordAiAction, updatePostMeta, photoPreviewUrls, humanTip]);
 
     return (
         <EditorContext.Provider value={value}>

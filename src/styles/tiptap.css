@@ -25,6 +25,41 @@
     z-index: 40;
 }
 
+/* AI 전체 재작성 바 */
+.editor-rewrite-bar {
+    display: flex;
+    justify-content: flex-end;
+    padding: 4px 12px;
+    background: var(--color-surface);
+    border-top: 1px solid var(--color-border);
+    order: 11;
+}
+
+.editor-rewrite-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    background: none;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--color-brand, #FF6B35);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.editor-rewrite-btn:hover:not(:disabled) {
+    background: var(--color-brand-light, #FFF3ED);
+    border-color: var(--color-brand, #FF6B35);
+}
+
+.editor-rewrite-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 .toolbar-group {
     display: flex;
     gap: 4px;
@@ -1125,6 +1160,132 @@
 .humanness-ai-card-applied .humanness-ai-original {
     text-decoration: line-through;
     opacity: 0.5;
+}
+
+/* ===== 휴먼라이징 인라인 TIP ===== */
+.tiptap-content-area .humanness-inline-highlight {
+    background: #FFF3CD;
+    border-radius: 4px;
+    box-shadow: 0 0 0 3px #FFF3CD;
+    transition: background 0.3s;
+}
+
+.humanness-tip-card {
+    position: absolute;
+    z-index: 50;
+    top: 120px;
+    left: 16px;
+    max-width: 340px;
+    width: calc(100% - 32px);
+    background: white;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    animation: tipFadeIn 0.2s ease;
+}
+
+@keyframes tipFadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.humanness-tip-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.humanness-tip-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--color-brand, #FF6B35);
+}
+
+.humanness-tip-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #999;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    border-radius: 4px;
+}
+
+.humanness-tip-close:hover {
+    background: var(--color-surface-hover, #F0F0F0);
+}
+
+.humanness-tip-original {
+    font-size: 0.82rem;
+    color: #999;
+    text-decoration: line-through;
+    line-height: 1.5;
+}
+
+.humanness-tip-arrow {
+    font-size: 0.8rem;
+    color: var(--color-brand, #FF6B35);
+    text-align: center;
+}
+
+.humanness-tip-revised {
+    font-size: 0.84rem;
+    color: var(--color-text-main);
+    font-weight: 500;
+    line-height: 1.5;
+    background: #FFF3ED;
+    padding: 8px 10px;
+    border-radius: 6px;
+}
+
+.humanness-tip-reason {
+    font-size: 0.72rem;
+    color: white;
+    background: var(--color-brand, #FF6B35);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 500;
+    align-self: flex-start;
+}
+
+.humanness-tip-apply {
+    width: 100%;
+    padding: 8px;
+    background: var(--color-brand, #FF6B35);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: opacity 0.2s;
+}
+
+.humanness-tip-apply:hover {
+    opacity: 0.9;
+}
+
+/* 모바일: TIP 카드 하단 고정 */
+@media (max-width: 768px) {
+    .humanness-tip-card {
+        position: fixed;
+        bottom: 80px;
+        left: 16px;
+        right: 16px;
+        top: auto !important;
+        max-width: none;
+        width: auto;
+        z-index: 100;
+    }
 }
 
 /* ===== Mobile: 문단 AI 버튼 ===== */

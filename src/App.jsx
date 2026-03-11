@@ -15,13 +15,29 @@ import './styles/components.css';
 
 installConsoleCapture();
 
-const LandingPage = React.lazy(() => import('./pages/LandingPage'));
-const PostListPage = React.lazy(() => import('./pages/PostListPage'));
-const EditorPage = React.lazy(() => import('./pages/EditorPage'));
-const HistoryPage = React.lazy(() => import('./pages/HistoryPage'));
-const AdminBugsPage = React.lazy(() => import('./pages/AdminBugsPage'));
-const AdminBetaPage = React.lazy(() => import('./pages/AdminBetaPage'));
-const AdminUsersPage = React.lazy(() => import('./pages/AdminUsersPage'));
+// 청크 로드 실패 시 자동 새로고침 (배포 후 캐시 불일치 방지)
+const safeImport = (importFn) => () =>
+    importFn().catch(() => {
+        const reloaded = sessionStorage.getItem('chunk_reload');
+        if (!reloaded) {
+            sessionStorage.setItem('chunk_reload', '1');
+            window.location.reload();
+            return new Promise(() => {}); // reload 중 빈 Promise
+        }
+        sessionStorage.removeItem('chunk_reload');
+        return Promise.reject(new Error('페이지를 불러올 수 없습니다. 새로고침해주세요.'));
+    });
+
+// 정상 로드 시 플래그 제거
+sessionStorage.removeItem('chunk_reload');
+
+const LandingPage = React.lazy(safeImport(() => import('./pages/LandingPage')));
+const PostListPage = React.lazy(safeImport(() => import('./pages/PostListPage')));
+const EditorPage = React.lazy(safeImport(() => import('./pages/EditorPage')));
+const HistoryPage = React.lazy(safeImport(() => import('./pages/HistoryPage')));
+const AdminBugsPage = React.lazy(safeImport(() => import('./pages/AdminBugsPage')));
+const AdminBetaPage = React.lazy(safeImport(() => import('./pages/AdminBetaPage')));
+const AdminUsersPage = React.lazy(safeImport(() => import('./pages/AdminUsersPage')));
 
 // 베타 만료 감지 훅
 const useBetaExpired = () => {

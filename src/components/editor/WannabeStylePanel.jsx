@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { X, Link, ImagePlus, Sparkles, Trash2, ChevronDown, ChevronUp, Save, AlertCircle } from 'lucide-react';
+import { X, ImagePlus, Sparkles, Trash2, ChevronDown, ChevronUp, Save, Camera } from 'lucide-react';
 import { AIService } from '../../services/openai';
 import { getPresets, savePreset, getPresetLimit } from '../../utils/wannabeStyle';
 
@@ -9,6 +9,14 @@ const GROUP_LABELS = {
     vocabulary: '어휘',
     seo: 'SEO',
 };
+
+const SLOTS = [
+    { id: 'top', label: '상단', desc: '제목·도입부', required: true, icon: '↑' },
+    { id: 'mid', label: '중단', desc: '본문 스타일', required: true, icon: '≡' },
+    { id: 'bottom', label: '하단', desc: '마무리·CTA', required: false, icon: '↓' },
+];
+
+const MAX_EXTRA = 3;
 
 /** 체크리스트 그룹 (접이식) */
 const ChecklistGroup = ({ groupKey, items, onToggle }) => {
@@ -41,66 +49,109 @@ const ChecklistGroup = ({ groupKey, items, onToggle }) => {
 };
 
 /**
- * 워너비 스타일 분석 모달
- * - URL 입력 + 스크린샷 첨부 → AI 분석 → 체크리스트 → 프리셋 저장
+ * 워너비 / 내 스타일 분석 모달
+ * - 슬롯형 스크린샷 (상단/중단/하단 + 추가 3장) → AI 분석 → 체크리스트 → 프리셋 저장
  */
-export default function WannabeStylePanel({ isOpen, onClose, onSave, userPlan = 'free' }) {
-    const [url, setUrl] = useState('');
-    const [screenshots, setScreenshots] = useState([]); // [{file, preview, base64, mimeType}]
+export default function WannabeStylePanel({ isOpen, onClose, onSave, userPlan = 'free', initialType = 'wannabe' }) {
+    const [styleType, setStyleType] = useState(initialType);
+    // 슬롯 데이터: { top: {preview, base64, mimeType}, mid: ..., bottom: ... }
+    const [slots, setSlots] = useState({});
+    // 추가 이미지: [{preview, base64, mimeType}]
+    const [extras, setExtras] = useState([]);
     const [analyzing, setAnalyzing] = useState(false);
-    const [result, setResult] = useState(null); // { summary, sampleSentences, checklist }
+    const [result, setResult] = useState(null);
     const [presetName, setPresetName] = useState('');
     const [error, setError] = useState('');
     const fileInputRef = useRef(null);
+    const activeSlotRef = useRef(null); // 현재 클릭한 슬롯 ID
 
     const presets = getPresets();
     const limit = getPresetLimit(userPlan);
     const canSave = presets.length < limit;
 
-    // 스크린샷 추가
-    const handleScreenshots = useCallback((e) => {
-        const files = Array.from(e.target.files);
-        files.forEach(file => {
-            const reader = new FileReader();
-            reader.onload = () => {
-                const base64 = reader.result.split(',')[1];
-                setScreenshots(prev => [...prev, {
-                    file,
-                    preview: URL.createObjectURL(file),
-                    base64,
-                    mimeType: file.type || 'image/jpeg',
-                }]);
+    const filledSlotCount = SLOTS.filter(s => slots[s.id]).length + extras.length;
+    const hasRequired = !!slots.top && !!slots.mid;
+
+    // 파일 선택 핸들러
+    const handleFileSelect = useCallback((e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = () => {
+            const base64 = reader.result.split(',')[1];
+            const data = {
+                preview: URL.createObjectURL(file),
+                base64,
+                mimeType: file.type || 'image/jpeg',
             };
-            reader.readAsDataURL(file);
-        });
+
+            const slotId = activeSlotRef.current;
+            if (slotId === 'extra') {
+                setExtras(prev => [...prev, data]);
+            } else {
+                setSlots(prev => {
+                    // 기존 preview URL 해제
+                    if (prev[slotId]?.preview) URL.revokeObjectURL(prev[slotId].preview);
+                    return { ...prev, [slotId]: data };
+                });
+            }
+        };
+        reader.readAsDataURL(file);
         e.target.value = '';
     }, []);
 
-    const removeScreenshot = useCallback((idx) => {
-        setScreenshots(prev => {
-            const next = [...prev];
-            URL.revokeObjectURL(next[idx].preview);
-            next.splice(idx, 1);
+    const triggerFileInput = (slotId) => {
+        activeSlotRef.current = slotId;
+        fileInputRef.current?.click();
+    };
+
+    const removeSlot = (slotId) => {
+        setSlots(prev => {
+            if (prev[slotId]?.preview) URL.revokeObjectURL(prev[slotId].preview);
+            const next = { ...prev };
+            delete next[slotId];
             return next;
         });
-    }, []);
+    };
+
+    const removeExtra = (idx) => {
+        setExtras(prev => {
+            URL.revokeObjectURL(prev[idx].preview);
+            return prev.filter((_, i) => i !== idx);
+        });
+    };
 
     // AI 분석 실행
     const handleAnalyze = async () => {
-        if (!url && screenshots.length === 0) {
-            setError('URL 또는 스크린샷을 입력해주세요.');
+        if (!hasRequired) {
+            setError('상단, 중단 스크린샷은 필수입니다.');
             return;
         }
         setError('');
         setAnalyzing(true);
         try {
-            const shotAssets = screenshots.map(s => ({ base64: s.base64, mimeType: s.mimeType }));
-            const analysisResult = await AIService.analyzeWannabeStyle(
-                url || null,
-                shotAssets.length > 0 ? shotAssets : null
-            );
+            // 슬롯별 이미지 + 위치 라벨 조합
+            const slotAssets = [];
+            SLOTS.forEach(s => {
+                if (slots[s.id]) {
+                    slotAssets.push({
+                        base64: slots[s.id].base64,
+                        mimeType: slots[s.id].mimeType,
+                        position: s.label, // 상단/중단/하단
+                    });
+                }
+            });
+            extras.forEach((ex, i) => {
+                slotAssets.push({
+                    base64: ex.base64,
+                    mimeType: ex.mimeType,
+                    position: `추가 ${i + 1}`,
+                });
+            });
+
+            const analysisResult = await AIService.analyzeWannabeStyle(null, slotAssets);
             setResult(analysisResult);
-            // 프리셋 이름 자동 제안
             if (analysisResult.summary && !presetName) {
                 setPresetName(analysisResult.summary.slice(0, 20));
             }
@@ -132,9 +183,9 @@ export default function WannabeStylePanel({ isOpen, onClose, onSave, userPlan = 
         try {
             const preset = savePreset({
                 name: presetName.trim(),
+                type: styleType,
                 summary: result.summary,
                 sampleSentences: result.sampleSentences,
-                sourceUrl: url || null,
                 checklist: result.checklist,
             }, userPlan);
             onSave?.(preset);
@@ -144,89 +195,139 @@ export default function WannabeStylePanel({ isOpen, onClose, onSave, userPlan = 
         }
     };
 
+    // 모달 닫을 때 초기화
+    const handleClose = () => {
+        // base64 메모리 해제
+        Object.values(slots).forEach(s => s?.preview && URL.revokeObjectURL(s.preview));
+        extras.forEach(e => e?.preview && URL.revokeObjectURL(e.preview));
+        setSlots({});
+        setExtras([]);
+        setResult(null);
+        setPresetName('');
+        setError('');
+        onClose();
+    };
+
     if (!isOpen) return null;
 
+    const typeLabel = styleType === 'mystyle' ? '내 스타일' : '워너비 스타일';
+
     return (
-        <div className="wannabe-overlay" onClick={onClose}>
+        <div className="wannabe-overlay" onClick={handleClose}>
             <div className="wannabe-modal" onClick={e => e.stopPropagation()}>
                 {/* 헤더 */}
                 <div className="wannabe-modal-header">
-                    <h3>워너비 스타일 분석</h3>
-                    <button className="wannabe-close-btn" onClick={onClose}>
+                    <h3>스타일 분석</h3>
+                    <button className="wannabe-close-btn" onClick={handleClose}>
                         <X size={18} />
                     </button>
                 </div>
 
                 <div className="wannabe-modal-body">
+                    {/* 타입 세그먼트 */}
+                    <div className="wannabe-type-segment">
+                        <button
+                            className={`wannabe-type-btn ${styleType === 'wannabe' ? 'active' : ''}`}
+                            onClick={() => setStyleType('wannabe')}
+                        >
+                            <Sparkles size={14} /> 워너비 스타일
+                        </button>
+                        <button
+                            className={`wannabe-type-btn ${styleType === 'mystyle' ? 'active' : ''}`}
+                            onClick={() => setStyleType('mystyle')}
+                        >
+                            <Camera size={14} /> 내 스타일
+                        </button>
+                    </div>
+
+                    <p className="wannabe-type-desc">
+                        {styleType === 'wannabe'
+                            ? '따라하고 싶은 블로거의 글을 스크린샷으로 올려주세요.'
+                            : '내가 평소 쓰던 블로그 글을 스크린샷으로 올려주세요.'
+                        }
+                    </p>
+
                     {!result ? (
                         /* 입력 단계 */
                         <>
-                            {/* URL 입력 */}
-                            <div className="wannabe-input-section">
-                                <label className="wannabe-input-label">
-                                    <Link size={14} /> 블로그 URL
-                                </label>
-                                <input
-                                    type="url"
-                                    className="wannabe-url-input"
-                                    placeholder="https://blog.naver.com/..."
-                                    value={url}
-                                    onChange={e => setUrl(e.target.value)}
-                                />
-                                <p className="wannabe-notice">
-                                    <AlertCircle size={12} />
-                                    전체공개 글만 분석 가능합니다
-                                </p>
+                            {/* 슬롯형 스크린샷 */}
+                            <div className="wannabe-slot-grid">
+                                {SLOTS.map(slot => (
+                                    <div key={slot.id} className="wannabe-slot">
+                                        <div className="wannabe-slot-label">
+                                            <span className="wannabe-slot-icon">{slot.icon}</span>
+                                            {slot.label}
+                                            {slot.required && <span className="wannabe-slot-required">필수</span>}
+                                        </div>
+                                        {slots[slot.id] ? (
+                                            <div className="wannabe-slot-thumb">
+                                                <img src={slots[slot.id].preview} alt={slot.label} />
+                                                <button className="wannabe-slot-remove" onClick={() => removeSlot(slot.id)}>
+                                                    <X size={12} />
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <button
+                                                className="wannabe-slot-empty"
+                                                onClick={() => triggerFileInput(slot.id)}
+                                            >
+                                                <ImagePlus size={20} />
+                                                <span>{slot.desc}</span>
+                                            </button>
+                                        )}
+                                    </div>
+                                ))}
                             </div>
 
-                            {/* 스크린샷 */}
-                            <div className="wannabe-input-section">
-                                <label className="wannabe-input-label">
-                                    <ImagePlus size={14} /> 스크린샷 첨부 (선택)
-                                </label>
-                                <div className="wannabe-screenshots">
-                                    {screenshots.map((shot, i) => (
-                                        <div key={i} className="wannabe-screenshot-thumb">
-                                            <img src={shot.preview} alt={`스크린샷 ${i + 1}`} />
-                                            <button onClick={() => removeScreenshot(i)}>
+                            {/* 추가 이미지 */}
+                            <div className="wannabe-extras">
+                                <div className="wannabe-extras-label">
+                                    추가 스크린샷 ({extras.length}/{MAX_EXTRA})
+                                </div>
+                                <div className="wannabe-extras-row">
+                                    {extras.map((ex, i) => (
+                                        <div key={i} className="wannabe-slot-thumb small">
+                                            <img src={ex.preview} alt={`추가 ${i + 1}`} />
+                                            <button className="wannabe-slot-remove" onClick={() => removeExtra(i)}>
                                                 <X size={12} />
                                             </button>
                                         </div>
                                     ))}
-                                    <button
-                                        className="wannabe-add-screenshot"
-                                        onClick={() => fileInputRef.current?.click()}
-                                    >
-                                        <ImagePlus size={20} />
-                                        <span>추가</span>
-                                    </button>
+                                    {extras.length < MAX_EXTRA && (
+                                        <button
+                                            className="wannabe-slot-empty small"
+                                            onClick={() => triggerFileInput('extra')}
+                                        >
+                                            <ImagePlus size={16} />
+                                        </button>
+                                    )}
                                 </div>
-                                <input
-                                    ref={fileInputRef}
-                                    type="file"
-                                    accept="image/*"
-                                    multiple
-                                    hidden
-                                    onChange={handleScreenshots}
-                                />
                             </div>
+
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                hidden
+                                onChange={handleFileSelect}
+                            />
 
                             {error && <p className="wannabe-error">{error}</p>}
 
                             <button
                                 className="wannabe-analyze-btn"
                                 onClick={handleAnalyze}
-                                disabled={analyzing || (!url && screenshots.length === 0)}
+                                disabled={analyzing || !hasRequired}
                             >
                                 {analyzing ? (
                                     <>
                                         <Sparkles size={16} className="wannabe-spinner" />
-                                        스타일 분석 중...
+                                        {typeLabel} 분석 중...
                                     </>
                                 ) : (
                                     <>
                                         <Sparkles size={16} />
-                                        스타일 분석하기
+                                        {typeLabel} 분석하기 ({filledSlotCount}장)
                                     </>
                                 )}
                             </button>
@@ -236,7 +337,7 @@ export default function WannabeStylePanel({ isOpen, onClose, onSave, userPlan = 
                         <>
                             {/* 한 줄 요약 */}
                             <div className="wannabe-summary">
-                                <span className="wannabe-summary-badge">스타일 특징</span>
+                                <span className="wannabe-summary-badge">{typeLabel} 특징</span>
                                 <p>{result.summary}</p>
                             </div>
 
@@ -270,7 +371,7 @@ export default function WannabeStylePanel({ isOpen, onClose, onSave, userPlan = 
                                 <input
                                     type="text"
                                     className="wannabe-preset-name"
-                                    placeholder="프리셋 이름 (예: 감성 맛집 블로거)"
+                                    placeholder={styleType === 'mystyle' ? '내 스타일 이름 (예: 내 맛집 리뷰 톤)' : '프리셋 이름 (예: 감성 맛집 블로거)'}
                                     value={presetName}
                                     onChange={e => setPresetName(e.target.value)}
                                     maxLength={30}
@@ -311,13 +412,16 @@ export default function WannabeStylePanel({ isOpen, onClose, onSave, userPlan = 
 
 /** 프리셋 카드 (Step 2에서 선택용) */
 export function WannabePresetCard({ preset, selected, onSelect, onDelete }) {
+    const isMyStyle = (preset.type || 'wannabe') === 'mystyle';
     return (
         <div
-            className={`wannabe-preset-card ${selected ? 'selected' : ''}`}
+            className={`wannabe-preset-card ${selected ? 'selected' : ''} ${isMyStyle ? 'mystyle' : ''}`}
             onClick={() => onSelect(preset)}
         >
             <div className="wannabe-preset-card-header">
-                <span className="wannabe-preset-card-name">{preset.name}</span>
+                <span className="wannabe-preset-card-name">
+                    {isMyStyle ? '👤 ' : '✨ '}{preset.name}
+                </span>
                 <button
                     className="wannabe-preset-delete"
                     onClick={e => { e.stopPropagation(); onDelete(preset.id); }}

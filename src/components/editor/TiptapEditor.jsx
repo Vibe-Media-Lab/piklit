@@ -4,7 +4,7 @@ import { useToast } from '../common/Toast';
 import { useEditor, EditorContent } from '@tiptap/react';
 import { BubbleMenu } from '@tiptap/react/menus';
 import BottomSheet from '../common/BottomSheet';
-import { Wand2, Minimize2, Zap, PenLine, MoreHorizontal } from 'lucide-react';
+import { Wand2, Minimize2, Zap, PenLine, MoreHorizontal, Check, X, RefreshCw } from 'lucide-react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Highlight from '@tiptap/extension-highlight';
@@ -183,7 +183,7 @@ const AI_FOOTER_HTML = '<p style="text-align: center; padding: 14px 16px; margin
 const AI_FOOTER_MARKER = 'AI 생성 도구를 사용하여 제작되었습니다';
 
 const TiptapEditor = () => {
-    const { content, setContent, keywords, suggestedTone, editorRef, lastCursorPosRef } = useEditorContext();
+    const { content, setContent, keywords, suggestedTone, editorRef, lastCursorPosRef, humanTip, setHumanTip, recordAiAction } = useEditorContext();
     const { showToast } = useToast();
     const [aiDropdownOpen, setAiDropdownOpen] = useState(false);
     const [aiLoading, setAiLoading] = useState(false);
@@ -410,9 +410,154 @@ const TiptapEditor = () => {
         }
     }, [editor, aiFooterEnabled]);
 
+    // AI 전체 재작성
+    const [rewriteLoading, setRewriteLoading] = useState(false);
+    const handleFullRewrite = useCallback(async () => {
+        if (!editor || !content || content === '<p></p>') {
+            showToast('본문을 먼저 작성해주세요.', 'warning');
+            return;
+        }
+        if (!window.confirm('본문 전체를 AI가 다시 작성합니다.\n기존 내용이 교체됩니다. 계속하시겠습니까?')) return;
+
+        setRewriteLoading(true);
+        recordAiAction('fullRewrite');
+        try {
+            const result = await AIService.rewriteFullContent(
+                content,
+                keywords?.main || '',
+                suggestedTone || 'friendly'
+            );
+            if (result?.html) {
+                editor.commands.setContent(result.html);
+                showToast('전체 재작성이 완료되었습니다.', 'success');
+            }
+        } catch (e) {
+            showToast('재작성 오류: ' + e.message, 'error');
+        } finally {
+            setRewriteLoading(false);
+        }
+    }, [editor, content, keywords, suggestedTone, showToast, recordAiAction]);
+
+    // 휴먼라이징 TIP 적용
+    const handleApplyTip = useCallback(() => {
+        if (!editor || !humanTip) return;
+
+        const { original, revised } = humanTip;
+        if (!original || !revised) return;
+
+        const docText = editor.state.doc.textContent;
+        const searchText = original.trim();
+        let pos = docText.indexOf(searchText);
+
+        if (pos === -1) {
+            const normalize = s => s.replace(/\s+/g, ' ').trim();
+            pos = normalize(docText).indexOf(normalize(searchText));
+        }
+        if (pos === -1) {
+            const partial = searchText.slice(0, 20).trim();
+            if (partial.length >= 8) pos = docText.indexOf(partial);
+        }
+
+        if (pos === -1) {
+            showToast('원문을 본문에서 찾을 수 없습니다.', 'warning');
+            return;
+        }
+
+        const replaceLength = docText.indexOf(searchText) !== -1
+            ? searchText.length
+            : Math.min(searchText.length, docText.length - pos);
+
+        const posMap = [];
+        let textOffset = 0;
+        editor.state.doc.descendants((node, nodePos) => {
+            if (node.isText) {
+                for (let i = 0; i < node.text.length; i++) {
+                    posMap.push({ textOffset: textOffset + i, pmPos: nodePos + i });
+                }
+                textOffset += node.text.length;
+            }
+        });
+        if (posMap.length > 0) {
+            const last = posMap[posMap.length - 1];
+            posMap.push({ textOffset: last.textOffset + 1, pmPos: last.pmPos + 1 });
+        }
+
+        const fromEntry = posMap.find(e => e.textOffset === pos);
+        const toEntry = posMap.find(e => e.textOffset === pos + replaceLength);
+
+        if (fromEntry && toEntry) {
+            editor.chain().insertContentAt({ from: fromEntry.pmPos, to: toEntry.pmPos }, revised).run();
+            recordAiAction('humanTipApply');
+            showToast('수정안이 적용되었습니다.', 'success');
+        } else {
+            showToast('원문 위치를 특정할 수 없습니다.', 'warning');
+        }
+
+        // 하이라이트 제거 + TIP 닫기
+        document.querySelectorAll('.humanness-inline-highlight').forEach(el => {
+            el.classList.remove('humanness-inline-highlight');
+        });
+        setHumanTip(null);
+    }, [editor, humanTip, showToast, recordAiAction, setHumanTip]);
+
+    // TIP 닫기
+    const handleCloseTip = useCallback(() => {
+        document.querySelectorAll('.humanness-inline-highlight').forEach(el => {
+            el.classList.remove('humanness-inline-highlight');
+        });
+        setHumanTip(null);
+    }, [setHumanTip]);
+
+    // TIP 카드 위치 계산 (스크롤 완료 후)
+    const [tipPosition, setTipPosition] = useState(null);
+    useEffect(() => {
+        if (!humanTip) { setTipPosition(null); return; }
+
+        const calcPosition = () => {
+            const highlighted = document.querySelector('.humanness-inline-highlight');
+            const wrapper = document.querySelector('.tiptap-editor-wrapper');
+            if (highlighted && wrapper) {
+                const hRect = highlighted.getBoundingClientRect();
+                const wRect = wrapper.getBoundingClientRect();
+                setTipPosition({
+                    top: hRect.bottom - wRect.top + 8,
+                    left: Math.max(0, hRect.left - wRect.left),
+                });
+            }
+        };
+
+        // 형광펜(350ms) + 스크롤 애니메이션(~400ms) 이후 위치 계산
+        const timer = setTimeout(calcPosition, 800);
+
+        // 스크롤 시 위치 재계산 (PC에서 TIP 카드 따라가기)
+        const editorWrap = document.querySelector('.tiptap-editor-wrapper');
+        const onScroll = () => requestAnimationFrame(calcPosition);
+        editorWrap?.addEventListener('scroll', onScroll, true);
+
+        return () => {
+            clearTimeout(timer);
+            editorWrap?.removeEventListener('scroll', onScroll, true);
+        };
+    }, [humanTip]);
+
     return (
-        <div className="tiptap-editor-wrapper">
+        <div className="tiptap-editor-wrapper" style={{ position: 'relative' }}>
             <MenuBar editor={editor} tone={suggestedTone || 'friendly'} aiFooterEnabled={aiFooterEnabled} onToggleAiFooter={toggleAiFooter} />
+
+            {/* AI 전체 재작성 버튼 */}
+            <div className="editor-rewrite-bar">
+                <button
+                    className="editor-rewrite-btn"
+                    onClick={handleFullRewrite}
+                    disabled={rewriteLoading}
+                    title="본문 전체를 AI가 다시 작성합니다"
+                >
+                    {rewriteLoading
+                        ? <><Wand2 size={13} className="spin" /> 재작성 중...</>
+                        : <><RefreshCw size={13} /> AI 전체 재작성</>
+                    }
+                </button>
+            </div>
 
             {editor && (
                 <BubbleMenu editor={editor}>
@@ -505,6 +650,30 @@ const TiptapEditor = () => {
                     </div>
                 )}
             </BottomSheet>
+
+            {/* 휴먼라이징 인라인 TIP 카드 */}
+            {humanTip && (
+                <div
+                    className="humanness-tip-card"
+                    style={tipPosition ? { top: tipPosition.top, left: tipPosition.left } : {}}
+                >
+                    <div className="humanness-tip-header">
+                        <span className="humanness-tip-label">수정 제안</span>
+                        <button className="humanness-tip-close" onClick={handleCloseTip}>
+                            <X size={14} />
+                        </button>
+                    </div>
+                    <div className="humanness-tip-original">{humanTip.original}</div>
+                    <div className="humanness-tip-arrow">↓</div>
+                    <div className="humanness-tip-revised">{humanTip.revised}</div>
+                    {humanTip.reason && (
+                        <div className="humanness-tip-reason">{humanTip.reason}</div>
+                    )}
+                    <button className="humanness-tip-apply" onClick={handleApplyTip}>
+                        <Check size={14} /> 적용하기
+                    </button>
+                </div>
+            )}
         </div>
     );
 };

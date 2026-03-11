@@ -1,30 +1,12 @@
 /**
  * 워너비 스타일 프리셋 관리 (localStorage)
  * - 무료: 1개, BYOK: 2개, Pro: 5개
+ * - 타입: 'wannabe' (따라하고 싶은 스타일) / 'mystyle' (내 기존 스타일)
  */
 
 const STORAGE_KEY = 'piklit_wannabe_presets';
 
 const PLAN_LIMITS = { free: 1, byok: 2, pro: 5 };
-
-/** 프리셋 스키마 예시:
- * {
- *   id: 'ws_1709...',
- *   name: '감성 맛집 블로거',
- *   summary: '존댓말 + 감성적 묘사 + 짧은 호흡',
- *   sourceUrl: 'https://blog.naver.com/...',
- *   createdAt: '2026-03-06T...',
- *   checklist: {
- *     tone: [
- *       { key: 'speech', label: '말투', value: '존댓말 (~했어요)', checked: true },
- *       { key: 'energy', label: '에너지', value: '활기찬', checked: false },
- *       ...
- *     ],
- *     structure: [...],
- *     vocabulary: [...]
- *   }
- * }
- */
 
 export function getPresets() {
     try {
@@ -46,6 +28,7 @@ export function savePreset(preset, userPlan = 'free') {
     const newPreset = {
         ...preset,
         id: preset.id || `ws_${Date.now()}`,
+        type: preset.type || 'wannabe',
         createdAt: preset.createdAt || new Date().toISOString(),
     };
 
@@ -74,6 +57,11 @@ export function getPresetLimit(userPlan = 'free') {
     return PLAN_LIMITS[userPlan] || PLAN_LIMITS.free;
 }
 
+/** 타입별 프리셋 필터 */
+export function getPresetsByType(type) {
+    return getPresets().filter(p => (p.type || 'wannabe') === type);
+}
+
 /** 체크된 항목만 추출하여 프롬프트용 규칙 문자열 생성 */
 export function buildStyleRules(preset) {
     if (!preset?.checklist) return '';
@@ -91,5 +79,10 @@ export function buildStyleRules(preset) {
 
     if (rules.length === 0) return '';
 
-    return `\n[워너비 스타일 규칙 — 위 기본 톤보다 아래 규칙을 우선 적용하라. 충돌 시 워너비 규칙이 이긴다.]\n${rules.join('\n')}\n`;
+    const isMyStyle = (preset.type || 'wannabe') === 'mystyle';
+    const header = isMyStyle
+        ? '\n[내 스타일 규칙 — 내가 평소 쓰는 말투와 습관을 유지하라.]\n'
+        : '\n[워너비 스타일 규칙 — 위 기본 톤보다 아래 규칙을 우선 적용하라. 충돌 시 워너비 규칙이 이긴다.]\n';
+
+    return `${header}${rules.join('\n')}\n`;
 }

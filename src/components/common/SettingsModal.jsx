@@ -5,7 +5,7 @@ import { callGetUsageInfo, callBetaStatus, callBetaActivate } from '../../servic
 
 const SettingsModal = ({ isOpen, onClose }) => {
     const { showToast } = useToast();
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
     const [apiKey, setApiKey] = useState('');
     const [usage, setUsage] = useState(null);
     const [usageLoading, setUsageLoading] = useState(false);
@@ -220,6 +220,12 @@ const SettingsModal = ({ isOpen, onClose }) => {
                 {/* API 키 섹션 — 베타 기간 중 숨김 */}
 
                 <div className="settings-actions">
+                    <button
+                        onClick={async () => { onClose(); await logout(); }}
+                        className="settings-logout-btn"
+                    >
+                        로그아웃
+                    </button>
                     <button
                         onClick={onClose}
                         className="settings-save-btn"
