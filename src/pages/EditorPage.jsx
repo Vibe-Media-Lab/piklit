@@ -25,7 +25,7 @@ import { callBetaStatus } from '../services/firebase';
 import { useAuth } from '../context/AuthContext';
 import {
     Search, CheckCircle, Tag, Lock,
-    Loader2, Sparkles, Copy, Check, PartyPopper, BarChart3, ClipboardCopy
+    Loader2, Sparkles, Copy, Check, PartyPopper, BarChart3, ClipboardCopy, Settings2
 } from 'lucide-react';
 import '../styles/components.css';
 import '../styles/ImageSeoGuide.css';
@@ -770,6 +770,22 @@ const EditorPage = () => {
     return (
         <div>
             <MainContainer />
+
+            {/* 설정 변경하기 바 */}
+            {mainKeyword && (
+                <div className="editor-wizard-return-bar">
+                    <span className="editor-wizard-return-meta">
+                        {selectedCategory?.label || '일상'} · {mainKeyword}
+                        {selectedTone && ` · ${selectedTone}`}
+                    </span>
+                    <button
+                        className="editor-wizard-return-btn"
+                        onClick={() => { setEditorMode('ai'); setAiStep(1); }}
+                    >
+                        <Settings2 size={14} /> 설정 변경
+                    </button>
+                </div>
+            )}
 
             {/* 생성 완료 축하 카드 */}
             {showCompletionCard && completionStats && (

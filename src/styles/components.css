@@ -4047,6 +4047,43 @@
     background: rgba(255, 255, 255, 0.3);
 }
 
+/* ===== Editor Wizard Return Bar ===== */
+.editor-wizard-return-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    background: var(--color-surface-hover);
+    border-bottom: 1px solid var(--color-border);
+    font-size: 0.82rem;
+}
+.editor-wizard-return-meta {
+    color: var(--color-text-sub);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+.editor-wizard-return-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 12px;
+    background: white;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: 0.8rem;
+    color: var(--color-text);
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: border-color 0.15s;
+}
+.editor-wizard-return-btn:hover {
+    border-color: var(--color-brand);
+    color: var(--color-brand);
+}
+
 @keyframes slideDown {
     from { transform: translateY(-10px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
