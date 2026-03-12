@@ -70,7 +70,6 @@ export default function WannabeStylePanel({ isOpen, onClose, onSave, userPlan = 
     const limit = getPresetLimit(userPlan);
     const canSave = presets.length < limit;
 
-    const filledSlotCount = SLOTS.reduce((sum, s) => sum + (slots[s.id]?.length || 0), 0) + extras.length;
     const hasRequired = slots.top?.length > 0 && slots.mid?.length > 0;
 
     // 파일 선택 핸들러 (압축 적용)

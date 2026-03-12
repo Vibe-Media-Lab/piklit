@@ -296,24 +296,17 @@ export const analyzePost = (title, htmlContent, keywords, targetLength = 1500, c
         issues.push({ id: 'heading_keyword', type: 'info', text: '소제목 없음', metric: '' });
     }
 
-    // 9. Keyword Density Percent — 글 길이 대비 키워드 밀도 (적정: 0.8~2%)
+    // 9. Keyword Density Percent — 횟수 체크(#3)와 통합하여 밀도%만 참고용으로 계산
     let keywordDensity = 0;
     if (mainKeyword && totalChars > 0) {
         const escapedKey = mainKeyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const densityRegex = new RegExp(escapedKey, 'gi');
         const densityMatches = fullText.match(densityRegex);
         const keywordCharTotal = (densityMatches ? densityMatches.length : 0) * mainKeyword.length;
-        keywordDensity = Math.round((keywordCharTotal / totalChars) * 1000) / 10; // 소수점 1자리
-        if (keywordDensity >= 0.8 && keywordDensity <= 2) {
-            checks.keywordDensityPercent = true;
-        } else if (keywordDensity < 0.8) {
-            issues.push({ id: 'keyword_density_low', type: 'warning', text: '키워드 밀도 낮음', metric: `${keywordDensity}% → 1~2%` });
-        } else {
-            issues.push({ id: 'keyword_density_high', type: 'warning', text: '키워드 밀도 과다', metric: `${keywordDensity}% → 1~2%` });
-        }
-    } else {
-        checks.keywordDensityPercent = true; // 키워드 없으면 패스
+        keywordDensity = Math.round((keywordCharTotal / totalChars) * 1000) / 10;
     }
+    // 횟수 체크(#3 key_density)에서 이미 반복 과다/부족을 판단하므로 밀도% 별도 이슈는 생략
+    checks.keywordDensityPercent = true;
 
     // 10. Image Alt Text — 이미지 Alt 속성 존재 + 중복 여부
     const images = doc.querySelectorAll('img');
@@ -340,7 +333,7 @@ export const analyzePost = (title, htmlContent, keywords, targetLength = 1500, c
     // 11. Intro Paragraph Length — 카테고리별 권장 글자수
     const introRange = INTRO_LENGTH_BY_CATEGORY[categoryId] || INTRO_LENGTH_BY_CATEGORY.daily;
     const firstParagraph = doc.querySelector('p');
-    const introLength = firstParagraph ? (firstParagraph.textContent || '').replace(/\s/g, '').length : 0;
+    const introLength = firstParagraph ? (firstParagraph.textContent || '').length : 0;
     if (introLength >= introRange.min && introLength <= introRange.max) {
         checks.introParagraphLength = true;
     } else if (introLength > 0 && introLength < introRange.min) {

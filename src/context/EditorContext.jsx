@@ -54,7 +54,11 @@ export const EditorProvider = ({ children }) => {
 
     // 2. Save Posts
     useEffect(() => {
-        localStorage.setItem('naver_blog_posts', JSON.stringify(posts));
+        try {
+            localStorage.setItem('naver_blog_posts', JSON.stringify(posts));
+        } catch (e) {
+            console.warn('[EditorContext] localStorage 저장 실패:', e.message);
+        }
     }, [posts]);
 
     // 3. Auto-save (Debounced 3초) — with SEO snapshot update
