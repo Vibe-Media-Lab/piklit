@@ -4,23 +4,25 @@
 네이버 블로그 SEO 최적화 AI 작성기 (React 19 + Vite 7 + TipTap + Google Gemini 2.5 Flash API)
 
 ## 이번 세션 요약
-브라우저 QA 14개 이슈 분석 → 12건 수정 완료 (긴급~4순위), 2건 별도 세션 이관
+프롬프트 감사 4건 + QA 15건 전체 수정 완료 + SEO 프롬프트 고도화 + 배포
 
 ## 수정 파일
 
 | 파일 | 변경 사항 |
 |------|----------|
-| `src/context/EditorContext.jsx` | localStorage try-catch (#14 CRITICAL) |
-| `src/services/openai.js` | thinkingBudget 1024 (#8) + 도입부 프롬프트 강화 (#6) + 인체감 금지규칙 (#11) + title 필드 추가 (#5) |
-| `src/utils/analysis.js` | 도입부 공백 포함 (#7) + 키워드 밀도 중복 제거 (#9) |
-| `src/components/editor/WannabeStylePanel.jsx` | 미사용 변수 제거 (lint) |
-| `src/pages/EditorPage.jsx` | 생성 시 title 자동 채움 (#5) |
-| `src/components/analysis/ThumbnailPanel.jsx` | 커서 위치 삽입 (#13) |
-| `src/components/analysis/HumannessPanel.jsx` | 사이드바↔팝업 적용 동기화 (#12) |
-| `src/components/wizard/ToneStep.jsx` | 고급옵션 기본 펼침 (#1) |
-| `src/components/wizard/KeywordStep.jsx` | 더보기 통일 (#2) + 경쟁도 툴팁 (#3) |
-| `src/components/wizard/TopicStep.jsx` | 더보기 통일 (#2) |
+| `src/services/openai.js` | 프롬프트 감사 4건 + 장소 검색 개선 + SEO 키워드 횟수/위치 기반 + 서브키워드 100% + 도입부 문장수 + fixSeoIssues base64 치환 |
+| `src/components/wizard/ToneStep.jsx` | 워너비/내스타일 → 스타일 분석 통합 |
+| `src/components/wizard/OutlineStep.jsx` | 다시 생성 제거 + 소제목 직접 입력 추가 |
+| `src/components/wizard/KeywordStep.jsx` | 고급옵션 펼침 + 입력 일체형 + 경쟁도 툴팁 |
+| `src/pages/EditorPage.jsx` | 타이틀 기본값 + setTitle 참조 수정 |
+| `src/components/analysis/HumannessPanel.jsx` | 적용 시 빈 <p> 정리 |
+| `src/components/analysis/ThumbnailPanel.jsx` | 삽입 위치 최상단 |
+| `src/components/editor/TiptapEditor.jsx` | AI 고지 토글 빈 <p> 정리 |
+| `src/components/editor/WannabeStylePanel.jsx` | 필수 라벨 제거 |
+| `src/styles/components.css` | 입력 일체형 + 버튼 너비 |
+| `src/styles/WannabeStyle.css` | 요약 텍스트 word-break |
 
 ## 현재 릴리즈 상태
-- 빌드: 정상 (1.96s)
-- 마지막 커밋: e398330
+- 빌드: 정상 (1.43s)
+- 마지막 커밋: c82b27b
+- 배포: Vercel 자동 배포 완료
