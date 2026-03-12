@@ -251,7 +251,6 @@ export default function WannabeStylePanel({ isOpen, onClose, onSave, userPlan = 
                                             <div className="wannabe-slot-label">
                                                 <span className="wannabe-slot-icon">{slot.icon}</span>
                                                 {slot.label}
-                                                {slot.required && <span className="wannabe-slot-required">필수</span>}
                                             </div>
                                             {images.length > 0 ? (
                                                 <div className="wannabe-slot-images">

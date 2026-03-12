@@ -69,7 +69,7 @@ const KeywordStep = ({
     const [difficultyChecked, setDifficultyChecked] = useState(false);
     const [seasonKeywords, setSeasonKeywords] = useState([]);
     const [isAnalyzingSeason, setIsAnalyzingSeason] = useState(false);
-    const [advancedOpen, setAdvancedOpen] = useState(false);
+    const [advancedOpen, setAdvancedOpen] = useState(true);
     const [seasonShowAll, setSeasonShowAll] = useState(false);
 
     // ── 핸들러 ──

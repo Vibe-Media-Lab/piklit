@@ -390,7 +390,7 @@ const TiptapEditor = () => {
             // 이미 있으면 추가하지 않음
             if (!html.includes(AI_FOOTER_MARKER)) {
                 // 끝에 빈 문단 정리 후 한번에 삽입 (2회 렌더링 방지)
-                const trimmed = html.replace(/(<p><\/p>)+$/, '');
+                const trimmed = html.replace(/(<p>\s*<\/p>)+$/, '');
                 editor.commands.setContent(trimmed + AI_FOOTER_HTML);
             }
         } else {
@@ -401,12 +401,19 @@ const TiptapEditor = () => {
             let removed = false;
             allP.forEach(p => {
                 if (p.textContent.includes(AI_FOOTER_MARKER)) {
+                    // 고지 바로 앞의 빈 <p>도 함께 제거 ("..." 방지)
+                    const prev = p.previousElementSibling;
+                    if (prev && prev.tagName === 'P' && !prev.textContent.trim()) {
+                        prev.remove();
+                    }
                     p.remove();
                     removed = true;
                 }
             });
             if (removed) {
-                editor.commands.setContent(doc.body.innerHTML);
+                // 끝에 남은 빈 <p> 정리
+                let cleaned = doc.body.innerHTML.replace(/(<p>\s*<\/p>)+$/, '');
+                editor.commands.setContent(cleaned);
             }
         }
     }, [editor, aiFooterEnabled]);

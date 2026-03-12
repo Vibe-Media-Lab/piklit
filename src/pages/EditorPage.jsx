@@ -506,7 +506,12 @@ const EditorPage = () => {
 
             const htmlContent = result?.html || result?.text;
             if (htmlContent) {
-                if (result?.title) setTitle(result.title);
+                if (result?.title) {
+                    setTitle(result.title);
+                } else if (!title?.trim()) {
+                    // AI가 title을 반환하지 않았고 타이틀이 비어있으면 키워드 기반 기본값
+                    setTitle(mainKeyword);
+                }
                 await streamContentToEditor(htmlContent);
                 updateMainKeyword(mainKeyword);
                 const photoCount = Object.values(photoData.metadata).filter(v => v > 0).length;

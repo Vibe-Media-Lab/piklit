@@ -175,6 +175,11 @@ const HumannessPanel = ({ onLocate }) => {
             editor.chain()
                 .insertContentAt({ from: fromEntry.pmPos, to: toEntry.pmPos }, revised)
                 .run();
+            // 적용 후 빈 <p> 노드 정리 ("..." 방지)
+            const updatedHtml = editor.getHTML().replace(/<p>\s*<\/p>/g, '');
+            if (updatedHtml !== editor.getHTML()) {
+                editor.commands.setContent(updatedHtml);
+            }
             setAppliedIndices(prev => new Set([...prev, index]));
             // 형광펜 제거 + TIP 팝업 닫기
             document.querySelectorAll('.humanness-inline-highlight').forEach(el => {

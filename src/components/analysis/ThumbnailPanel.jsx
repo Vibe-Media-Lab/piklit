@@ -224,13 +224,9 @@ const ThumbnailPanel = () => {
     const handleInsert = () => {
         const editor = editorRef?.current;
         if (!editor || !previewUrl) return;
-        const pos = lastCursorPosRef?.current;
-        if (pos != null && pos < editor.state.doc.content.size) {
-            editor.chain().insertContentAt(pos, { type: 'image', attrs: { src: previewUrl, alt: mainText || '썸네일' } }).focus().run();
-        } else {
-            editor.chain().focus('end').setImage({ src: previewUrl, alt: mainText || '썸네일' }).run();
-        }
-        showToast('썸네일이 본문에 삽입되었습니다.', 'success');
+        // 항상 문서 맨 앞에 삽입
+        editor.chain().insertContentAt(0, { type: 'image', attrs: { src: previewUrl, alt: mainText || '썸네일' } }).focus().run();
+        showToast('썸네일이 본문 상단에 삽입되었습니다.', 'success');
     };
 
     const hasPhotos = availablePhotos.length > 0;

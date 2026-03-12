@@ -317,6 +317,8 @@
     font-size: var(--font-size-base);
     font-weight: 600;
     color: var(--color-text-main);
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 /* ─── Result: Sample Sentences ────────────────────── */
