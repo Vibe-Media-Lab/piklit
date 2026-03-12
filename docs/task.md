@@ -840,6 +840,36 @@
 ### 기타
 - [x] `preview-color-status.html` 정리 (삭제)
 
+## 완료된 작업 (2026-03-12) — 브라우저 QA 이슈 수정 (긴급+1순위+2순위)
+
+### 긴급 (#14 CRITICAL)
+- [x] `EditorContext.jsx` — localStorage 저장 try-catch 추가 (QuotaExceeded 시 백화 방지)
+
+### 1순위 (#8, #7)
+- [x] `openai.js` fixSeoIssues — thinkingBudget 2048→1024 (응답 속도 개선 + JSON 파싱 실패 감소)
+- [x] `analysis.js` — 도입부 글자수 공백 포함으로 통일 (IntroOptimizer와 일관성 확보)
+
+### 2순위 (#6, #9, #11)
+- [x] `openai.js` — 전 카테고리 도입부 프롬프트에 최소 글자수 강조 + 키워드 밀도 1~2% 명시
+- [x] `analysis.js` — 키워드 밀도% 중복 이슈 제거 (횟수 체크 key_density로 통합)
+- [x] `openai.js` analyzeHumanness — 소제목 변경 금지 + 80자 이내 + 구조 변경 금지 규칙 추가
+- [x] `WannabeStylePanel.jsx` — 미사용 filledSlotCount 변수 제거 (lint fix)
+
+### 남은 QA 이슈 (다음 세션)
+#### 3순위 — 에디터 UX
+- [ ] #5 타이틀 자동 생성 (generateFullDraft에 title 필드 추가)
+- [ ] #13 썸네일 삽입 위치 (커서 위치 또는 문서 끝)
+- [ ] #12 TIP 팝업 위치 오류 + 사이드바↔팝업 적용 상태 동기화
+
+#### 4순위 — 위자드 UX
+- [ ] #1 고급옵션 기본 펼침 또는 설정값 미리보기
+- [ ] #2 "+N개 더보기" 텍스트 통일
+- [ ] #3 키워드 경쟁도 설명 툴팁 추가
+
+#### 별도 세션
+- [ ] #4 소제목 구조 개편 (인앤아웃 토글 + 추천 더 받기 + 직접 입력) — L 사이즈
+- [ ] #10 강조 과다 형광펜 정책 — 이사회 결정 후
+
 ## 아이디어 보관함 (Icebox)
 
 > 당장 구현하지 않지만 나중에 재검토할 수 있는 아이디어
