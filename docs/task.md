@@ -855,18 +855,17 @@
 - [x] `openai.js` analyzeHumanness — 소제목 변경 금지 + 80자 이내 + 구조 변경 금지 규칙 추가
 - [x] `WannabeStylePanel.jsx` — 미사용 filledSlotCount 변수 제거 (lint fix)
 
-### 남은 QA 이슈 (다음 세션)
-#### 3순위 — 에디터 UX
-- [ ] #5 타이틀 자동 생성 (generateFullDraft에 title 필드 추가)
-- [ ] #13 썸네일 삽입 위치 (커서 위치 또는 문서 끝)
-- [ ] #12 TIP 팝업 위치 오류 + 사이드바↔팝업 적용 상태 동기화
+### 3순위 (#5, #13, #12)
+- [x] `openai.js` — 4개 생성 프롬프트에 title 필드 추가 + EditorPage 자동 채움
+- [x] `ThumbnailPanel.jsx` — 썸네일 삽입 시 커서 위치 우선, 없으면 문서 끝
+- [x] `HumannessPanel.jsx` — 사이드바 적용 시 팝업 닫기 + 팝업 적용 시 사이드바 applied 동기화
 
-#### 4순위 — 위자드 UX
-- [ ] #1 고급옵션 기본 펼침 또는 설정값 미리보기
-- [ ] #2 "+N개 더보기" 텍스트 통일
-- [ ] #3 키워드 경쟁도 설명 툴팁 추가
+### 4순위 (#1, #2, #3)
+- [x] `ToneStep.jsx` — 고급옵션 기본 펼침 상태로 변경
+- [x] `KeywordStep.jsx` + `TopicStep.jsx` — "+N개 더보기" 텍스트 통일
+- [x] `KeywordStep.jsx` — 키워드 경쟁도 뱃지에 설명 툴팁 추가
 
-#### 별도 세션
+### 남은 QA 이슈 (별도 세션)
 - [ ] #4 소제목 구조 개편 (인앤아웃 토글 + 추천 더 받기 + 직접 입력) — L 사이즈
 - [ ] #10 강조 과다 형광펜 정책 — 이사회 결정 후
 
