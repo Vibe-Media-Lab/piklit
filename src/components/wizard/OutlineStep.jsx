@@ -7,7 +7,7 @@ import { getKw } from './KeywordStep';
 import {
     Wand2, Bot, ClipboardList, ArrowLeft,
     ChevronDown, ChevronUp, Loader2, BarChart3,
-    Sparkles, RefreshCw, Plus, Trash2, CheckCircle
+    Sparkles, Plus, Trash2, CheckCircle
 } from 'lucide-react';
 
 const OutlineStep = ({
@@ -235,16 +235,6 @@ const OutlineStep = ({
                                 {outlineItems.length >= competitorData.average.headingCount && <CheckCircle size={13} />}
                             </div>
                         )}
-                        <button
-                            onClick={handleGenerateOutline}
-                            disabled={isGeneratingOutline}
-                            className="outline-regenerate-btn"
-                        >
-                            {isGeneratingOutline
-                                ? <><Loader2 size={13} className="spin" /> 생성 중...</>
-                                : <><RefreshCw size={13} /> 다시 생성</>
-                            }
-                        </button>
                     </div>
                 </div>
             )}

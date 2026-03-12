@@ -208,12 +208,12 @@ const ToneStep = ({
                             />
                         </div>
 
-                        {/* 워너비 스타일 */}
+                        {/* 스타일 분석 (워너비 + 내 스타일 통합) */}
                         <div className="wizard-advanced-item">
                             <label className="wizard-label" style={{ marginBottom: 8 }}>
-                                <Sparkles size={14} /> 워너비 스타일
+                                <Sparkles size={14} /> 스타일 분석
                             </label>
-                            {wannabePresets.length > 0 && (
+                            {(wannabePresets.length > 0 || myStylePresets.length > 0) && (
                                 <div className="wannabe-preset-grid-compact">
                                     {wannabePresets.map(p => (
                                         <WannabePresetCard
@@ -230,23 +230,6 @@ const ToneStep = ({
                                             }}
                                         />
                                     ))}
-                                </div>
-                            )}
-                            <button
-                                className="wannabe-analyze-compact"
-                                onClick={() => { setWannabeModalType('wannabe'); setShowWannabeModal(true); }}
-                            >
-                                <Wand2 size={14} /> 워너비 스타일 분석하기
-                            </button>
-                        </div>
-
-                        {/* 내 스타일 */}
-                        <div className="wizard-advanced-item">
-                            <label className="wizard-label" style={{ marginBottom: 8 }}>
-                                👤 내 스타일
-                            </label>
-                            {myStylePresets.length > 0 && (
-                                <div className="wannabe-preset-grid-compact">
                                     {myStylePresets.map(p => (
                                         <WannabePresetCard
                                             key={p.id}
@@ -266,9 +249,9 @@ const ToneStep = ({
                             )}
                             <button
                                 className="wannabe-analyze-compact"
-                                onClick={() => { setWannabeModalType('mystyle'); setShowWannabeModal(true); }}
+                                onClick={() => { setWannabeModalType('wannabe'); setShowWannabeModal(true); }}
                             >
-                                <Wand2 size={14} /> 내 스타일 분석하기
+                                <Wand2 size={14} /> 타 블로그 스타일 분석하기
                             </button>
                         </div>
                     </div>
