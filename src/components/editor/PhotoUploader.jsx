@@ -446,33 +446,25 @@ const PhotoUploader = ({ keyword, onUpdate, categoryId }) => {
                     <div className="ai-modal" onClick={(e) => e.stopPropagation()}>
                         <div className="ai-modal-header">
                             <h3>AI 이미지 생성</h3>
-                            <span style={{ fontSize: '0.85rem', color: 'var(--color-text-sub, #787774)' }}>{aiModal.slotLabel}</span>
+                            <span className="ai-modal-slot-label">{aiModal.slotLabel}</span>
                             <button className="ai-modal-close" onClick={closeAiModal}>✕</button>
                         </div>
 
                         <div className="ai-modal-body">
                             {/* 사용자 입력 */}
                             <label className="ai-modal-label">원하는 이미지 내용</label>
-                            <div style={{ display: 'flex', gap: '8px' }}>
+                            <div className="ai-modal-input-row">
                                 <input
                                     type="text"
+                                    className="ai-modal-input"
                                     value={aiModal.userInput}
                                     onChange={(e) => setAiModal(prev => ({ ...prev, userInput: e.target.value }))}
                                     placeholder="예: 화장실 곰팡이가 심한 상태"
-                                    style={{
-                                        flex: 1, border: '1px solid #e0e0e0', borderRadius: '8px',
-                                        padding: '10px 12px', fontSize: '0.85rem', fontFamily: 'inherit'
-                                    }}
                                 />
                                 <button
+                                    className="ai-modal-enhance-btn"
                                     onClick={handleEnhancePrompt}
                                     disabled={aiModal.isEnhancing || !aiModal.userInput.trim()}
-                                    style={{
-                                        padding: '8px 14px', background: '#FF6B35', color: 'white',
-                                        border: 'none', borderRadius: '8px', fontSize: '0.78rem',
-                                        fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
-                                        opacity: aiModal.isEnhancing ? 0.6 : 1
-                                    }}
                                 >
                                     {aiModal.isEnhancing ? '...' : '최적화'}
                                 </button>
@@ -497,15 +489,14 @@ const PhotoUploader = ({ keyword, onUpdate, categoryId }) => {
                             {/* 최적화된 프롬프트 */}
                             <label className="ai-modal-label">
                                 생성 프롬프트
-                                {aiModal.isEnhancing && <span style={{ color: '#FF6B35', marginLeft: '8px', fontWeight: 400 }}>최적화 중...</span>}
+                                {aiModal.isEnhancing && <span className="ai-modal-enhancing-text">최적화 중...</span>}
                             </label>
                             <textarea
-                                className="ai-modal-textarea"
+                                className="ai-modal-textarea ai-modal-textarea-readonly"
                                 value={aiModal.prompt}
                                 onChange={(e) => setAiModal(prev => ({ ...prev, prompt: e.target.value }))}
                                 rows={3}
                                 placeholder={aiModal.isEnhancing ? '프롬프트 최적화 중...' : '최적화된 프롬프트가 여기에 표시됩니다'}
-                                style={{ fontSize: '0.8rem', color: '#555', background: '#f9f9f9' }}
                             />
 
                             {/* Generate Button */}
@@ -523,19 +514,13 @@ const PhotoUploader = ({ keyword, onUpdate, categoryId }) => {
 
                             {/* 테스트용: 로컬 이미지로 크롭 테스트 */}
                             {!aiModal.preview && (
-                                <div style={{ marginTop: '8px', textAlign: 'center' }}>
-                                    <label
-                                        style={{
-                                            display: 'inline-block', padding: '8px 16px',
-                                            fontSize: '0.78rem', color: '#888', cursor: 'pointer',
-                                            border: '1px dashed #ccc', borderRadius: '8px',
-                                        }}
-                                    >
+                                <div className="ai-modal-crop-test">
+                                    <label className="ai-modal-crop-test-label">
                                         🖼️ 로컬 이미지로 크롭 테스트
                                         <input
                                             type="file"
                                             accept="image/*"
-                                            style={{ display: 'none' }}
+                                            className="hidden-input"
                                             onChange={(e) => {
                                                 const file = e.target.files?.[0];
                                                 if (!file) return;
@@ -589,7 +574,7 @@ const PhotoUploader = ({ keyword, onUpdate, categoryId }) => {
 
                             {/* Crop Mode */}
                             {aiModal.preview && aiModal.isCropping && (
-                                <div style={{ marginTop: '16px' }}>
+                                <div className="ai-modal-crop-area">
                                     <ImageCropper
                                         base64={aiModal.preview.base64}
                                         mimeType={aiModal.preview.mimeType}

@@ -805,6 +805,41 @@
 - [x] 텍스트 수정: 내스타일 이원화 반영, 불릿 업데이트
 - [x] dead CSS 정리 (fm-wannabe-url/icon/input/btn 제거)
 
+## 완료된 작업 (2026-03-12) — 디자인 QA + 컬러 시스템 감사 + 문서 업데이트
+
+### Lint 수정 (안전 항목만)
+- [x] `OutlineStep.jsx` — 미사용 `handleOutlineToggleLevel` 함수 제거 (영향 분석 후)
+- [x] `AdminBetaPage.jsx` — 미사용 `userName` 파라미터 제거 (영향 분석 후)
+
+### 디자인 QA HIGH 항목
+- [x] `BugReportButton.jsx` — 인라인 스타일 9곳 → CSS 클래스 전환 (components.css에 ~79줄 추가)
+- [x] `tiptap.css` — 점수 diff 하드코딩 컬러 → CSS 변수 (score-high/low)
+- [x] `tiptap.css` — 480px 미디어쿼리 신규 추가
+
+### 디자인 QA MEDIUM 항목
+- [x] `PhotoUploader.jsx` — 인라인 스타일 6곳 → CSS 클래스 전환
+- [x] `PhotoUploader.css` — 768px 미디어쿼리 추가
+- [x] `PhotoUploader.css` — 하드코딩 컬러 8개 → CSS 변수 (#f0faf0, #4caf50, #ff4d4f, #d63031 등)
+
+### 컬러 시스템 감사 (BOD 이사회)
+- [x] 전체 컬러 전수 조사 — ~198개 하드코딩 발견 (14 CSS + 10 JSX 파일)
+- [x] `variables.css` — 시맨틱 토큰 5개 신규 등록 (success-bg, error-bg, text-hint, panel-bg, highlight)
+- [x] BOD 결정: `--color-success`(#27AE60)와 `--color-score-high`(#10B981) 시맨틱 구분 유지
+- [x] BOD 결정: `--color-text-hint` #999999 → #767676 (WCAG AA 준수)
+- [x] Phase 2 컬러 정규화 로드맵 수립: P1(orange) → P2(green) → P3(gray) → P4(toast) → P5(bg) → P6(JSX)
+
+### 문서 업데이트
+- [x] `design-system.md` — 새 토큰 문서화 (score 9개, 시맨틱 확장 4개, brand-text)
+- [x] `walkthrough.md` — 이번 세션 내용 반영
+- [x] `task.md` — 이번 세션 작업 이력 추가
+
+### 프롬프트 에이전트 감사
+- [x] openai.js AI 메서드 22개 + 헬퍼 7개 분석 완료
+- [x] 6개 개선 포인트 발견 → 메모리에 저장 (다음 세션 착수)
+
+### 기타
+- [x] `preview-color-status.html` 정리 (삭제)
+
 ## 아이디어 보관함 (Icebox)
 
 > 당장 구현하지 않지만 나중에 재검토할 수 있는 아이디어

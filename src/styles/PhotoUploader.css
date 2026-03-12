@@ -46,9 +46,9 @@
     transition: all 0.3s ease;
 }
 .photo-progress-guide.sufficient {
-    background: #f0faf0;
-    border-color: #b7e4b7;
-    color: #2d8a2d;
+    background: var(--color-success-bg, #F0FDF4);
+    border-color: var(--color-success, #27AE60);
+    color: var(--color-score-high-text, #065F46);
 }
 .photo-progress-text {
     display: flex;
@@ -73,7 +73,7 @@
     transition: width 0.3s ease;
 }
 .photo-progress-guide.sufficient .photo-progress-fill {
-    background: #4caf50;
+    background: var(--color-success, #27AE60);
 }
 
 /* ── Bottom Note ── */
@@ -179,9 +179,9 @@
 }
 
 .remove-btn-compact:hover {
-    background: #ff4d4f;
+    background: var(--color-error, #EB5757);
     color: white;
-    border-color: #ff4d4f;
+    border-color: var(--color-error, #EB5757);
 }
 
 .multi-image-count-compact {
@@ -309,9 +309,9 @@
 }
 
 .remove-btn:hover {
-    background: #ff4d4f;
+    background: var(--color-error, #EB5757);
     color: white;
-    border-color: #ff4d4f;
+    border-color: var(--color-error, #EB5757);
 }
 
 /* Hidden File Input */
@@ -442,7 +442,7 @@
     transition: all 0.2s;
 }
 .ai-style-chip:hover {
-    border-color: #FFCDB2;
+    border-color: var(--color-brand-light, #FFF3ED);
     background: var(--color-brand-light);
 }
 .ai-style-chip.active {
@@ -486,11 +486,11 @@
 .ai-modal-error {
     margin-top: 12px;
     padding: 10px 14px;
-    background: #fff3f3;
-    color: #d63031;
+    background: var(--color-error-bg, #FEF2F2);
+    color: var(--color-error, #EB5757);
     border-radius: 8px;
     font-size: 0.8rem;
-    border: 1px solid #ffdddd;
+    border: 1px solid var(--color-error, #EB5757);
 }
 
 /* Preview */
@@ -536,7 +536,7 @@
     transition: all 0.2s;
 }
 .ai-modal-apply-btn:hover {
-    background: #E55A2B;
+    background: var(--color-brand-dark, #E55A2B);
 }
 
 /* Crop Button */
@@ -554,4 +554,94 @@
     background: var(--color-brand-light);
     border-color: var(--color-brand);
     color: var(--color-brand-text);
+}
+
+/* ── AI Modal: Slot Label ── */
+.ai-modal-slot-label {
+    font-size: 0.85rem;
+    color: var(--color-text-sub, #787774);
+}
+
+/* ── AI Modal: Input Row ── */
+.ai-modal-input-row {
+    display: flex;
+    gap: 8px;
+}
+.ai-modal-input {
+    flex: 1;
+    border: 1px solid var(--color-border, #E3E2E0);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 0.85rem;
+    font-family: inherit;
+}
+.ai-modal-enhance-btn {
+    padding: 8px 14px;
+    background: var(--color-brand, #FF6B35);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.ai-modal-enhance-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ── AI Modal: Enhancing Text ── */
+.ai-modal-enhancing-text {
+    color: var(--color-brand, #FF6B35);
+    margin-left: 8px;
+    font-weight: 400;
+}
+
+/* ── AI Modal: Readonly Textarea ── */
+.ai-modal-textarea-readonly {
+    font-size: 0.8rem;
+    color: var(--color-text-sub, #787774);
+    background: var(--color-surface-hover, #F7F6F3);
+}
+
+/* ── AI Modal: Crop Test ── */
+.ai-modal-crop-test {
+    margin-top: 8px;
+    text-align: center;
+}
+.ai-modal-crop-test-label {
+    display: inline-block;
+    padding: 8px 16px;
+    font-size: 0.78rem;
+    color: var(--color-text-sub, #787774);
+    cursor: pointer;
+    border: 1px dashed var(--color-border, #E3E2E0);
+    border-radius: 8px;
+}
+
+/* ── AI Modal: Crop Area ── */
+.ai-modal-crop-area {
+    margin-top: 16px;
+}
+
+/* ── 768px Tablet ── */
+@media (max-width: 768px) {
+    .photo-uploader-container {
+        padding: 12px;
+    }
+    .photo-grid-compact {
+        gap: 6px;
+    }
+    .photo-progress-guide {
+        gap: 8px;
+        padding: 8px 12px;
+    }
+    .ai-modal {
+        width: 95%;
+        max-height: 90vh;
+    }
+    .ai-modal-body {
+        padding: 16px;
+    }
 }
