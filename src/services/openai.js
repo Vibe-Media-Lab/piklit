@@ -383,7 +383,8 @@ Output strictly a valid JSON:
 {"average":{"charCount":1980,"headingCount":6}}`;
 
         const result = await this.generateContent([{ text: prompt }], {
-            tools: [{ google_search: {} }]
+            tools: [{ google_search: {} }],
+            thinkingBudget: 0
         }, '경쟁 블로그 분석');
 
         // 카테고리별 권장 이미지 수 주입 (categories.js SSOT)
@@ -775,14 +776,10 @@ ${list}
     _competitorPrompt(competitorData) {
         if (!competitorData || !competitorData.average) return '';
 
-        const { average, blogs = [] } = competitorData;
-        const blogSummary = blogs.map((b, i) =>
-            `  ${i + 1}. "${b.title}" — ${b.charCount}자, 소제목 ${b.headingCount}개`
-        ).join('\n');
+        const { average } = competitorData;
 
         return `\n[경쟁 블로그 분석 결과]
 상위 블로그 평균: 글자수 ${average.charCount}자 | 소제목 ${average.headingCount}개 | 권장 이미지 ${average.imageCount}장
-${blogSummary}
 → 평균 이상의 글자수와 소제목 수를 확보하여 상위 노출에 맞는 글을 작성할 것.`;
     },
 
@@ -1031,7 +1028,7 @@ Output strictly a valid JSON:
             console.warn('[제품 정보 검색] 실패, 기본값 사용:', e.message);
         }
 
-        const infoCard = `<h3>🏷️ ${productInfo.productName || keyword}</h3><p><b>브랜드:</b> ${productInfo.brand}</p><p><b>가격:</b> ${productInfo.price}</p><p><b>주요 스펙:</b> ${productInfo.specs}</p><p><b>구매처:</b> ${productInfo.whereToBuy}</p><hr>`;
+        const infoCard = `<h2>🏷️ ${productInfo.productName || keyword}</h2><p><b>브랜드:</b> ${productInfo.brand}</p><p><b>가격:</b> ${productInfo.price}</p><p><b>주요 스펙:</b> ${productInfo.specs}</p><p><b>구매처:</b> ${productInfo.whereToBuy}</p>`;
 
         const toneBoost = this._categoryToneBoost('shopping', tone);
         const prompt = `너는 네이버 블로그 쇼핑 리뷰 전문 블로거야.
@@ -1896,7 +1893,7 @@ ${htmlContent}
 4. "다양한", "풍부한", "완벽한", "특별한" 등 AI 냄새나는 수식어 금지.
 5. "살펴보겠습니다", "알아보겠습니다" 금지.
 6. 구체적 수치·감각 표현·개인 경험 톤으로 작성.
-7. 결과는 HTML로 출력. <h2>, <h3>, <p>, <img>, <strong>, <em> 태그 사용.
+7. 결과는 HTML로 출력. <h2>, <p>, <img>, <b>, <em> 태그 사용.
 
 Output strictly valid HTML only. No JSON wrapping, no explanation.`;
 
