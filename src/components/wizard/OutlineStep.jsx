@@ -28,6 +28,7 @@ const OutlineStep = ({
     const [isGeneratingOutline, setIsGeneratingOutline] = useState(false);
     const [activeIndex, setActiveIndex] = useState(null);
     const [hasEdited, setHasEdited] = useState(false);
+    const [customInput, setCustomInput] = useState('');
 
     const handleGenerateOutline = async () => {
         setIsGeneratingOutline(true);
@@ -226,6 +227,35 @@ const OutlineStep = ({
                     {!hasEdited && (
                         <p className="outline-tap-hint">소제목을 탭하면 편집할 수 있습니다</p>
                     )}
+
+                    {/* 직접 입력 */}
+                    <div className="wizard-custom-input-row">
+                        <input
+                            type="text"
+                            value={customInput}
+                            onChange={e => setCustomInput(e.target.value)}
+                            onKeyDown={e => {
+                                if (e.key === 'Enter' && customInput.trim()) {
+                                    e.preventDefault();
+                                    setOutlineItems(prev => [...prev, { level: 'h2', title: customInput.trim() }]);
+                                    setCustomInput('');
+                                }
+                            }}
+                            placeholder="소제목 직접 입력"
+                            className="wizard-custom-input"
+                        />
+                        <button
+                            onClick={() => {
+                                if (!customInput.trim()) return;
+                                setOutlineItems(prev => [...prev, { level: 'h2', title: customInput.trim() }]);
+                                setCustomInput('');
+                            }}
+                            disabled={!customInput.trim()}
+                            className="wizard-custom-add-btn"
+                        >
+                            <Plus size={14} /> 추가
+                        </button>
+                    </div>
 
                     <div className="outline-bottom-bar">
                         {competitorData?.average?.headingCount > 0 && (
