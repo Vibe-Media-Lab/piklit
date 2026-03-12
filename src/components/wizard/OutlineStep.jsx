@@ -55,12 +55,6 @@ const OutlineStep = ({
         setOutlineItems(prev => prev.map((item, i) => i === index ? { ...item, title: newTitle } : item));
     };
 
-    const handleOutlineToggleLevel = (index) => {
-        setOutlineItems(prev => prev.map((item, i) =>
-            i === index ? { ...item, level: item.level === 'h2' ? 'h3' : 'h2' } : item
-        ));
-    };
-
     const handleOutlineMove = (index, direction) => {
         setOutlineItems(prev => {
             const arr = [...prev];

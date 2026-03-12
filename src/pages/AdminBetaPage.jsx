@@ -24,7 +24,7 @@ const AdminBetaPage = () => {
         fetchData();
     }, [isAdmin]);
 
-    const handleDelete = async (userId, userName) => {
+    const handleDelete = async (userId) => {
         if (deleteConfirm !== userId) {
             setDeleteConfirm(userId);
             return;
