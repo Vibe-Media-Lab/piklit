@@ -199,6 +199,34 @@
     justify-content: center;
 }
 
+/* ─── Multi-image slot ────────────────────────────── */
+.wannabe-slot-images {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+.wannabe-slot-images .wannabe-slot-thumb {
+    width: calc(50% - 2px);
+    aspect-ratio: 3/4;
+}
+.wannabe-slot-add-more {
+    width: calc(50% - 2px);
+    aspect-ratio: 3/4;
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-md);
+    background: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-sub);
+    transition: border-color 0.2s, color 0.2s;
+}
+.wannabe-slot-add-more:hover {
+    border-color: var(--color-brand);
+    color: var(--color-brand);
+}
+
 /* ─── Extras ─────────────────────────────────────── */
 .wannabe-extras {
     display: flex;

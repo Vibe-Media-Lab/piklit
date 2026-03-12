@@ -2,6 +2,7 @@ import React, { useState, useRef, useCallback } from 'react';
 import { X, ImagePlus, Sparkles, Trash2, ChevronDown, ChevronUp, Save, Camera } from 'lucide-react';
 import { AIService } from '../../services/openai';
 import { getPresets, savePreset, getPresetLimit } from '../../utils/wannabeStyle';
+import { fileToBase64 } from '../../utils/image';
 
 const GROUP_LABELS = {
     tone: '톤',
@@ -54,7 +55,7 @@ const ChecklistGroup = ({ groupKey, items, onToggle }) => {
  */
 export default function WannabeStylePanel({ isOpen, onClose, onSave, userPlan = 'free', initialType = 'wannabe' }) {
     const [styleType, setStyleType] = useState(initialType);
-    // 슬롯 데이터: { top: {preview, base64, mimeType}, mid: ..., bottom: ... }
+    // 슬롯 데이터: { top: [{preview, base64, mimeType}, ...], mid: [...], bottom: [...] }
     const [slots, setSlots] = useState({});
     // 추가 이미지: [{preview, base64, mimeType}]
     const [extras, setExtras] = useState([]);
@@ -69,35 +70,27 @@ export default function WannabeStylePanel({ isOpen, onClose, onSave, userPlan = 
     const limit = getPresetLimit(userPlan);
     const canSave = presets.length < limit;
 
-    const filledSlotCount = SLOTS.filter(s => slots[s.id]).length + extras.length;
-    const hasRequired = !!slots.top && !!slots.mid;
+    const filledSlotCount = SLOTS.reduce((sum, s) => sum + (slots[s.id]?.length || 0), 0) + extras.length;
+    const hasRequired = slots.top?.length > 0 && slots.mid?.length > 0;
 
-    // 파일 선택 핸들러
-    const handleFileSelect = useCallback((e) => {
+    // 파일 선택 핸들러 (압축 적용)
+    const handleFileSelect = useCallback(async (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        const reader = new FileReader();
-        reader.onload = () => {
-            const base64 = reader.result.split(',')[1];
-            const data = {
-                preview: URL.createObjectURL(file),
-                base64,
-                mimeType: file.type || 'image/jpeg',
-            };
+        const base64 = await fileToBase64(file, 512);
+        const preview = URL.createObjectURL(file);
+        const data = { preview, base64, mimeType: 'image/jpeg' };
 
-            const slotId = activeSlotRef.current;
-            if (slotId === 'extra') {
-                setExtras(prev => [...prev, data]);
-            } else {
-                setSlots(prev => {
-                    // 기존 preview URL 해제
-                    if (prev[slotId]?.preview) URL.revokeObjectURL(prev[slotId].preview);
-                    return { ...prev, [slotId]: data };
-                });
-            }
-        };
-        reader.readAsDataURL(file);
+        const slotId = activeSlotRef.current;
+        if (slotId === 'extra') {
+            setExtras(prev => [...prev, data]);
+        } else {
+            setSlots(prev => ({
+                ...prev,
+                [slotId]: [...(prev[slotId] || []), data],
+            }));
+        }
         e.target.value = '';
     }, []);
 
@@ -106,12 +99,12 @@ export default function WannabeStylePanel({ isOpen, onClose, onSave, userPlan = 
         fileInputRef.current?.click();
     };
 
-    const removeSlot = (slotId) => {
+    const removeSlotImage = (slotId, idx) => {
         setSlots(prev => {
-            if (prev[slotId]?.preview) URL.revokeObjectURL(prev[slotId].preview);
-            const next = { ...prev };
-            delete next[slotId];
-            return next;
+            const arr = prev[slotId] || [];
+            if (arr[idx]?.preview) URL.revokeObjectURL(arr[idx].preview);
+            const next = arr.filter((_, i) => i !== idx);
+            return { ...prev, [slotId]: next };
         });
     };
 
@@ -134,13 +127,13 @@ export default function WannabeStylePanel({ isOpen, onClose, onSave, userPlan = 
             // 슬롯별 이미지 + 위치 라벨 조합
             const slotAssets = [];
             SLOTS.forEach(s => {
-                if (slots[s.id]) {
+                (slots[s.id] || []).forEach((img, i) => {
                     slotAssets.push({
-                        base64: slots[s.id].base64,
-                        mimeType: slots[s.id].mimeType,
-                        position: s.label, // 상단/중단/하단
+                        base64: img.base64,
+                        mimeType: img.mimeType,
+                        position: `${s.label}${(slots[s.id]?.length || 0) > 1 ? ` ${i + 1}` : ''}`,
                     });
-                }
+                });
             });
             extras.forEach((ex, i) => {
                 slotAssets.push({
@@ -198,7 +191,7 @@ export default function WannabeStylePanel({ isOpen, onClose, onSave, userPlan = 
     // 모달 닫을 때 초기화
     const handleClose = () => {
         // base64 메모리 해제
-        Object.values(slots).forEach(s => s?.preview && URL.revokeObjectURL(s.preview));
+        Object.values(slots).forEach(arr => (arr || []).forEach(s => s?.preview && URL.revokeObjectURL(s.preview)));
         extras.forEach(e => e?.preview && URL.revokeObjectURL(e.preview));
         setSlots({});
         setExtras([]);
@@ -252,31 +245,44 @@ export default function WannabeStylePanel({ isOpen, onClose, onSave, userPlan = 
                         <>
                             {/* 슬롯형 스크린샷 */}
                             <div className="wannabe-slot-grid">
-                                {SLOTS.map(slot => (
-                                    <div key={slot.id} className="wannabe-slot">
-                                        <div className="wannabe-slot-label">
-                                            <span className="wannabe-slot-icon">{slot.icon}</span>
-                                            {slot.label}
-                                            {slot.required && <span className="wannabe-slot-required">필수</span>}
-                                        </div>
-                                        {slots[slot.id] ? (
-                                            <div className="wannabe-slot-thumb">
-                                                <img src={slots[slot.id].preview} alt={slot.label} />
-                                                <button className="wannabe-slot-remove" onClick={() => removeSlot(slot.id)}>
-                                                    <X size={12} />
-                                                </button>
+                                {SLOTS.map(slot => {
+                                    const images = slots[slot.id] || [];
+                                    return (
+                                        <div key={slot.id} className="wannabe-slot">
+                                            <div className="wannabe-slot-label">
+                                                <span className="wannabe-slot-icon">{slot.icon}</span>
+                                                {slot.label}
+                                                {slot.required && <span className="wannabe-slot-required">필수</span>}
                                             </div>
-                                        ) : (
-                                            <button
-                                                className="wannabe-slot-empty"
-                                                onClick={() => triggerFileInput(slot.id)}
-                                            >
-                                                <ImagePlus size={20} />
-                                                <span>{slot.desc}</span>
-                                            </button>
-                                        )}
-                                    </div>
-                                ))}
+                                            {images.length > 0 ? (
+                                                <div className="wannabe-slot-images">
+                                                    {images.map((img, i) => (
+                                                        <div key={i} className="wannabe-slot-thumb">
+                                                            <img src={img.preview} alt={`${slot.label} ${i + 1}`} />
+                                                            <button className="wannabe-slot-remove" onClick={() => removeSlotImage(slot.id, i)}>
+                                                                <X size={12} />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                    <button
+                                                        className="wannabe-slot-add-more"
+                                                        onClick={() => triggerFileInput(slot.id)}
+                                                    >
+                                                        <ImagePlus size={14} />
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <button
+                                                    className="wannabe-slot-empty"
+                                                    onClick={() => triggerFileInput(slot.id)}
+                                                >
+                                                    <ImagePlus size={20} />
+                                                    <span>{slot.desc}</span>
+                                                </button>
+                                            )}
+                                        </div>
+                                    );
+                                })}
                             </div>
 
                             {/* 추가 이미지 */}
@@ -327,7 +333,7 @@ export default function WannabeStylePanel({ isOpen, onClose, onSave, userPlan = 
                                 ) : (
                                     <>
                                         <Sparkles size={16} />
-                                        {typeLabel} 분석하기 ({filledSlotCount}장)
+                                        {typeLabel} 분석하기
                                     </>
                                 )}
                             </button>
