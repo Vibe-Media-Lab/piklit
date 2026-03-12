@@ -33,7 +33,7 @@ import '../styles/ImageSeoGuide.css';
 const EditorPage = () => {
     const { id } = useParams();
     const location = useLocation();
-    const { openPost, posts, currentPostId, title, updateMainKeyword, updateSubKeywords, setSuggestedTone, setContent, content, setTargetLength, editorRef, lastCursorPosRef, closeSession, recordAiAction, updatePostMeta, setPhotoPreviewUrls, navigationGuardRef } = useEditor();
+    const { openPost, posts, currentPostId, title, setTitle, updateMainKeyword, updateSubKeywords, setSuggestedTone, setContent, content, setTargetLength, editorRef, lastCursorPosRef, closeSession, recordAiAction, updatePostMeta, setPhotoPreviewUrls, navigationGuardRef } = useEditor();
     const { showToast } = useToast();
 
     const locationStateProcessed = useRef(false);
