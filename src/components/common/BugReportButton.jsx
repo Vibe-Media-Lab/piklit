@@ -65,22 +65,10 @@ const BugReportButton = () => {
             </button>
 
             {isOpen && (
-                <div className="bug-report-overlay" style={{
-                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                    backgroundColor: 'rgba(0,0,0,0.5)',
-                    display: 'flex', justifyContent: 'center', alignItems: 'center',
-                    zIndex: 1100,
-                }}>
-                    <div style={{
-                        background: 'white',
-                        borderRadius: 'var(--radius-lg)',
-                        padding: '24px',
-                        width: '420px',
-                        maxWidth: '90vw',
-                        boxShadow: 'var(--shadow-lg)',
-                    }}>
-                        <h3 style={{ marginTop: 0, marginBottom: '4px' }}>Bug Report</h3>
-                        <p style={{ fontSize: '0.8rem', color: 'var(--color-text-sub)', marginBottom: '16px' }}>
+                <div className="bug-report-overlay">
+                    <div className="bug-report-modal">
+                        <h3>Bug Report</h3>
+                        <p className="bug-report-desc">
                             문제를 설명해주세요. 콘솔 로그와 화면 캡쳐는 자동으로 첨부됩니다.
                         </p>
 
@@ -89,55 +77,24 @@ const BugReportButton = () => {
                             onChange={(e) => setDescription(e.target.value)}
                             placeholder="어떤 문제가 발생했나요? (예: 글 생성 버튼을 눌렀는데 오류가 났어요)"
                             rows={4}
-                            style={{
-                                width: '100%',
-                                padding: '10px',
-                                border: '1px solid var(--color-border)',
-                                borderRadius: 'var(--radius-md)',
-                                resize: 'vertical',
-                                fontSize: '0.9rem',
-                                boxSizing: 'border-box',
-                            }}
                             autoFocus
                         />
 
-                        <div style={{
-                            marginTop: '12px',
-                            padding: '10px',
-                            background: '#F7F6F3',
-                            borderRadius: 'var(--radius-md)',
-                            fontSize: '0.75rem',
-                            color: 'var(--color-text-sub)',
-                        }}>
+                        <div className="bug-report-info">
                             자동 첨부: 화면 스크린샷, 콘솔 로그, 브라우저 정보, 현재 URL
                         </div>
 
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '16px' }}>
+                        <div className="bug-report-actions">
                             <button
+                                className="bug-report-btn-cancel"
                                 onClick={() => { setIsOpen(false); setDescription(''); }}
-                                style={{
-                                    padding: '8px 16px',
-                                    background: 'var(--color-bg)',
-                                    border: '1px solid var(--color-border)',
-                                    borderRadius: 'var(--radius-md)',
-                                    cursor: 'pointer',
-                                }}
                             >
                                 취소
                             </button>
                             <button
+                                className="bug-report-btn-submit"
                                 onClick={handleSubmit}
                                 disabled={sending}
-                                style={{
-                                    padding: '8px 16px',
-                                    background: '#37352F',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: 'var(--radius-md)',
-                                    cursor: 'pointer',
-                                    fontWeight: 600,
-                                    opacity: sending ? 0.6 : 1,
-                                }}
                             >
                                 {sending ? '전송 중...' : '전송'}
                             </button>

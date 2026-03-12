@@ -117,13 +117,13 @@
 }
 
 .rewrite-score-diff.up {
-    background: #DCFCE7;
-    color: #16A34A;
+    background: var(--color-score-high-bg);
+    color: var(--color-score-high);
 }
 
 .rewrite-score-diff.down {
-    background: #FEE2E2;
-    color: #EF4444;
+    background: var(--color-score-low-bg);
+    color: var(--color-score-low);
 }
 
 .rewrite-score-actions {
@@ -1563,5 +1563,37 @@
     /* tiptap wrapper는 relative 필요 */
     .tiptap-editor-wrapper {
         position: relative;
+    }
+}
+
+/* ===== 소형 모바일 (480px) ===== */
+@media (max-width: 480px) {
+    .tiptap-content-area {
+        font-size: 0.85rem;
+        padding: 0 4px;
+    }
+
+    .editor-toolbar {
+        padding: 8px 4px;
+        gap: 4px;
+    }
+
+    .toolbar-btn {
+        min-width: 36px;
+        min-height: 36px;
+        font-size: 0.8rem;
+        padding: 2px 4px;
+    }
+
+    .rewrite-score-card {
+        margin: 0 4px 8px;
+        padding: 8px;
+        font-size: 0.8rem;
+    }
+
+    .humanness-tip-card {
+        left: 8px;
+        right: 8px;
+        bottom: 72px;
     }
 }

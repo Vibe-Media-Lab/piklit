@@ -4140,6 +4140,85 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
     }
 }
 
+/* ===== Bug Report Modal ===== */
+.bug-report-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1100;
+}
+
+.bug-report-modal {
+    background: var(--color-bg);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    width: 420px;
+    max-width: 90vw;
+    box-shadow: var(--shadow-lg);
+}
+
+.bug-report-modal h3 {
+    margin-top: 0;
+    margin-bottom: 4px;
+}
+
+.bug-report-desc {
+    font-size: 0.8rem;
+    color: var(--color-text-sub);
+    margin-bottom: 16px;
+}
+
+.bug-report-modal textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    resize: vertical;
+    font-size: 0.9rem;
+    box-sizing: border-box;
+}
+
+.bug-report-info {
+    margin-top: 12px;
+    padding: 10px;
+    background: var(--color-surface-hover);
+    border-radius: var(--radius-md);
+    font-size: 0.75rem;
+    color: var(--color-text-sub);
+}
+
+.bug-report-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.bug-report-btn-cancel {
+    padding: 8px 16px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+}
+
+.bug-report-btn-submit {
+    padding: 8px 16px;
+    background: var(--color-text);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.bug-report-btn-submit:disabled {
+    opacity: 0.6;
+}
+
 /* ===== SettingsModal ===== */
 
 .settings-overlay {
