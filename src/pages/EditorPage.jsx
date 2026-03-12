@@ -506,6 +506,7 @@ const EditorPage = () => {
 
             const htmlContent = result?.html || result?.text;
             if (htmlContent) {
+                if (result?.title) setTitle(result.title);
                 await streamContentToEditor(htmlContent);
                 updateMainKeyword(mainKeyword);
                 const photoCount = Object.values(photoData.metadata).filter(v => v > 0).length;

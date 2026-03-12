@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useEditor } from '../../context/EditorContext';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '../common/Toast';
@@ -23,12 +23,22 @@ const GRADE_LABELS = {
 };
 
 const HumannessPanel = ({ onLocate }) => {
-    const { content, suggestedTone, keywords, recordAiAction, editorRef, setHumanTip } = useEditor();
+    const { content, suggestedTone, keywords, recordAiAction, editorRef, humanTip, setHumanTip } = useEditor();
     const { showToast } = useToast();
     const [isOpen, setIsOpen] = useState(true);
     const [aiLoading, setAiLoading] = useState(false);
     const [aiSuggestions, setAiSuggestions] = useState(null);
     const [appliedIndices, setAppliedIndices] = useState(new Set());
+    const prevHumanTipRef = useRef(null);
+
+    // 팝업에서 적용 시 (humanTip이 index 포함 상태에서 null로 전환) → applied 동기화
+    useEffect(() => {
+        const prev = prevHumanTipRef.current;
+        if (prev && prev.index != null && humanTip === null) {
+            setAppliedIndices(s => new Set([...s, prev.index]));
+        }
+        prevHumanTipRef.current = humanTip;
+    }, [humanTip]);
 
     const result = useMemo(() => analyzeHumanness(content, suggestedTone), [content, suggestedTone]);
     const { score, grade, metrics, suggestions, isEmpty } = result;
@@ -166,11 +176,16 @@ const HumannessPanel = ({ onLocate }) => {
                 .insertContentAt({ from: fromEntry.pmPos, to: toEntry.pmPos }, revised)
                 .run();
             setAppliedIndices(prev => new Set([...prev, index]));
+            // 형광펜 제거 + TIP 팝업 닫기
+            document.querySelectorAll('.humanness-inline-highlight').forEach(el => {
+                el.classList.remove('humanness-inline-highlight');
+            });
+            setHumanTip(null);
             showToast('수정안이 적용되었습니다.', 'success');
         } else {
             showToast('원문 위치를 특정할 수 없습니다.', 'warning');
         }
-    }, [editorRef, showToast]);
+    }, [editorRef, showToast, setHumanTip]);
 
     return (
         <div className="humanness-panel">

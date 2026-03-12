@@ -8,7 +8,7 @@ import { Sparkles, Loader2 } from 'lucide-react';
 import '../../styles/ThumbnailPanel.css';
 
 const ThumbnailPanel = () => {
-    const { title, keywords, posts, currentPostId, photoPreviewUrls, editorRef, content, recordAiAction } = useEditor();
+    const { title, keywords, posts, currentPostId, photoPreviewUrls, editorRef, lastCursorPosRef, content, recordAiAction } = useEditor();
     const { showToast } = useToast();
 
     // photoPreviewUrls가 비어있으면 에디터 본문의 이미지 src를 fallback으로 사용
@@ -224,7 +224,12 @@ const ThumbnailPanel = () => {
     const handleInsert = () => {
         const editor = editorRef?.current;
         if (!editor || !previewUrl) return;
-        editor.chain().focus().setImage({ src: previewUrl, alt: mainText || '썸네일' }).run();
+        const pos = lastCursorPosRef?.current;
+        if (pos != null && pos < editor.state.doc.content.size) {
+            editor.chain().insertContentAt(pos, { type: 'image', attrs: { src: previewUrl, alt: mainText || '썸네일' } }).focus().run();
+        } else {
+            editor.chain().focus('end').setImage({ src: previewUrl, alt: mainText || '썸네일' }).run();
+        }
         showToast('썸네일이 본문에 삽입되었습니다.', 'success');
     };
 

@@ -876,7 +876,7 @@ ${imageInstructions}
 [구조 — 반드시 이 순서!!!]
 ${this._introPromptByCategory(category, mainKeyword)}
 2. 본문: h2 사용. 구글 검색으로 '${mainKeyword}' 실제 정보를 찾아 작성. 서브 키워드는 문맥에 맞게 자연스럽게 녹여넣기. [[VIDEO]] 1개 배치.
-Output strictly a valid JSON: {"html": "..."}`;
+Output strictly a valid JSON: {"title": "SEO 최적화된 블로그 제목 (메인 키워드로 시작, 15~25자)", "html": "..."}`;
 
         const parts = [{ text: prompt }];
         if (!photoAnalysis) {
@@ -967,7 +967,7 @@ ${this._introPromptByCategory('food', keyword)}
 3. 가게 정보카드 — 글 하단 마무리에 배치 (아래 HTML 그대로 삽입):
 ${infoCard}
 → 가게 정보는 반드시 글의 맨 마지막에 위치해야 함. 도입부나 본문 중간에 넣지 말 것. 독자가 글을 끝까지 읽고 방문을 결심한 후 확인하는 정보임.
-Output strictly a valid JSON: {"html": "..."}`;
+Output strictly a valid JSON: {"title": "SEO 최적화된 블로그 제목 (메인 키워드로 시작, 15~25자)", "html": "..."}`;
 
         const parts = [{ text: prompt }];
         if (!photoAnalysis) {
@@ -1057,7 +1057,7 @@ ${infoCard}
 
 [장단점 섹션 — 필수]
 본문 후반부에 장점과 아쉬운 점을 <h2>✅ 장점</h2>과 <h2>❌ 아쉬운 점</h2> 소제목 아래 <ul><li> 리스트로 각각 3~5개씩 정리.
-Output strictly a valid JSON: {"html": "..."}`;
+Output strictly a valid JSON: {"title": "SEO 최적화된 블로그 제목 (메인 키워드로 시작, 15~25자)", "html": "..."}`;
 
         const parts = [{ text: prompt }];
         if (!photoAnalysis) {
@@ -1099,7 +1099,7 @@ ${this._competitorPrompt(competitorData)}
 [원본 내용]
 ${currentHtml}
 
-Output strictly a valid JSON: { "html": "..." }`;
+Output strictly a valid JSON: {"title": "SEO 최적화된 블로그 제목 (메인 키워드로 시작, 15~25자)", "html": "..."}`;
 
         return this.generateContent([{ text: prompt }], {
             tools: [{ google_search: {} }]
