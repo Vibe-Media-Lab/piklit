@@ -59,7 +59,7 @@ const ToneStep = ({
     const [wannabePresets, setWannabePresets] = useState(() => getPresetsByType('wannabe'));
     const [myStylePresets, setMyStylePresets] = useState(() => getPresetsByType('mystyle'));
     const [isAnalyzingCompetitors, setIsAnalyzingCompetitors] = useState(false);
-    const [advancedOpen, setAdvancedOpen] = useState(false);
+    const [advancedOpen, setAdvancedOpen] = useState(true);
 
     const handleAnalyzeCompetitors = async () => {
         if (!mainKeyword?.trim()) return showToast('메인 키워드를 먼저 입력해주세요.', 'warning');

@@ -84,7 +84,7 @@ const TopicStep = ({
                         >
                             {showAllCategories
                                 ? <>접기 <ChevronDown size={14} className="wizard-advanced-arrow open" /></>
-                                : <>+ {CATEGORIES.length - PRIMARY_CATEGORY_COUNT}개 더보기 <ChevronDown size={14} /></>
+                                : <>+{CATEGORIES.length - PRIMARY_CATEGORY_COUNT}개 더보기 <ChevronDown size={14} /></>
                             }
                         </button>
                     )}

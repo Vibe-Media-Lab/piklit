@@ -35,12 +35,12 @@ const getDifficulty = (item) => item?.difficulty || 'medium';
 
 const DifficultyBadge = ({ difficulty }) => {
     const map = {
-        easy: { emoji: '🟢', label: '쉬움' },
-        medium: { emoji: '🟡', label: '보통' },
-        hard: { emoji: '🔴', label: '어려움' },
+        easy: { emoji: '🟢', label: '쉬움', desc: '경쟁 적음, 상위 노출 유리' },
+        medium: { emoji: '🟡', label: '보통', desc: '적당한 경쟁, 꾸준히 쓰면 효과적' },
+        hard: { emoji: '🔴', label: '어려움', desc: '경쟁 치열, 상위 노출 어려움' },
     };
     const d = map[difficulty] || map.medium;
-    return <span title={d.label} className="difficulty-badge">{d.emoji} {d.label}</span>;
+    return <span title={d.desc} className="difficulty-badge">{d.emoji} {d.label}</span>;
 };
 
 // ── KeywordStep 컴포넌트 ──
@@ -438,7 +438,7 @@ const KeywordStep = ({
                                                 className="wizard-season-more"
                                                 onClick={() => setSeasonShowAll(true)}
                                             >
-                                                + {seasonKeywords.length - 3}개 더 보기
+                                                +{seasonKeywords.length - 3}개 더보기
                                             </button>
                                         )}
                                     </div>
