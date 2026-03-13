@@ -139,7 +139,7 @@ const AIAnalysisDashboard = ({ onLocate, compact, mode }) => {
             );
             if (result.title && result.title !== title) setTitle(result.title);
             if (result.content && result.content !== content) setContent(result.content);
-            const fixCount = result.fixes?.length || issuesToFix.length;
+            const fixCount = issuesToFix.length;
             showToast(`SEO 이슈 ${fixCount}건 수정 완료`, 'success');
             setScoreToast({
                 message: `SEO 이슈 ${fixCount}건 수정 완료`,
@@ -322,15 +322,15 @@ const AIAnalysisDashboard = ({ onLocate, compact, mode }) => {
     };
 
     // ── v3 개선 제안 — SEO + 자연스러움 통합 ──
-    const renderV3Suggestions = () => (
+    const renderV3Suggestions = (items = allSuggestions) => (
         <>
-            {allSuggestions.length === 0 ? (
+            {items.length === 0 ? (
                 <div className="v3-perfect">
                     <Check size={16} /> 개선할 항목이 없습니다
                 </div>
             ) : (
                 <div className="v3-suggestions">
-                    {allSuggestions.map((item, idx) => (
+                    {items.map((item, idx) => (
                         <div key={idx} className="v3-suggestion-item">
                             <div className="v3-suggestion-header">
                                 <span className={`v3-suggestion-badge ${item.category === 'SEO' ? 'seo' : 'natural'}`}>
@@ -438,17 +438,20 @@ const AIAnalysisDashboard = ({ onLocate, compact, mode }) => {
         );
     };
 
-    // ── 모바일 mode="natural": 자연스러움 + 가독성 V3 ──
+    // ── 모바일 mode="natural": AI 감지 분석 + 개선 제안 (v3 카드) ──
     if (mode === 'natural') {
+        const naturalSuggestions = allSuggestions.filter(s => s.category === '자연스러움');
         return (
             <div className="ai-dashboard v3">
                 <Section title="AI 감지 분석" icon={Sparkles} score={humanResult.isEmpty ? null : naturalPercentage} scoreClass={getScoreClass(naturalPercentage)} defaultOpen={true}>
                     {renderV3HumannessBars()}
                     <HumannessPanel onLocate={onLocate} suggestOnly />
                 </Section>
-                <Section title="가독성 점수" icon={BarChart3} score={readabilityResult.isEmpty ? null : readabilityResult.score} scoreClass={getScoreClass(readabilityResult.score)}>
-                    {renderV3ReadabilityBars()}
-                </Section>
+                {naturalSuggestions.length > 0 && (
+                    <Section title="개선 제안" count={naturalSuggestions.length} defaultOpen={true}>
+                        {renderV3Suggestions(naturalSuggestions)}
+                    </Section>
+                )}
             </div>
         );
     }
@@ -464,13 +467,14 @@ const AIAnalysisDashboard = ({ onLocate, compact, mode }) => {
         );
     }
 
-    // ── 모바일 mode="seo": SEO 체크리스트 + 제안 ──
+    // ── 모바일 mode="seo": SEO 체크리스트 + SEO 제안만 ──
     if (mode === 'seo') {
+        const seoOnlySuggestions = allSuggestions.filter(s => s.category === 'SEO');
         return (
             <div className="ai-dashboard v3">
                 {renderV3SeoChecklist()}
                 <div style={{ padding: '0 16px 16px' }}>
-                    {renderV3Suggestions()}
+                    {renderV3Suggestions(seoOnlySuggestions)}
                 </div>
             </div>
         );

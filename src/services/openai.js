@@ -2027,14 +2027,12 @@ Output strictly a valid JSON:
         // 플레이스홀더를 원본 base64 이미지로 복원
         let fixedContent = result?.content || htmlContent;
         imgMap.forEach((original, idx) => {
-            fixedContent = fixedContent.replace(`<img${original.match(/<img([^>]*?)src="/)?.[1] || ''}src="__IMG_PLACEHOLDER_${idx}__"`, original);
-        });
-        // 단순 패턴 복원 실패 대비: 플레이스홀더 src만 교체
-        imgMap.forEach((original, idx) => {
             const placeholder = `__IMG_PLACEHOLDER_${idx}__`;
-            if (fixedContent.includes(placeholder)) {
-                const srcMatch = original.match(/src="([^"]+)"/);
-                if (srcMatch) fixedContent = fixedContent.replace(placeholder, srcMatch[1]);
+            if (!fixedContent.includes(placeholder)) return;
+            // 전략 1: src 속성값만 교체 (가장 안정적)
+            const srcMatch = original.match(/src="([^"]+)"/);
+            if (srcMatch) {
+                fixedContent = fixedContent.replace(new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), srcMatch[1]);
             }
         });
 
