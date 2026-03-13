@@ -8,7 +8,7 @@ import { Sparkles, Loader2 } from 'lucide-react';
 import '../../styles/ThumbnailPanel.css';
 
 const ThumbnailPanel = () => {
-    const { title, keywords, posts, currentPostId, photoPreviewUrls, editorRef, lastCursorPosRef, content, recordAiAction } = useEditor();
+    const { title, keywords, posts, currentPostId, photoPreviewUrls, editorRef, content, recordAiAction } = useEditor();
     const { showToast } = useToast();
 
     // photoPreviewUrls가 비어있으면 에디터 본문의 이미지 src를 fallback으로 사용

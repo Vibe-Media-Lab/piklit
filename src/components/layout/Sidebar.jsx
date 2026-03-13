@@ -25,7 +25,7 @@ const PLAN_LABELS = {
 };
 
 const Sidebar = () => {
-    const { user, logout, isAdmin } = useAuth();
+    const { user, isAdmin } = useAuth();
     const { createPost, navigationGuardRef, posts, currentPostId, deletePost, revertPost } = useEditor();
     const navigate = useNavigate();
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -60,13 +60,6 @@ const Sidebar = () => {
         guardedNavigate(() => {
             const newId = createPost({ mode: 'ai' });
             navigate(`/editor/${newId}`, { state: { isNew: true } });
-        });
-    };
-
-    const handleLogout = async () => {
-        guardedNavigate(async () => {
-            await logout();
-            navigate('/');
         });
     };
 

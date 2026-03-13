@@ -54,17 +54,6 @@ const SettingsModal = ({ isOpen, onClose }) => {
         }
     };
 
-    const handleSave = () => {
-        if (apiKey.trim()) {
-            localStorage.setItem('openai_api_key', apiKey.trim());
-            showToast('API Key가 저장되었습니다. 무제한으로 사용할 수 있습니다.', 'success');
-        } else {
-            localStorage.removeItem('openai_api_key');
-            showToast('API Key가 제거되었습니다. 무료 체험으로 전환됩니다.', 'success');
-        }
-        onClose();
-    };
-
     if (!isOpen) return null;
 
     const hasOwnKey = !!localStorage.getItem('openai_api_key');
