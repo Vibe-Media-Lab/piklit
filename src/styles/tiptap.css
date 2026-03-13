@@ -510,9 +510,9 @@
 }
 
 .cta-dropdown {
-    position: fixed;
-    bottom: 80px;
-    left: 16px;
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 0;
     background: white;
     border: 1px solid var(--color-border);
     border-radius: 10px;

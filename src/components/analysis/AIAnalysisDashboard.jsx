@@ -5,7 +5,6 @@ import { useToast } from '../common/Toast';
 import { AIService } from '../../services/openai';
 import { Loader2 } from 'lucide-react';
 import { analyzeHumanness } from '../../utils/humanness';
-import ReadabilityPanel from './ReadabilityPanel';
 import HumannessPanel from './HumannessPanel';
 import PostHistory from './PostHistory';
 
@@ -39,12 +38,39 @@ const AI_FIXABLE_IDS = new Set([
     'intro_short', 'intro_long',
 ]);
 
+// SEO 체크 항목 정의 (checks 키 → 라벨 + 메트릭 함수)
+const SEO_CHECK_ITEMS = [
+    { key: 'titleLength', label: '제목 30자 이내', metric: (a) => `${a._titleLen}자` },
+    { key: 'titleKeyStart', label: '제목에 메인 키워드 포함' },
+    { key: 'introParagraphLength', label: '도입부 길이', metric: (a) => a.introLength > 0 ? `${a.introLength}자` : null },
+    { key: 'mainKeyDensity', label: '키워드 밀도', metric: (a) => a.keywordDensity > 0 ? `${a.keywordDensity}%` : null },
+    { key: 'structure', label: '소제목 3개 이상', metric: (a) => `${a.headingCount}개` },
+    { key: 'contentLength', label: null, metric: (a) => `${a.totalChars?.toLocaleString()}자` },
+    { key: 'imageCount', label: '이미지 5장 이상', metric: (a) => `${a.imageCount}장` },
+    { key: 'videoPresence', label: '동영상 추가 권장', metric: () => null },
+    { key: 'mainKeyFirstPara', label: '첫 문단 키워드 포함' },
+    { key: 'headingKeywords', label: '소제목 키워드 포함' },
+    { key: 'subKeyPresence', label: '서브 키워드 포함' },
+    { key: 'imageAltText', label: '이미지 Alt 속성' },
+];
+
+// 자연스러움 메트릭 라벨
+const HUMAN_METRIC_LABELS = {
+    sentenceVariety: '문장 길이',
+    personalExpr: '개인 표현',
+    aiPattern: '표현 패턴',
+    colloquial: '구어체 마커',
+    paraVariety: '문단 길이',
+    informal: '이모지/비격식',
+};
+
 const getScoreClass = (pct) => pct >= 80 ? 'good' : pct >= 60 ? 'mid' : 'low';
 const getScoreColor = (pct) => pct >= 80 ? 'var(--color-green, #10B981)' : pct >= 60 ? 'var(--color-yellow, #F59E0B)' : 'var(--color-red, #EF4444)';
+const getBarColor = (pct) => pct >= 80 ? 'var(--color-green, #10B981)' : pct >= 60 ? 'var(--color-yellow, #F59E0B)' : 'var(--color-red, #EF4444)';
 
 const AIAnalysisDashboard = ({ onLocate, compact, mode }) => {
-    const { analysis, content, title, setTitle, setContent, keywords, suggestedTone, recordAiAction } = useEditor();
-    const { checks, issues, keywordDensity, introLength, headingCount } = analysis;
+    const { analysis, content, title, setTitle, setContent, keywords, suggestedTone, recordAiAction, targetLength } = useEditor();
+    const { checks, issues, keywordDensity, introLength, headingCount, totalChars, imageCount } = analysis;
     const score = Object.values(checks).filter(Boolean).length;
     const maxScore = Object.keys(checks).length || 1;
     const seoPercentage = Math.round((score / maxScore) * 100);
@@ -65,11 +91,38 @@ const AIAnalysisDashboard = ({ onLocate, compact, mode }) => {
     const [copiedTag, setCopiedTag] = useState(null);
     const [copiedAll, setCopiedAll] = useState(false);
     const [tagOpen, setTagOpen] = useState(false);
+    const [scoreToast, setScoreToast] = useState(null);
 
     const fixableIssues = issues.filter(i => AI_FIXABLE_IDS.has(i.id));
 
+    // 자연스러움 제안 중 우선순위 높은 것
+    const humanSuggestions = useMemo(() => {
+        if (humanResult.isEmpty) return [];
+        return humanResult.suggestions
+            .filter(s => s.type !== 'info' && s.priority > 0)
+            .slice(0, 3);
+    }, [humanResult]);
+
+    // 통합 개선 제안 (SEO 전체 이슈 + 자연스러움, 동영상/이미지 제외)
+    const SUGGESTION_EXCLUDE_IDS = new Set(['video_missing', 'img_count_low', 'img_count_high', 'img_alt_missing', 'img_alt_duplicate']);
+    const allSuggestions = useMemo(() => {
+        const seo = issues
+            .filter(i => !SUGGESTION_EXCLUDE_IDS.has(i.id))
+            .map(i => ({ ...i, category: 'SEO', fixable: AI_FIXABLE_IDS.has(i.id) }));
+        const natural = humanSuggestions.map(s => ({ ...s, category: '자연스러움', id: 'human_' + s.text.slice(0, 10), fixable: false }));
+        return [...seo, ...natural];
+    }, [issues, humanSuggestions]);
+
+    // 분석에 필요한 메트릭 묶음
+    const analysisMetrics = useMemo(() => ({
+        ...analysis,
+        _titleLen: title.length,
+    }), [analysis, title]);
+
     const handleFixSeoIssues = async () => {
         if (fixableIssues.length === 0) return;
+        const prevSeo = seoPercentage;
+        const prevTotal = totalPercentage;
         setSeoFixLoading(true);
         recordAiAction('seoFix');
         try {
@@ -81,6 +134,12 @@ const AIAnalysisDashboard = ({ onLocate, compact, mode }) => {
             if (result.content && result.content !== content) setContent(result.content);
             const fixCount = result.fixes?.length || fixableIssues.length;
             showToast(`SEO 이슈 ${fixCount}건 수정 완료`, 'success');
+            // 점수 변화 토스트 표시
+            setScoreToast({
+                message: `SEO 이슈 ${fixCount}건 수정 완료`,
+                prevSeo,
+                prevTotal,
+            });
         } catch (e) {
             showToast('SEO 수정 오류: ' + e.message, 'error');
         } finally {
@@ -162,59 +221,130 @@ const AIAnalysisDashboard = ({ onLocate, compact, mode }) => {
         );
     };
 
-    // ── v3 SEO 체크리스트 (lucide 아이콘) ──
-    const renderV3SeoChecklist = () => (
-        <>
-            {issues.length === 0 ? (
-                <div className="v3-perfect">
-                    <Check size={16} /> 모든 항목 통과
-                </div>
-            ) : (
-                <div className="v3-checklist">
-                    {issues.map((issue, idx) => (
-                        <div key={idx} className="v3-check-item">
-                            <span className={`v3-check-icon ${issue.type === 'error' ? 'fail' : issue.type === 'warning' ? 'warn' : 'info'}`}>
-                                {issue.type === 'error' ? <X size={13} /> : <AlertTriangle size={12} />}
+    // ── v3 점수 변화 토스트 ──
+    const renderScoreToast = () => {
+        if (!scoreToast) return null;
+        return (
+            <div className="v3-score-toast">
+                <span className="v3-score-toast-icon">📈</span>
+                <span className="v3-score-toast-text">
+                    {scoreToast.message}<br />
+                    <strong>SEO {scoreToast.prevSeo}% → {seoPercentage}%</strong> · 종합 {scoreToast.prevTotal}% → {totalPercentage}%
+                </span>
+                <button className="v3-score-toast-close" onClick={() => setScoreToast(null)}>✕</button>
+            </div>
+        );
+    };
+
+    // ── v3 SEO 체크리스트 — 통과/실패 모든 항목 표시 ──
+    const renderV3SeoChecklist = () => {
+        // 이슈 ID → 이슈 객체 매핑
+        const issueMap = {};
+        issues.forEach(i => { issueMap[i.id] = i; });
+
+        return (
+            <div className="v3-checklist">
+                {SEO_CHECK_ITEMS.map(({ key, label: rawLabel, metric }) => {
+                    const passed = checks[key];
+                    const metricValue = metric ? metric(analysisMetrics) : null;
+                    const label = rawLabel || (key === 'contentLength' ? `본문 ${targetLength?.toLocaleString() || '1,500'}자 이상` : key);
+                    // 실패한 항목에 대응하는 이슈 찾기
+                    const relatedIssue = !passed && issues.find(i => {
+                        const keyMap = {
+                            titleKeyStart: 'title_start',
+                            titleLength: 'title_long',
+                            mainKeyDensity: 'key_density',
+                            mainKeyFirstPara: 'key_first',
+                            subKeyPresence: 'sub_missing',
+                            structure: 'structure_missing',
+                            headingKeywords: 'heading_keyword',
+                            introParagraphLength: 'intro_short',
+                        };
+                        return i.id === keyMap[key] || i.id === key;
+                    });
+                    const isFixable = relatedIssue && AI_FIXABLE_IDS.has(relatedIssue.id);
+
+                    return (
+                        <div key={key} className="v3-check-item">
+                            <span className={`v3-check-icon ${passed ? 'pass' : 'fail'}`}>
+                                {passed ? <Check size={13} /> : <X size={13} />}
                             </span>
-                            <span className="v3-check-label">{issue.text}</span>
-                            {issue.metric && <span className="v3-check-value">{issue.metric}</span>}
-                            {AI_FIXABLE_IDS.has(issue.id) && (
+                            <span className="v3-check-label">
+                                {!passed && relatedIssue ? relatedIssue.text : label}
+                            </span>
+                            {metricValue && <span className="v3-check-value">{metricValue}</span>}
+                            {!passed && relatedIssue?.metric && !metricValue && (
+                                <span className="v3-check-value">{relatedIssue.metric}</span>
+                            )}
+                            {isFixable && (
                                 <span className="v3-check-ai-badge"><Sparkles size={10} /> AI</span>
                             )}
                         </div>
-                    ))}
-                </div>
-            )}
-        </>
-    );
+                    );
+                })}
+            </div>
+        );
+    };
 
-    // ── v3 개선 제안 (개별 AI 수정 버튼) ──
+    // ── v3 자연스러움 바 차트 ──
+    const renderV3HumannessBars = () => {
+        if (humanResult.isEmpty) {
+            return <div className="v3-perfect" style={{ color: 'var(--color-text-sub)' }}>본문 작성 시 분석이 시작됩니다</div>;
+        }
+
+        const { metrics } = humanResult;
+        return (
+            <div className="v3-natural-bars">
+                {Object.entries(metrics).map(([key, m]) => {
+                    const pct = m.maxScore > 0 ? Math.round((m.score / m.maxScore) * 100) : 0;
+                    return (
+                        <div key={key} className="v3-natural-bar-row">
+                            <span className="v3-natural-bar-label">{HUMAN_METRIC_LABELS[key] || key}</span>
+                            <div className="v3-natural-bar-track">
+                                <div
+                                    className="v3-natural-bar-fill"
+                                    style={{ width: `${pct}%`, background: getBarColor(pct) }}
+                                />
+                            </div>
+                            <span className="v3-natural-bar-value">{pct}%</span>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    };
+
+    // ── v3 개선 제안 — SEO + 자연스러움 통합 ──
     const renderV3Suggestions = () => (
         <>
-            {fixableIssues.length === 0 ? (
+            {allSuggestions.length === 0 ? (
                 <div className="v3-perfect">
                     <Check size={16} /> 개선할 항목이 없습니다
                 </div>
             ) : (
                 <div className="v3-suggestions">
-                    {fixableIssues.map((issue, idx) => (
+                    {allSuggestions.map((item, idx) => (
                         <div key={idx} className="v3-suggestion-item">
                             <div className="v3-suggestion-header">
-                                <span className="v3-suggestion-badge seo">SEO · {issue.text.split(' ')[0]}</span>
-                                <button
-                                    className="v3-suggestion-fix-btn"
-                                    onClick={handleFixSeoIssues}
-                                    disabled={seoFixLoading}
-                                >
-                                    {seoFixLoading
-                                        ? <Loader2 size={11} className="spin" />
-                                        : <><Sparkles size={11} /> AI 수정</>
-                                    }
-                                </button>
+                                <span className={`v3-suggestion-badge ${item.category === 'SEO' ? 'seo' : 'natural'}`}>
+                                    {item.category} · {(item.text || '').split(' ')[0]}
+                                </span>
+                                {item.fixable && (
+                                    <button
+                                        className="v3-suggestion-fix-btn"
+                                        onClick={handleFixSeoIssues}
+                                        disabled={seoFixLoading}
+                                    >
+                                        {seoFixLoading
+                                            ? <Loader2 size={11} className="spin" />
+                                            : <><Sparkles size={11} /> AI 수정</>
+                                        }
+                                    </button>
+                                )}
                             </div>
-                            <div className="v3-suggestion-desc">{issue.text}</div>
-                            {issue.metric && (
-                                <div className="v3-suggestion-detail">현재: {issue.metric}</div>
+                            <div className="v3-suggestion-desc">{item.text}</div>
+                            {item.metric && (
+                                <div className="v3-suggestion-detail">현재: {item.metric}</div>
                             )}
                         </div>
                     ))}
@@ -293,16 +423,17 @@ const AIAnalysisDashboard = ({ onLocate, compact, mode }) => {
     return (
         <div className="ai-dashboard v3">
             {renderV3Gauge()}
+            {renderScoreToast()}
 
             <Section title="SEO" icon={BarChart3} score={seoPercentage} scoreClass={getScoreClass(seoPercentage)}>
                 {renderV3SeoChecklist()}
             </Section>
 
             <Section title="자연스러움" icon={Sparkles} score={humanResult.isEmpty ? null : naturalPercentage} scoreClass={getScoreClass(naturalPercentage)}>
-                <HumannessPanel onLocate={onLocate} />
+                {renderV3HumannessBars()}
             </Section>
 
-            <Section title="개선 제안" count={fixableIssues.length} defaultOpen={true}>
+            <Section title="개선 제안" count={allSuggestions.length} defaultOpen={true}>
                 {renderV3Suggestions()}
             </Section>
 

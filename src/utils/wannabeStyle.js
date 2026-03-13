@@ -67,7 +67,7 @@ export function buildStyleRules(preset) {
     if (!preset?.checklist) return '';
 
     const rules = [];
-    const groups = ['tone', 'structure', 'vocabulary'];
+    const groups = ['tone', 'structure', 'vocabulary', 'seo'];
 
     for (const group of groups) {
         const items = preset.checklist[group] || [];

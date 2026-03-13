@@ -4,7 +4,7 @@ import { useToast } from '../common/Toast';
 import { AIService } from '../../services/openai';
 import { generateThumbnail, THUMBNAIL_STYLES, CATEGORY_FONT_MAP } from '../../utils/thumbnail';
 import { loadGoogleFont, loadGoogleFonts } from '../../utils/fontLoader';
-import { Sparkles, Loader2 } from 'lucide-react';
+import { Sparkles, Loader2, ChevronDown } from 'lucide-react';
 import '../../styles/ThumbnailPanel.css';
 
 const ThumbnailPanel = () => {
@@ -52,6 +52,16 @@ const ThumbnailPanel = () => {
     const [bandPosition, setBandPosition] = useState('top');
     const [bandColor, setBandColor] = useState('#FF6B35');
     const [bandHeight, setBandHeight] = useState(150);
+
+    // 텍스트 효과
+    const [shadow, setShadow] = useState('약하게');
+    const [outline, setOutline] = useState('없음');
+    const [bgBox, setBgBox] = useState('없음');
+
+    // 내 스타일
+    const [savedStyles, setSavedStyles] = useState(() => {
+        try { return JSON.parse(localStorage.getItem('piklit_thumb_styles') || '[]'); } catch { return []; }
+    });
 
     // 카테고리 & 폰트
     const currentPost = posts.find(p => p.id === currentPostId);
@@ -119,13 +129,14 @@ const ThumbnailPanel = () => {
                     zoom, offsetX, offsetY,
                     mainFontSize, subFontSize, fontColor,
                     bandPosition, bandColor, bandHeight,
+                    shadow, outline, bgBox,
                 });
                 setPreviewUrl(dataUrl);
             } catch {
                 setPreviewUrl(null);
             }
         }, 200);
-    }, [selectedPhoto, style, mainText, subText, fontFamily, zoom, offsetX, offsetY, mainFontSize, subFontSize, fontColor, bandPosition, bandColor, bandHeight]);
+    }, [selectedPhoto, style, mainText, subText, fontFamily, zoom, offsetX, offsetY, mainFontSize, subFontSize, fontColor, bandPosition, bandColor, bandHeight, shadow, outline, bgBox]);
 
     useEffect(() => {
         if (isOpen) renderPreview();
@@ -229,19 +240,49 @@ const ThumbnailPanel = () => {
         showToast('썸네일이 본문 상단에 삽입되었습니다.', 'success');
     };
 
+    const handleSaveStyle = () => {
+        if (savedStyles.length >= 3) return showToast('최대 3개까지 저장 가능합니다.', 'warning');
+        const name = prompt('스타일 이름을 입력하세요:');
+        if (!name?.trim()) return;
+        const newStyle = {
+            name: name.trim(),
+            style, fontFamily, fontColor, mainFontSize, subFontSize,
+            shadow, outline, bgBox,
+        };
+        const updated = [...savedStyles, newStyle];
+        setSavedStyles(updated);
+        localStorage.setItem('piklit_thumb_styles', JSON.stringify(updated));
+        showToast(`"${name.trim()}" 스타일이 저장되었습니다.`, 'success');
+    };
+
+    const handleLoadStyle = (s) => {
+        setStyle(s.style); setFontFamily(s.fontFamily);
+        setFontColor(s.fontColor || ''); setMainFontSize(s.mainFontSize || 64);
+        setSubFontSize(s.subFontSize || 36);
+        setShadow(s.shadow || '없음'); setOutline(s.outline || '없음'); setBgBox(s.bgBox || '없음');
+    };
+
+    const handleDeleteStyle = (idx) => {
+        const updated = savedStyles.filter((_, i) => i !== idx);
+        setSavedStyles(updated);
+        localStorage.setItem('piklit_thumb_styles', JSON.stringify(updated));
+    };
+
     const hasPhotos = availablePhotos.length > 0;
     const showTextControls = style !== 'G';
+
+    const SHADOW_OPTIONS = ['없음', '약하게', '보통', '강하게', '네온'];
+    const OUTLINE_OPTIONS = ['없음', '얇은', '보통', '두꺼운'];
+    const BGBOX_OPTIONS = ['없음', '검정', '흰색', '커스텀'];
 
     return (
         <div className="thumbnail-panel">
             <button
-                className="thumbnail-panel-toggle"
+                className={`v3-panel-toggle ${isOpen ? 'open' : ''}`}
                 onClick={() => setIsOpen(prev => !prev)}
             >
-                <span>썸네일 자동 생성</span>
-                <span style={{ fontSize: '0.8rem', color: '#999' }}>
-                    {isOpen ? '접기 ▲' : '펼치기 ▼'}
-                </span>
+                <span>썸네일 생성</span>
+                <ChevronDown size={16} className={`v3-panel-chevron ${isOpen ? 'open' : ''}`} />
             </button>
 
             {isOpen && (
@@ -457,6 +498,55 @@ const ThumbnailPanel = () => {
                                     </div>
                                 </div>
                             )}
+
+                            {/* 텍스트 효과 */}
+                            {showTextControls && (
+                                <div className="thumbnail-effects-section">
+                                    <div className="thumbnail-section-label">텍스트 효과 <span className="thumbnail-new-tag">NEW</span></div>
+                                    <div className="thumbnail-eff-group">
+                                        <div className="thumbnail-eff-label">그림자</div>
+                                        <div className="thumbnail-seg">
+                                            {SHADOW_OPTIONS.map(opt => (
+                                                <button key={opt} className={`thumbnail-seg-btn ${shadow === opt ? 'on' : ''}`} onClick={() => setShadow(opt)}>{opt}</button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="thumbnail-eff-group">
+                                        <div className="thumbnail-eff-label">윤곽선</div>
+                                        <div className="thumbnail-seg">
+                                            {OUTLINE_OPTIONS.map(opt => (
+                                                <button key={opt} className={`thumbnail-seg-btn ${outline === opt ? 'on' : ''}`} onClick={() => { setOutline(opt); if (opt !== '없음') setBgBox('없음'); }}>{opt}</button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="thumbnail-eff-group">
+                                        <div className="thumbnail-eff-label">배경박스</div>
+                                        <div className="thumbnail-seg">
+                                            {BGBOX_OPTIONS.map(opt => (
+                                                <button key={opt} className={`thumbnail-seg-btn ${bgBox === opt ? 'on' : ''}`} onClick={() => { setBgBox(opt); if (opt !== '없음') setOutline('없음'); }}>{opt}</button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* 내 스타일 */}
+                            <div className="thumbnail-my-style-section">
+                                <div className="thumbnail-section-label">내 스타일 <span className="thumbnail-new-tag">NEW</span></div>
+                                <button className="thumbnail-my-style-btn" onClick={handleSaveStyle}>
+                                    + 현재 설정을 스타일로 저장 ({savedStyles.length}/3)
+                                </button>
+                                {savedStyles.length > 0 && (
+                                    <div className="thumbnail-my-chips">
+                                        {savedStyles.map((s, i) => (
+                                            <div key={i} className="thumbnail-my-chip" onClick={() => handleLoadStyle(s)}>
+                                                {s.name}
+                                                <span className="thumbnail-my-chip-x" onClick={e => { e.stopPropagation(); handleDeleteStyle(i); }}>✕</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
 
                             {/* 하단 버튼 */}
                             <div className="thumbnail-actions">

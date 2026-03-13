@@ -1,5 +1,5 @@
 import { callGeminiProxy, callGeminiImageProxy } from './firebase';
-import { getRecommendedImages } from '../data/categories';
+import { getRecommendedImages, getRecommendedCharCount, getRecommendedHeadings } from '../data/categories';
 
 export const AIService = {
     // 누적 토큰 집계
@@ -364,73 +364,79 @@ Output strictly a valid JSON:
             return this._competitorCache.data;
         }
 
-        const prompt = `너는 네이버 블로그 SEO 분석 전문가야.
-"${keyword} site:blog.naver.com"을 검색하여 상위 네이버 블로그 글 5개를 찾아 분석해줘.
+        // 카테고리 SSOT 기본값 (하한선)
+        const baseCharCount = getRecommendedCharCount(category);
+        const baseHeadings = getRecommendedHeadings(category);
+        const recommendedImages = getRecommendedImages(category);
 
-[분석 항목]
-각 글의 추정 글자수(charCount)와 소제목수(headingCount)만 분석.
-글자수는 100단위 반올림. average는 5개 블로그의 평균값.
-이미지수는 검색으로 확인 불가하므로 분석하지 마.
+        // 깊이 수준 → 글자수 매핑
+        const DEPTH_CHAR_MAP = { light: 1200, standard: 2000, detailed: 2800, comprehensive: 3500 };
+        const DEPTH_HEADING_MAP = { light: 3, standard: 5, detailed: 7, comprehensive: 9 };
+
+        const prompt = `너는 네이버 블로그 SEO 분석 전문가야.
+"${keyword} site:blog.naver.com"을 검색하여 상위 네이버 블로그 글들의 깊이 수준을 판단해줘.
+
+[깊이 수준 기준]
+- light: 간단 후기 (사진 위주, 텍스트 적음)
+- standard: 일반 리뷰 (메뉴/가격/분위기 등 기본 정보 포함)
+- detailed: 상세 리뷰 (코스별 설명, 비교, 꿀팁 포함)
+- comprehensive: 가이드급 (위치/주차/예약/주변정보 등 종합)
 
 [중요]
-- 반드시 5개 블로그를 분석하여 평균값을 산출할 것
-- 실제 검색 결과를 바탕으로 현실적인 수치를 넣을 것
-- 예시의 숫자를 그대로 복사하지 말 것
-- 검색 결과가 전혀 없어도 반드시 아래 JSON 형식만 출력할 것
+- 실제 검색 결과의 상위 글들을 보고 판단할 것
+- depth는 반드시 light/standard/detailed/comprehensive 중 하나
 - 설명이나 부가 텍스트 절대 금지. JSON만 출력.
 
 Output strictly a valid JSON:
-{"average":{"charCount":1980,"headingCount":6}}`;
+{"depth":"standard"}`;
 
-        const result = await this.generateContent([{ text: prompt }], {
-            tools: [{ google_search: {} }],
-            thinkingBudget: 0
-        }, '경쟁 블로그 분석');
+        try {
+            const result = await this.generateContent([{ text: prompt }], {
+                tools: [{ google_search: {} }],
+                thinkingBudget: 0
+            }, '경쟁 블로그 분석');
 
-        // 카테고리별 권장 이미지 수 주입 (categories.js SSOT)
-        const recommendedImages = getRecommendedImages(category);
+            // 깊이 수준 추출
+            let depth = result?.depth;
 
-        // 정상 응답: average 객체가 있는 경우
-        if (result?.average) {
-            result.average.imageCount = recommendedImages;
-            result.average._imageIsRecommendation = true;
-            this._competitorCache = { keyword, data: result };
-            return result;
-        }
+            // fallback: rawText에서 depth 추출
+            if (!depth) {
+                const rawText = result?.text || result?.html || JSON.stringify(result) || '';
+                const depthMatch = rawText.match(/"depth"\s*:\s*"(light|standard|detailed|comprehensive)"/);
+                if (depthMatch) depth = depthMatch[1];
+            }
 
-        // 레거시 호환: blogs 배열이 있으면 average 계산
-        if (result?.blogs && Array.isArray(result.blogs)) {
-            const blogs = result.blogs;
+            // AI 결과 기반 글자수/소제목 산출 (카테고리 하한선과 비교하여 높은 값 채택)
+            const aiCharCount = DEPTH_CHAR_MAP[depth] || 0;
+            const aiHeadings = DEPTH_HEADING_MAP[depth] || 0;
+
             const avg = {
-                charCount: Math.round(blogs.reduce((s, b) => s + (b.charCount || 0), 0) / blogs.length),
+                charCount: Math.max(baseCharCount, aiCharCount),
+                headingCount: Math.max(baseHeadings, aiHeadings),
                 imageCount: recommendedImages,
                 _imageIsRecommendation: true,
-                headingCount: Math.round(blogs.reduce((s, b) => s + (b.headingCount || 0), 0) / blogs.length),
+                _depth: depth || null,
+            };
+
+            const data = { average: avg };
+            this._competitorCache = { keyword, data };
+            console.log(`[경쟁 분석] 깊이: ${depth}, 글자수: ${avg.charCount}, 소제목: ${avg.headingCount}`);
+            return data;
+
+        } catch (e) {
+            // API 실패 시 카테고리 SSOT 기본값 반환 (안전망)
+            console.warn('[경쟁 분석] API 실패, 카테고리 기본값 사용:', e.message);
+            const avg = {
+                charCount: baseCharCount,
+                headingCount: baseHeadings,
+                imageCount: recommendedImages,
+                _imageIsRecommendation: true,
+                _depth: null,
             };
             const data = { average: avg };
             this._competitorCache = { keyword, data };
             return data;
         }
-
-        // fallback 응답({ html, text })에서 JSON 재추출 시도
-        const rawText = result?.text || result?.html || '';
-        if (rawText) {
-            const jsonMatch = rawText.match(/\{[\s\S]*"average"\s*:\s*\{[\s\S]*\}[\s\S]*\}/);
-            if (jsonMatch) {
-                try {
-                    const parsed = JSON.parse(jsonMatch[0]);
-                    if (parsed.average) {
-                        this._competitorCache = { keyword, data: parsed };
-                        console.log('[경쟁 분석] fallback 재파싱 성공');
-                        return parsed;
-                    }
-                } catch (e) {
-                    console.warn('[경쟁 분석] fallback 재파싱 실패:', e.message);
-                }
-            }
-        }
-
-        throw new Error('경쟁 블로그 분석 결과를 파싱할 수 없습니다. 다시 시도해주세요.');
     },
 
     /**
@@ -681,42 +687,42 @@ Output strictly a valid JSON:
     // 카테고리별 도입부 SEO 프롬프트 (네이버 검색 스니펫 최적화)
     _introPromptByCategory(category, keyword) {
         const intros = {
-            food: `1. 도입부 <p>: 반드시 3~4문장으로 작성.
+            food: `1. 도입부 <p>: 반드시 3~4문장, 총 150~200자로 작성.
    구조: [방문 계기/상황] → [가게명 "${keyword}" + 지역명] → [대표 메뉴·분위기 한 줄 요약]
    첫 문장에 지역명+가게명 필수 포함. 주소/영업시간/주차 등 상세 정보는 넣지 않음.
    "직접 가봤다"는 경험 신호를 담되, 감성적 경험 문장이어야 함.
    메인 키워드 "${keyword}"를 도입부에 1회 자연스럽게 포함.
-   이것이 네이버 검색 스니펫(80~160자)으로 노출됨.`,
-            cafe: `1. 도입부 <p>: 반드시 3~4문장으로 작성.
+   도입부가 150자 미만이면 SEO 감점됨. 반드시 150~200자 범위를 지킬 것.`,
+            cafe: `1. 도입부 <p>: 반드시 3~4문장, 총 150~200자로 작성.
    구조: [방문 계기/상황] → [카페명 "${keyword}" + 지역명] → [분위기·시그니처 메뉴 한 줄 요약]
    첫 문장에 지역명+카페명 필수 포함. 주소/영업시간/주차 등 상세 정보는 넣지 않음.
    "직접 가봤다"는 경험 신호를 담되, 감성적 경험 문장이어야 함.
    메인 키워드 "${keyword}"를 도입부에 1회 자연스럽게 포함.
-   이것이 네이버 검색 스니펫(80~160자)으로 노출됨.`,
-            travel: `1. 도입부 <p>: 반드시 3~4문장으로 작성.
+   도입부가 150자 미만이면 SEO 감점됨. 반드시 150~200자 범위를 지킬 것.`,
+            travel: `1. 도입부 <p>: 반드시 3~4문장, 총 150~200자로 작성.
    구조: [여행 동기/계절 배경] → [여행지명 "${keyword}" + 여행 기간] → [하이라이트 1개 예고]
    첫 문장에 여행지명 필수 포함. "이 글에서 다룰 내용"을 암시하여 체류시간 유도.
    일정표 나열이 아닌, 설렘/기대감을 전하는 개인 서사로 작성.
    메인 키워드 "${keyword}"를 도입부에 1회 자연스럽게 포함.
-   이것이 네이버 검색 스니펫(80~160자)으로 노출됨.`,
-            daily: `1. 도입부 <p>: 반드시 2~3문장으로 작성.
+   도입부가 150자 미만이면 SEO 감점됨. 반드시 150~200자 범위를 지킬 것.`,
+            daily: `1. 도입부 <p>: 반드시 2~3문장, 총 100~150자로 작성.
    구조: [공감 유도 질문 또는 상황 묘사] → [주제 키워드 "${keyword}" 제시] → [해결책/정보 예고]
    짧고 임팩트 있게. 롱테일 키워드를 자연스럽게 녹이기.
    "~에 대해 알아보겠습니다" 식 빈 문장 금지. 독자 상황에 공감하며 시작.
    메인 키워드 "${keyword}"를 도입부에 1회 자연스럽게 포함.
-   이것이 네이버 검색 스니펫(80~160자)으로 노출됨.`,
-            pet: `1. 도입부 <p>: 반드시 3~4문장으로 작성.
+   도입부가 100자 미만이면 SEO 감점됨. 반드시 100~150자 범위를 지킬 것.`,
+            pet: `1. 도입부 <p>: 반드시 3~4문장, 총 150~200자로 작성.
    구조: [반려동물 에피소드/고민] → ["${keyword}" 핵심 키워드 포함 주제 제시] → [경험 기반 해결 예고]
    반려동물 이름/종류 + 상황 묘사로 감정적 연결. 제품 스펙 나열로 시작하지 말 것.
    애정이 담긴 일상적 문체와 정보성의 균형.
    메인 키워드 "${keyword}"를 도입부에 1회 자연스럽게 포함.
-   이것이 네이버 검색 스니펫(80~160자)으로 노출됨.`,
-            shopping: `1. 도입부 <p>: 반드시 3~4문장으로 작성.
+   도입부가 150자 미만이면 SEO 감점됨. 반드시 150~200자 범위를 지킬 것.`,
+            shopping: `1. 도입부 <p>: 반드시 3~4문장, 총 150~200자로 작성.
    구조: [문제/고민 제시] → [제품명 "${keyword}" + 카테고리 언급] → [사용 기간·한줄 결론 미리보기]
    "3개월간 사용해본 결과..." 같은 구체적 수치가 신뢰도를 높임.
    가격/스펙 나열이 아닌, 구매 동기와 첫인상 문장이어야 함.
    메인 키워드 "${keyword}"를 도입부에 1회 자연스럽게 포함.
-   이것이 네이버 검색 스니펫(80~160자)으로 노출됨.`,
+   도입부가 150자 미만이면 SEO 감점됨. 반드시 150~200자 범위를 지킬 것.`,
         };
         // 카테고리 매핑 (한글 → 키)
         const aliasMap = { '카페&맛집': 'food', '맛집': 'food', '쇼핑': 'shopping', '여행': 'travel', '일상': 'daily', '반려동물': 'pet' };
@@ -831,6 +837,44 @@ Output strictly a valid JSON:
         }, '아웃라인 생성');
     },
 
+    /**
+     * 기존 소제목 기반으로 추가 소제목을 추천
+     */
+    async suggestHeadings(mainKeyword, subKeywords = [], existingHeadings = [], category = 'daily', competitorData = null) {
+        const existingList = existingHeadings.map(h => `"${h}"`).join(', ');
+        const avgCount = competitorData?.average?.headingCount || 5;
+
+        const prompt = `너는 네이버 블로그 SEO 전문가야.
+구글 검색으로 "${mainKeyword}" 관련 상위 블로그 글의 소제목 패턴을 참고해서 추가 소제목을 추천해줘.
+
+키워드: ${mainKeyword}
+서브 키워드: ${subKeywords.join(', ') || '없음'}
+카테고리: ${category}
+경쟁 블로그 평균 소제목 수: ${avgCount}개
+
+기존 소제목: [${existingList}]
+
+[작업]
+기존 소제목과 중복되지 않는 새로운 H2 소제목을 3개 추천해줘.
+
+[규칙]
+1. 기존 소제목과 내용이 겹치면 안 됨
+2. 메인 키워드, 서브 키워드를 자연스럽게 포함
+3. 각 소제목은 10~25자 이내
+4. 독자가 궁금해할 만한 실용적 정보 중심
+5. 검색 결과의 상위 블로그 소제목 패턴을 참고하되 그대로 복사하지 말 것
+
+Output strictly a valid JSON:
+{"headings":["소제목A","소제목B","소제목C"]}`;
+
+        const result = await this.generateContent([{ text: prompt }], {
+            tools: [{ google_search: {} }],
+            thinkingBudget: 0
+        }, '소제목 추천');
+
+        return result?.headings || [];
+    },
+
     // 아웃라인을 본문 생성 프롬프트에 삽입하는 헬퍼
     _outlinePrompt(outline) {
         if (!outline || !Array.isArray(outline) || outline.length === 0) return '';
@@ -863,7 +907,7 @@ ${tree}
         const toneBoost = this._categoryToneBoost(category, tone);
         const prompt = `너는 네이버 블로그 SEO 전문가야.
 ${this._htmlRules(mainKeyword, paragraphStyle)}
-주제: ${category} | 키워드: ${mainKeyword} | 글자수: ${targetLength}
+주제: ${category} | 키워드: ${mainKeyword} | 글자수: ${targetLength} (최소 ${parseInt(targetLength) || 1500}자 이상 필수!!!)
 톤: ${this._toneMap[tone] || this._toneMap['friendly']}${toneBoost ? `\n[카테고리 맞춤 톤 보정] ${toneBoost}` : ''}${wannabeStyleRules}
 ${this._subKeywordPrompt(subKeywords)}
 ${this._photoPrompt(photoAnalysis, photoAssets, category, verifiedDetails)}
@@ -879,7 +923,8 @@ ${imageInstructions}
 [구조 — 반드시 이 순서!!!]
 ${this._introPromptByCategory(category, mainKeyword)}
 2. 본문: h2 사용. 구글 검색으로 '${mainKeyword}' 실제 정보를 찾아 작성. 서브 키워드는 문맥에 맞게 자연스럽게 녹여넣기. [[VIDEO]] 1개 배치.
-Output strictly a valid JSON: {"title": "SEO 최적화된 블로그 제목 (메인 키워드로 시작, 15~25자)", "html": "..."}`;
+[글자수 — 필수!!!] 본문 전체(HTML 태그 제외, 공백 제외)가 반드시 ${parseInt(targetLength) || 1500}자 이상이어야 함. 부족하면 각 섹션을 더 풍성하게 작성할 것.
+Output strictly a valid JSON: {"title": "SEO 최적화된 블로그 제목 (메인 키워드로 시작, 15~30자)", "html": "..."}`;
 
         const parts = [{ text: prompt }];
         if (!photoAnalysis) {
@@ -952,7 +997,7 @@ Output strictly a valid JSON:
         const toneBoost = this._categoryToneBoost('food', tone);
         const prompt = `너는 네이버 블로그 맛집 전문 블로거야.
 ${this._htmlRules(keyword, paragraphStyle)}
-키워드: ${keyword} | 톤: ${this._toneMap[tone] || this._toneMap['friendly']}${toneBoost ? `\n[카테고리 맞춤 톤 보정] ${toneBoost}` : ''}${wannabeStyleRules} | 글자수: ${targetLength}
+키워드: ${keyword} | 톤: ${this._toneMap[tone] || this._toneMap['friendly']}${toneBoost ? `\n[카테고리 맞춤 톤 보정] ${toneBoost}` : ''}${wannabeStyleRules} | 글자수: ${targetLength} (최소 ${parseInt(targetLength) || 1500}자 이상 필수!!!)
 사진: ${slots}
 ${this._subKeywordPrompt(subKeywords)}
 ${this._photoPrompt(photoAnalysis, photoAssets, 'food', verifiedDetails)}
@@ -972,7 +1017,8 @@ ${this._introPromptByCategory('food', keyword)}
 3. 가게 정보카드 — 글 하단 마무리에 배치 (아래 HTML 그대로 삽입):
 ${infoCard}
 → 가게 정보는 반드시 글의 맨 마지막에 위치해야 함. 도입부나 본문 중간에 넣지 말 것. 독자가 글을 끝까지 읽고 방문을 결심한 후 확인하는 정보임.
-Output strictly a valid JSON: {"title": "SEO 최적화된 블로그 제목 (메인 키워드로 시작, 15~25자)", "html": "..."}`;
+[글자수 — 필수!!!] 본문 전체(HTML 태그 제외, 공백 제외)가 반드시 ${parseInt(targetLength) || 1500}자 이상이어야 함. 부족하면 각 섹션을 더 풍성하게 작성할 것.
+Output strictly a valid JSON: {"title": "SEO 최적화된 블로그 제목 (메인 키워드로 시작, 15~30자)", "html": "..."}`;
 
         const parts = [{ text: prompt }];
         if (!photoAnalysis) {
@@ -1041,7 +1087,7 @@ Output strictly a valid JSON:
         const toneBoost = this._categoryToneBoost('shopping', tone);
         const prompt = `너는 네이버 블로그 쇼핑 리뷰 전문 블로거야.
 ${this._htmlRules(keyword, paragraphStyle)}
-키워드: ${keyword} | 톤: ${this._toneMap[tone] || this._toneMap['friendly']}${toneBoost ? `\n[카테고리 맞춤 톤 보정] ${toneBoost}` : ''}${wannabeStyleRules} | 글자수: ${targetLength}
+키워드: ${keyword} | 톤: ${this._toneMap[tone] || this._toneMap['friendly']}${toneBoost ? `\n[카테고리 맞춤 톤 보정] ${toneBoost}` : ''}${wannabeStyleRules} | 글자수: ${targetLength} (최소 ${parseInt(targetLength) || 1500}자 이상 필수!!!)
 사진: ${slots}
 ${this._subKeywordPrompt(subKeywords)}
 ${this._photoPrompt(photoAnalysis, photoAssets, 'shopping', verifiedDetails)}
@@ -1062,7 +1108,8 @@ ${infoCard}
 
 [장단점 섹션 — 필수]
 본문 후반부에 장점과 아쉬운 점을 <h2>✅ 장점</h2>과 <h2>❌ 아쉬운 점</h2> 소제목 아래 <ul><li> 리스트로 각각 3~5개씩 정리.
-Output strictly a valid JSON: {"title": "SEO 최적화된 블로그 제목 (메인 키워드로 시작, 15~25자)", "html": "..."}`;
+[글자수 — 필수!!!] 본문 전체(HTML 태그 제외, 공백 제외)가 반드시 ${parseInt(targetLength) || 1500}자 이상이어야 함. 부족하면 각 섹션을 더 풍성하게 작성할 것.
+Output strictly a valid JSON: {"title": "SEO 최적화된 블로그 제목 (메인 키워드로 시작, 15~30자)", "html": "..."}`;
 
         const parts = [{ text: prompt }];
         if (!photoAnalysis) {
@@ -1104,7 +1151,7 @@ ${this._competitorPrompt(competitorData)}
 [원본 내용]
 ${currentHtml}
 
-Output strictly a valid JSON: {"title": "SEO 최적화된 블로그 제목 (메인 키워드로 시작, 15~25자)", "html": "..."}`;
+Output strictly a valid JSON: {"title": "SEO 최적화된 블로그 제목 (메인 키워드로 시작, 15~30자)", "html": "..."}`;
 
         return this.generateContent([{ text: prompt }], {
             tools: [{ google_search: {} }],

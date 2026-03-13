@@ -49,7 +49,7 @@ const TitleInput = () => {
                     {loading ? <><Loader2 size={13} className="spin" /> 생성 중...</> : <><Bot size={13} /> 타이틀 AI 추천</>}
                 </button>
                 <span className={`title-counter ${title.length > 30 ? 'warning' : ''}`}>
-                    {title.length}/25
+                    {title.length}/30
                 </span>
             </div>
 

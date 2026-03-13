@@ -1,27 +1,7 @@
-/* ThumbnailPanel — A+ 리디자인 */
+/* ThumbnailPanel — v3 */
 
 .thumbnail-panel {
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
-    margin-top: 16px;
     overflow: hidden;
-}
-
-.thumbnail-panel-toggle {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 16px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 0.88rem;
-    color: var(--color-text-main);
-}
-
-.thumbnail-panel-toggle:hover {
-    background: var(--color-surface-hover);
 }
 
 .thumbnail-panel-body {
@@ -457,6 +437,130 @@
     border: none;
     color: white;
     font-weight: 600;
+}
+
+/* ── 텍스트 효과 섹션 ── */
+.thumbnail-effects-section {
+    margin-bottom: 14px;
+}
+
+.thumbnail-section-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--color-text-sub);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: 10px;
+}
+
+.thumbnail-new-tag {
+    font-size: 9px;
+    color: var(--color-brand, #FF6B35);
+    font-weight: 700;
+    vertical-align: super;
+    margin-left: 2px;
+}
+
+.thumbnail-eff-group {
+    margin-bottom: 8px;
+}
+
+.thumbnail-eff-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-text-sub);
+    margin-bottom: 4px;
+}
+
+.thumbnail-seg {
+    display: flex;
+    background: #F0F0EE;
+    border-radius: 6px;
+    padding: 2px;
+}
+
+.thumbnail-seg-btn {
+    flex: 1;
+    padding: 5px 2px;
+    font-size: 10px;
+    font-weight: 600;
+    text-align: center;
+    border: none;
+    background: transparent;
+    color: var(--color-text-sub);
+    cursor: pointer;
+    border-radius: 5px;
+    font-family: inherit;
+    white-space: nowrap;
+    transition: all 0.15s;
+}
+
+.thumbnail-seg-btn.on {
+    background: #fff;
+    color: var(--color-text-main);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+}
+
+.thumbnail-seg-btn:hover:not(.on) {
+    color: var(--color-text-main);
+}
+
+/* ── 내 스타일 섹션 ── */
+.thumbnail-my-style-section {
+    margin-bottom: 14px;
+}
+
+.thumbnail-my-style-btn {
+    width: 100%;
+    padding: 7px;
+    border: 1px dashed var(--color-border);
+    border-radius: 6px;
+    background: var(--color-surface-hover, #FAFAF9);
+    font-size: 11px;
+    color: var(--color-text-sub);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+}
+
+.thumbnail-my-style-btn:hover {
+    border-color: var(--color-brand, #FF6B35);
+    color: var(--color-brand, #FF6B35);
+}
+
+.thumbnail-my-chips {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+}
+
+.thumbnail-my-chip {
+    padding: 3px 8px;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    font-size: 11px;
+    color: var(--color-text-main);
+    cursor: pointer;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    transition: all 0.15s;
+}
+
+.thumbnail-my-chip:hover {
+    border-color: var(--color-brand, #FF6B35);
+}
+
+.thumbnail-my-chip-x {
+    font-size: 9px;
+    color: #ccc;
+    cursor: pointer;
+}
+
+.thumbnail-my-chip-x:hover {
+    color: #E74C3C;
 }
 
 /* 데스크톱: 풀스크린 상단바 숨김 */

@@ -192,7 +192,7 @@ const drawThumbnailText = (ctx, mainText, subText, fontFamily, position, textCol
             ctx.font = `bold ${mainFontSize}px "${fontFamily}", Pretendard, sans-serif`;
             ctx.fillStyle = textColor;
             ctx.fillText(mainText, centerX, bandCenterY - subFontSize * 0.3, maxW);
-            ctx.font = `600 ${subFontSize}px Pretendard, sans-serif`;
+            ctx.font = `600 ${subFontSize}px "${fontFamily}", Pretendard, sans-serif`;
             ctx.fillStyle = textColor;
             ctx.fillText(subText, centerX, bandCenterY + mainFontSize * 0.55, maxW);
         } else if (mainText) {
@@ -200,7 +200,7 @@ const drawThumbnailText = (ctx, mainText, subText, fontFamily, position, textCol
             ctx.fillStyle = textColor;
             ctx.fillText(mainText, centerX, bandCenterY + mainFontSize * 0.35, maxW);
         } else if (subText) {
-            ctx.font = `600 ${subFontSize}px Pretendard, sans-serif`;
+            ctx.font = `600 ${subFontSize}px "${fontFamily}", Pretendard, sans-serif`;
             ctx.fillStyle = textColor;
             ctx.fillText(subText, centerX, bandCenterY + subFontSize * 0.35, maxW);
         }
@@ -218,7 +218,7 @@ const drawThumbnailText = (ctx, mainText, subText, fontFamily, position, textCol
             ctx.fillText(mainText, centerX, boxCenterY - (subText ? subFontSize * 0.4 : -mainFontSize * 0.2), maxW);
         }
         if (subText) {
-            ctx.font = `600 ${subFontSize}px Pretendard, sans-serif`;
+            ctx.font = `600 ${subFontSize}px "${fontFamily}", Pretendard, sans-serif`;
             ctx.fillStyle = subColor;
             ctx.fillText(subText, centerX, boxCenterY + (mainText ? mainFontSize * 0.5 : subFontSize * 0.2), maxW);
         }
@@ -230,7 +230,7 @@ const drawThumbnailText = (ctx, mainText, subText, fontFamily, position, textCol
             ctx.fillText(mainText, centerX, HEIGHT / 2 - (subText ? subFontSize * 0.3 : -mainFontSize * 0.2), maxW * 0.85);
         }
         if (subText) {
-            ctx.font = `600 ${subFontSize}px Pretendard, sans-serif`;
+            ctx.font = `600 ${subFontSize}px "${fontFamily}", Pretendard, sans-serif`;
             ctx.fillStyle = textColor;
             ctx.fillText(subText, centerX, HEIGHT / 2 + (mainText ? mainFontSize * 0.55 : subFontSize * 0.2), maxW * 0.85);
         }
@@ -243,7 +243,7 @@ const drawThumbnailText = (ctx, mainText, subText, fontFamily, position, textCol
             ctx.fillText(mainText, centerX, baseY, maxW);
         }
         if (subText) {
-            ctx.font = `600 ${subFontSize}px Pretendard, sans-serif`;
+            ctx.font = `600 ${subFontSize}px "${fontFamily}", Pretendard, sans-serif`;
             ctx.fillStyle = textColor;
             ctx.fillText(subText, centerX, baseY + mainFontSize * 0.85, maxW);
         }
@@ -301,7 +301,7 @@ const drawOutlineText = (ctx, mainText, subText, fontFamily, mainFontSize, subFo
 
     if (subText) {
         const subY = baseY + mainFontSize * 0.85;
-        ctx.font = `600 ${subFontSize}px Pretendard, sans-serif`;
+        ctx.font = `600 ${subFontSize}px "${fontFamily}", Pretendard, sans-serif`;
         ctx.lineJoin = 'round';
         ctx.miterLimit = 2;
 
@@ -318,6 +318,106 @@ const drawOutlineText = (ctx, mainText, subText, fontFamily, mainFontSize, subFo
 };
 
 /**
+ * 텍스트 효과 적용: 그림자/윤곽선/배경박스
+ */
+const applyTextEffects = (ctx, shadow, outlineOpt, bgBoxOpt, mainText, subText, fontFamily, mainFontSize, subFontSize, textColor, textPosition, bandInfo) => {
+    const centerX = WIDTH / 2;
+    const maxW = WIDTH * 0.85;
+
+    // 텍스트 위치 계산
+    let mainY, subY;
+    if (textPosition === 'center') {
+        mainY = HEIGHT / 2 - (subText ? subFontSize * 0.3 : -mainFontSize * 0.2);
+        subY = HEIGHT / 2 + (mainText ? mainFontSize * 0.55 : subFontSize * 0.2);
+    } else if (textPosition === 'band' && bandInfo) {
+        const bandCenterY = bandInfo.bandY + bandInfo.bandH / 2;
+        mainY = bandCenterY - (subText ? subFontSize * 0.3 : -mainFontSize * 0.35);
+        subY = bandCenterY + (mainText ? mainFontSize * 0.55 : 0);
+    } else if (textPosition === 'bottomBox') {
+        const boxTop = Math.round(HEIGHT * 0.65);
+        const boxCenterY = boxTop + (HEIGHT - boxTop) / 2;
+        mainY = boxCenterY - (subText ? subFontSize * 0.4 : -mainFontSize * 0.2);
+        subY = boxCenterY + (mainText ? mainFontSize * 0.5 : subFontSize * 0.2);
+    } else {
+        mainY = HEIGHT - 120;
+        subY = mainY + mainFontSize * 0.85;
+    }
+
+    ctx.textAlign = 'center';
+
+    // 배경박스
+    if (bgBoxOpt !== '없음' && (mainText || subText)) {
+        const paddingX = 40, paddingY = 24;
+        const boxH = (mainText ? mainFontSize : 0) + (subText ? subFontSize * 1.2 : 0) + paddingY * 2;
+        const boxY = (mainText ? mainY - mainFontSize * 0.7 : subY - subFontSize * 0.7) - paddingY;
+        const boxW = maxW * 0.7;
+        const boxX = centerX - boxW / 2;
+
+        if (bgBoxOpt === '검정') ctx.fillStyle = 'rgba(0,0,0,0.55)';
+        else if (bgBoxOpt === '흰색') ctx.fillStyle = 'rgba(255,255,255,0.75)';
+        else ctx.fillStyle = 'rgba(255,107,53,0.6)';
+
+        ctx.beginPath();
+        ctx.roundRect(boxX, boxY, boxW, boxH, 12);
+        ctx.fill();
+    }
+
+    // 그림자 설정
+    const shadows = {
+        '없음': { blur: 0, ox: 0, oy: 0, color: 'transparent' },
+        '약하게': { blur: 6, ox: 0, oy: 2, color: 'rgba(0,0,0,0.4)' },
+        '보통': { blur: 10, ox: 0, oy: 3, color: 'rgba(0,0,0,0.6)' },
+        '강하게': { blur: 16, ox: 0, oy: 4, color: 'rgba(0,0,0,0.8)' },
+        '네온': { blur: 20, ox: 0, oy: 0, color: 'rgba(255,107,53,0.7)' },
+    };
+    const sh = shadows[shadow] || shadows['약하게'];
+    ctx.shadowColor = sh.color;
+    ctx.shadowBlur = sh.blur;
+    ctx.shadowOffsetX = sh.ox;
+    ctx.shadowOffsetY = sh.oy;
+
+    const neonColor = shadow === '네온' ? '#FF6B35' : textColor;
+
+    // 윤곽선
+    const outlineWidths = { '없음': 0, '얇은': 3, '보통': 5, '두꺼운': 8 };
+    const outlineW = outlineWidths[outlineOpt] || 0;
+
+    // 메인 텍스트
+    if (mainText) {
+        ctx.font = `bold ${mainFontSize}px "${fontFamily}", Pretendard, sans-serif`;
+        if (outlineW > 0) {
+            ctx.lineJoin = 'round';
+            ctx.miterLimit = 2;
+            ctx.lineWidth = outlineW;
+            ctx.strokeStyle = isLightColor(neonColor) ? 'rgba(0,0,0,0.85)' : 'rgba(255,255,255,0.85)';
+            ctx.strokeText(mainText, centerX, mainY, maxW);
+        }
+        ctx.fillStyle = bgBoxOpt === '흰색' ? '#37352F' : neonColor;
+        ctx.fillText(mainText, centerX, mainY, maxW);
+    }
+
+    // 서브 텍스트
+    if (subText) {
+        ctx.font = `600 ${subFontSize}px "${fontFamily}", Pretendard, sans-serif`;
+        if (outlineW > 0) {
+            ctx.lineJoin = 'round';
+            ctx.miterLimit = 2;
+            ctx.lineWidth = Math.max(1, outlineW * 0.6);
+            ctx.strokeStyle = isLightColor(neonColor) ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.7)';
+            ctx.strokeText(subText, centerX, subY, maxW);
+        }
+        ctx.fillStyle = bgBoxOpt === '흰색' ? '#555' : neonColor;
+        ctx.fillText(subText, centerX, subY, maxW);
+    }
+
+    // 그림자 초기화
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+};
+
+/**
  * 메인 렌더링 함수
  * @param {string} imageUrl - 원본 이미지 URL
  * @param {object} options
@@ -329,6 +429,7 @@ export const generateThumbnail = (imageUrl, options = {}) => {
         fontFamily = 'Pretendard', zoom = 1, offsetX = 0, offsetY = 0,
         mainFontSize = 64, subFontSize = 36, fontColor = '',
         bandPosition = 'top', bandColor = '#FF6B35', bandHeight = 150,
+        shadow = '약하게', outline = '없음', bgBox = '없음',
     } = options;
 
     return new Promise((resolve, reject) => {
@@ -383,7 +484,12 @@ export const generateThumbnail = (imageUrl, options = {}) => {
 
             // 4. 텍스트 (fontColor가 있으면 스타일 기본색 오버라이드)
             const finalTextColor = fontColor || textColor;
-            drawThumbnailText(ctx, mainText, subText, fontFamily, textPosition, finalTextColor, mainFontSize, subFontSize, bandInfo);
+            const hasCustomEffects = shadow !== '약하게' || outline !== '없음' || bgBox !== '없음';
+            if (hasCustomEffects && textPosition !== 'outline') {
+                applyTextEffects(ctx, shadow, outline, bgBox, mainText, subText, fontFamily, mainFontSize, subFontSize, finalTextColor, textPosition, bandInfo);
+            } else {
+                drawThumbnailText(ctx, mainText, subText, fontFamily, textPosition, finalTextColor, mainFontSize, subFontSize, bandInfo);
+            }
 
             resolve(canvas.toDataURL('image/png'));
         };

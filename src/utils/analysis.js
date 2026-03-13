@@ -220,8 +220,8 @@ export const analyzePost = (title, htmlContent, keywords, targetLength = 1500, c
             issues.push({ id: 'key_density', type: 'warning', text: '키워드 반복 과다', metric: `${count}회 → ${minRepeat}~${maxRepeat}회` });
         }
 
-        // First Paragraph Check
-        const firstPara = doc.querySelector('p');
+        // First Paragraph Check — 텍스트가 있는 첫 <p> (이미지만 있는 <p> 스킵)
+        const firstPara = Array.from(doc.querySelectorAll('p')).find(p => p.textContent.trim().length > 10);
         if (firstPara && firstPara.textContent.toLowerCase().includes(mainKeyword.toLowerCase())) {
             checks.mainKeyFirstPara = true;
         } else {
@@ -332,7 +332,7 @@ export const analyzePost = (title, htmlContent, keywords, targetLength = 1500, c
 
     // 11. Intro Paragraph Length — 카테고리별 권장 글자수
     const introRange = INTRO_LENGTH_BY_CATEGORY[categoryId] || INTRO_LENGTH_BY_CATEGORY.daily;
-    const firstParagraph = doc.querySelector('p');
+    const firstParagraph = Array.from(doc.querySelectorAll('p')).find(p => p.textContent.trim().length > 10);
     const introLength = firstParagraph ? (firstParagraph.textContent || '').length : 0;
     if (introLength >= introRange.min && introLength <= introRange.max) {
         checks.introParagraphLength = true;

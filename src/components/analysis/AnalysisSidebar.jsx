@@ -1,11 +1,20 @@
 import React from 'react';
 import AIAnalysisDashboard from './AIAnalysisDashboard';
+import ThumbnailPanel from './ThumbnailPanel';
+import PostHistory from './PostHistory';
 
 const AnalysisSidebar = () => {
     return (
-        <div>
-            <h3 style={{ marginBottom: '16px', color: 'var(--color-primary)' }}>AI SEO 어드바이저</h3>
-            <AIAnalysisDashboard />
+        <div className="v3-sidebar">
+            <div className="v3-panel">
+                <AIAnalysisDashboard />
+            </div>
+            <div className="v3-panel">
+                <ThumbnailPanel />
+            </div>
+            <div className="v3-panel">
+                <PostHistory />
+            </div>
         </div>
     );
 };

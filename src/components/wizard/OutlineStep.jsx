@@ -7,7 +7,7 @@ import { getKw } from './KeywordStep';
 import {
     Wand2, Bot, ClipboardList, ArrowLeft,
     ChevronDown, ChevronUp, Loader2, BarChart3,
-    Sparkles, Plus, Trash2, CheckCircle
+    Sparkles, Plus, Trash2, CheckCircle, RefreshCw
 } from 'lucide-react';
 
 const OutlineStep = ({
@@ -29,6 +29,8 @@ const OutlineStep = ({
     const [activeIndex, setActiveIndex] = useState(null);
     const [hasEdited, setHasEdited] = useState(false);
     const [customInput, setCustomInput] = useState('');
+    const [suggestedHeadings, setSuggestedHeadings] = useState([]);
+    const [isSuggestingHeadings, setIsSuggestingHeadings] = useState(false);
 
     const handleGenerateOutline = async () => {
         setIsGeneratingOutline(true);
@@ -79,6 +81,32 @@ const OutlineStep = ({
             return arr;
         });
         setActiveIndex(afterIndex + 1);
+    };
+
+    const handleSuggestHeadings = async () => {
+        setIsSuggestingHeadings(true);
+        recordAiAction('headingSuggest');
+        try {
+            const keywordStrings = selectedKeywords.map(k => getKw(k));
+            const existingTitles = outlineItems.map(item => item.title).filter(Boolean);
+            const result = await AIService.suggestHeadings(
+                mainKeyword, keywordStrings, existingTitles, categoryId, competitorData
+            );
+            if (Array.isArray(result) && result.length > 0) {
+                const existing = new Set([...existingTitles, ...suggestedHeadings]);
+                const newOnes = result.filter(h => !existing.has(h));
+                setSuggestedHeadings(prev => [...prev, ...newOnes]);
+            }
+        } catch (e) {
+            showToast('소제목 추천 오류: ' + e.message, 'error');
+        } finally {
+            setIsSuggestingHeadings(false);
+        }
+    };
+
+    const handleAcceptHeading = (heading) => {
+        setOutlineItems(prev => [...prev, { level: 'h2', title: heading }]);
+        setSuggestedHeadings(prev => prev.filter(h => h !== heading));
     };
 
     const handleRowClick = (idx) => {
@@ -226,6 +254,52 @@ const OutlineStep = ({
 
                     {!hasEdited && (
                         <p className="outline-tap-hint">소제목을 탭하면 편집할 수 있습니다</p>
+                    )}
+
+                    {/* AI 추천 소제목 */}
+                    {suggestedHeadings.length > 0 && (
+                        <div className="wizard-suggested-section">
+                            <div className="wizard-suggested-divider">
+                                <span className="wizard-suggested-divider-line" />
+                                <span className="wizard-suggested-divider-label">AI 추천</span>
+                                <span className="wizard-suggested-divider-line" />
+                            </div>
+                            <div className="wizard-chip-list">
+                                {suggestedHeadings.map((heading, i) => (
+                                    <span
+                                        key={`sug-${i}`}
+                                        onClick={() => handleAcceptHeading(heading)}
+                                        className="wizard-suggested-chip"
+                                    >
+                                        {heading}
+                                    </span>
+                                ))}
+                            </div>
+                            <button
+                                onClick={isSuggestingHeadings ? undefined : handleSuggestHeadings}
+                                disabled={isSuggestingHeadings}
+                                className="wizard-more-btn"
+                            >
+                                {isSuggestingHeadings
+                                    ? <><Loader2 size={14} className="spin" /> 분석 중</>
+                                    : <><RefreshCw size={14} /> 추천 더 받기</>
+                                }
+                            </button>
+                        </div>
+                    )}
+
+                    {suggestedHeadings.length === 0 && outlineItems.length > 0 && (
+                        <button
+                            onClick={handleSuggestHeadings}
+                            disabled={isSuggestingHeadings}
+                            className="wizard-more-btn"
+                            style={{ marginTop: 8 }}
+                        >
+                            {isSuggestingHeadings
+                                ? <><Loader2 size={14} className="spin" /> 분석 중</>
+                                : <><Sparkles size={14} /> AI 소제목 추천 받기</>
+                            }
+                        </button>
                     )}
 
                     {/* 직접 입력 */}
