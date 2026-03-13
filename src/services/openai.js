@@ -1107,7 +1107,8 @@ ${currentHtml}
 Output strictly a valid JSON: {"title": "SEO 최적화된 블로그 제목 (메인 키워드로 시작, 15~25자)", "html": "..."}`;
 
         return this.generateContent([{ text: prompt }], {
-            tools: [{ google_search: {} }]
+            tools: [{ google_search: {} }],
+            thinkingBudget: 2048
         }, '본문 보완');
     },
 
