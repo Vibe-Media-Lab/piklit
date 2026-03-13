@@ -921,7 +921,23 @@
 - [x] tiptap.css — CTA 드롭다운 위치 수정 (position: fixed → absolute, 버튼 기준)
 - [x] wannabeStyle.js — seo 그룹 누락 수정 (CTA 스타일이 본문 생성 프롬프트에 반영)
 
+### 모바일 이슈 수정 (세션 2)
+- [x] 작성 히스토리 토글 중복 제거 (overview 모드 Section 래퍼 삭제)
+- [x] SEO AI 수정 버튼 개별 로딩 처리 (seoFixLoadingId 도입)
+- [x] SEO AI 수정 JSON 파싱 개선 (responseMimeType + content 키 fallback)
+- [x] ReadabilityPanel 기본 접힘 설정
+- [x] 썸네일 깨진 이미지 숨김 (onError + brokenImgs Set)
+- [x] 모바일 자연스러움 탭 V3 디자인 통일 (mode="natural" + HumannessPanel suggestOnly)
+- [x] 모바일 자연스러움 탭 가독성 섹션 제거 (AI 감지와 중복)
+- [x] 모바일 자연스러움 개선 제안 → SEO와 동일 v3 카드 스타일
+- [x] SEO 탭에서 자연스러움 제안 필터링
+- [x] AI 수정 fix count 정확화 (issuesToFix.length 사용)
+- [x] base64 이미지 플레이스홀더 복원 로직 안정화
+- [x] 썸네일 본문 삽입 후 바텀시트 닫기 + 에디터 스크롤
+- [x] 프리뷰 HTML 파일 9개 삭제
+
 ### 남은 작업
+- [ ] 기존 린트 에러 9건 정리
 - [ ] 썸네일 반분할/매거진 스타일 캔버스 렌더링 구현
 - [ ] 베타 테스터 + 버그 리포트 실제 동작 검증
 - [ ] 배포 후 전체 플로우 E2E 테스트
