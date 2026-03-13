@@ -7,7 +7,7 @@ import { loadGoogleFont, loadGoogleFonts } from '../../utils/fontLoader';
 import { Sparkles, Loader2, ChevronDown } from 'lucide-react';
 import '../../styles/ThumbnailPanel.css';
 
-const ThumbnailPanel = () => {
+const ThumbnailPanel = ({ onLocate } = {}) => {
     const { title, keywords, posts, currentPostId, photoPreviewUrls, editorRef, content, recordAiAction } = useEditor();
     const { showToast } = useToast();
 
@@ -239,6 +239,12 @@ const ThumbnailPanel = () => {
         // 항상 문서 맨 앞에 삽입
         editor.chain().insertContentAt(0, { type: 'image', attrs: { src: previewUrl, alt: mainText || '썸네일' } }).focus().run();
         showToast('썸네일이 본문 상단에 삽입되었습니다.', 'success');
+        // 모바일: 바텀시트 닫기 + 삽입 위치로 스크롤
+        if (onLocate) onLocate(null);
+        setTimeout(() => {
+            const img = document.querySelector('.tiptap-content-area img[alt="' + (mainText || '썸네일') + '"]');
+            if (img) img.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 300);
     };
 
     const handleSaveStyle = () => {

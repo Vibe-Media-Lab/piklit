@@ -70,12 +70,20 @@ export const AIService = {
         const htmlValueMatch = text.match(/"html"\s*:\s*"([\s\S]*)"\s*\}?\s*$/);
         if (htmlValueMatch) {
             let htmlValue = htmlValueMatch[1];
-            // 이스케이프된 문자 처리: \" → ", \n → <br>
             htmlValue = htmlValue
                 .replace(/\\"/g, '"')
                 .replace(/\\n/g, '<br>');
             console.log('[JSON 파싱] "html" 값 직접 추출 성공');
             return { html: htmlValue };
+        }
+
+        // 전략 4: "content": "..." 패턴에서 값 직접 추출 (fixSeoIssues 등)
+        const contentValueMatch = text.match(/"content"\s*:\s*"([\s\S]*)"\s*,?\s*"fixes"/);
+        if (contentValueMatch) {
+            let contentValue = contentValueMatch[1];
+            contentValue = contentValue.replace(/\\"/g, '"').replace(/\\n/g, '\n');
+            console.log('[JSON 파싱] "content" 값 직접 추출 성공');
+            return { content: contentValue };
         }
 
         return null;
@@ -2012,7 +2020,7 @@ Output strictly a valid JSON:
 
         const result = await this.generateContent(
             [{ text: prompt }],
-            { thinkingBudget: 2048 },
+            { thinkingBudget: 2048, generationConfig: { responseMimeType: 'application/json' } },
             'SEO 이슈 수정'
         );
 

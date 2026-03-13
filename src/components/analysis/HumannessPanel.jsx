@@ -22,7 +22,7 @@ const GRADE_LABELS = {
     '-': '분석 대기'
 };
 
-const HumannessPanel = ({ onLocate }) => {
+const HumannessPanel = ({ onLocate, suggestOnly = false }) => {
     const { content, suggestedTone, keywords, recordAiAction, editorRef, humanTip, setHumanTip } = useEditor();
     const { showToast } = useToast();
     const [isOpen, setIsOpen] = useState(true);
@@ -191,6 +191,48 @@ const HumannessPanel = ({ onLocate }) => {
             showToast('원문 위치를 특정할 수 없습니다.', 'warning');
         }
     }, [editorRef, showToast, setHumanTip]);
+
+    // suggestOnly 모드: AI 버튼 + 결과만 렌더 (V3 대시보드에서 사용)
+    if (suggestOnly) {
+        if (isEmpty) return null;
+        return (
+            <div className="humanness-panel-suggest-only">
+                {suggestions.length === 0 && (
+                    <div className="humanness-perfect">자연스러운 글입니다!</div>
+                )}
+                <button className="humanness-ai-btn" onClick={handleAiAnalyze} disabled={aiLoading}>
+                    {aiLoading ? <span className="btn-loading-spinner"><Loader2 size={14} className="spin" /> 분석 중...</span> : 'AI 휴먼라이징 제안'}
+                </button>
+                {aiSuggestions && (
+                    <div className="humanness-ai-results">
+                        {aiSuggestions.overallTip && (
+                            <div className="humanness-ai-tip">{aiSuggestions.overallTip}</div>
+                        )}
+                        {aiSuggestions.suggestions?.map((s, i) => {
+                            const isApplied = appliedIndices.has(i);
+                            return (
+                                <div key={i} className={`humanness-ai-card ${isApplied ? 'humanness-ai-card-applied' : ''}`}>
+                                    <div className="humanness-ai-original humanness-ai-locatable" onClick={() => handleLocateOriginal(s, i)} title="클릭하면 본문에서 위치를 찾아줍니다">{s.original}</div>
+                                    <div className="humanness-ai-arrow">
+                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                            <path d="M3 8h10M10 5l3 3-3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                        </svg>
+                                    </div>
+                                    <div className="humanness-ai-revised">{s.revised}</div>
+                                    <div className="humanness-ai-card-footer">
+                                        <span className="humanness-ai-reason">{s.reason}</span>
+                                        <button className={`humanness-ai-apply-btn ${isApplied ? 'applied' : ''}`} onClick={() => handleApplySuggestion(s, i)} disabled={isApplied}>
+                                            {isApplied ? '적용됨' : '적용'}
+                                        </button>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
+        );
+    }
 
     return (
         <div className="humanness-panel">

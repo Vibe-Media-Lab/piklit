@@ -4,11 +4,8 @@ import EditorContainer from '../editor/EditorContainer';
 import AnalysisSidebar from '../analysis/AnalysisSidebar';
 import MobileAnalysisBar from '../analysis/MobileAnalysisBar';
 import { useEditor } from '../../context/EditorContext';
-import ReadabilityPanel from '../analysis/ReadabilityPanel';
-import HumannessPanel from '../analysis/HumannessPanel';
 import ThumbnailPanel from '../analysis/ThumbnailPanel';
 import AIAnalysisDashboard from '../analysis/AIAnalysisDashboard';
-import PostHistory from '../analysis/PostHistory';
 
 const MobilePanelContent = ({ activeTab, onLocate }) => {
     switch (activeTab) {
@@ -17,14 +14,9 @@ const MobilePanelContent = ({ activeTab, onLocate }) => {
         case 'seo':
             return <AIAnalysisDashboard onLocate={onLocate} mode="seo" />;
         case 'natural':
-            return (
-                <>
-                    <HumannessPanel onLocate={onLocate} />
-                    <ReadabilityPanel onLocate={onLocate} />
-                </>
-            );
+            return <AIAnalysisDashboard onLocate={onLocate} mode="natural" />;
         case 'thumbnail':
-            return <ThumbnailPanel />;
+            return <ThumbnailPanel onLocate={onLocate} />;
         default:
             return null;
     }
