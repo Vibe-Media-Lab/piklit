@@ -97,7 +97,7 @@
 .thumbnail-zoom-row input[type="range"] {
     flex: 1;
     height: 4px;
-    accent-color: #FF6B35;
+    accent-color: var(--color-brand, #FF6B35);
 }
 
 .thumbnail-zoom-value {
@@ -178,7 +178,7 @@
 .thumbnail-band-row input[type="range"] {
     flex: 1;
     height: 4px;
-    accent-color: #FF6B35;
+    accent-color: var(--color-brand, #FF6B35);
 }
 
 /* ── 텍스트 입력 (카운터 인라인) ── */
@@ -228,7 +228,7 @@
     padding: 9px 0;
     border: none;
     border-radius: 6px;
-    background: #FF6B35;
+    background: var(--color-brand, #FF6B35);
     color: white;
     font-size: 0.8rem;
     font-weight: 600;
@@ -386,7 +386,7 @@
 .thumbnail-size-col input[type="range"] {
     flex: 1;
     height: 4px;
-    accent-color: #FF6B35;
+    accent-color: var(--color-brand, #FF6B35);
 }
 
 .thumbnail-slider-value {
@@ -675,5 +675,21 @@
     /* 스타일 칩 줄바꿈 */
     .thumbnail-style-chips {
         flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 480px) {
+    .thumbnail-panel-body {
+        padding: 0 12px 110px;
+    }
+
+    .thumbnail-btn-ai {
+        font-size: 0.75rem;
+        padding: 8px 0;
+    }
+
+    .thumbnail-actions {
+        padding: 10px 12px;
+        padding-bottom: calc(10px + env(safe-area-inset-bottom));
     }
 }

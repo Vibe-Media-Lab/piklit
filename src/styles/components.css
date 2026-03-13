@@ -3859,7 +3859,7 @@
 
 .recommend-diff-easy {
     background: rgba(39, 174, 96, 0.1);
-    color: #27AE60;
+    color: var(--color-success, #27AE60);
 }
 
 .recommend-diff-medium {
@@ -4219,7 +4219,7 @@
     }
 
     .mobile-locate-minibar-btn:hover {
-        background: #FFF3ED;
+        background: var(--color-brand-light, #FFF3ED);
     }
 
     .mobile-locate-minibar-close {
@@ -4301,7 +4301,7 @@
     gap: 32px;
     margin-bottom: 24px;
     padding: 16px;
-    background: #F7F6F3;
+    background: var(--color-surface-hover, #F7F6F3);
     border-radius: var(--radius-md);
 }
 
@@ -4944,9 +4944,9 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
 .settings-own-key-badge {
     margin-bottom: 20px;
     padding: 12px 16px;
-    background: #F0FFF4;
+    background: var(--color-success-bg, #F0FDF4);
     border-radius: var(--radius-md);
-    border: 1px solid #C6F6D5;
+    border: 1px solid var(--color-success-border, #C6F6D5);
     font-size: 0.85rem;
     color: var(--color-success);
     font-weight: 600;
@@ -5444,13 +5444,13 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
 }
 
 .admin-beta-badge--active {
-    background: #F0FFF4;
-    color: #27AE60;
+    background: var(--color-success-bg, #F0FDF4);
+    color: var(--color-success, #27AE60);
 }
 
 .admin-beta-badge--expired {
-    background: #FFF0F0;
-    color: #EB5757;
+    background: var(--color-error-bg, #FEF2F2);
+    color: var(--color-error, #EB5757);
 }
 
 .admin-beta-delete-btn {
@@ -5464,14 +5464,14 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
 }
 
 .admin-beta-delete-btn:hover {
-    border-color: #EB5757;
-    color: #EB5757;
+    border-color: var(--color-error, #EB5757);
+    color: var(--color-error, #EB5757);
 }
 
 .admin-beta-delete-btn--confirm {
-    background: #EB5757;
+    background: var(--color-error, #EB5757);
     color: white;
-    border-color: #EB5757;
+    border-color: var(--color-error, #EB5757);
 }
 
 /* ===== v3 점수 변화 토스트 ===== */
@@ -5481,7 +5481,7 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
     background: linear-gradient(135deg, #D1FAE5 0%, #F0FDF4 100%);
     border-radius: 8px;
     font-size: 12px;
-    color: #065F46;
+    color: var(--color-success-dark, #065F46);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -5505,7 +5505,7 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
     border: none;
     background: none;
     cursor: pointer;
-    color: #065F46;
+    color: var(--color-success-dark, #065F46);
     opacity: 0.5;
     font-size: 14px;
     padding: 4px;
