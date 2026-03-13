@@ -3064,6 +3064,420 @@
     color: white;
 }
 
+/* ============================================================
+   v3 AI Dashboard — 종합 점수 + 접기/펼치기 섹션 + 태그 도구
+   ============================================================ */
+
+/* 종합 점수 헤더 */
+.v3-score-header {
+    padding: 24px 20px 20px;
+    text-align: center;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.v3-gauge-wrap {
+    position: relative;
+    width: 130px;
+    height: 130px;
+    margin: 0 auto 12px;
+}
+
+.v3-gauge-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.v3-gauge-num {
+    font-size: 34px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.v3-gauge-pct {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.v3-gauge-label {
+    font-size: 11px;
+    color: var(--color-text-sub);
+    margin-top: 2px;
+}
+
+.v3-score-breakdown {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    margin-top: 12px;
+}
+
+.v3-score-part {
+    text-align: center;
+}
+
+.v3-score-part-value {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.v3-score-part-value.good { color: var(--color-green, #10B981); }
+.v3-score-part-value.mid  { color: var(--color-yellow, #F59E0B); }
+.v3-score-part-value.low  { color: var(--color-red, #EF4444); }
+
+.v3-score-part-pct {
+    font-size: 12px;
+    color: var(--color-text-sub);
+}
+
+.v3-score-part-label {
+    font-size: 11px;
+    color: var(--color-text-sub);
+    margin-top: 1px;
+}
+
+/* v3 접기/펼치기 섹션 */
+.v3-section {
+    border-bottom: 1px solid var(--color-border);
+}
+
+.v3-section:last-child {
+    border-bottom: none;
+}
+
+.v3-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    cursor: pointer;
+    user-select: none;
+    width: 100%;
+    border: none;
+    background: none;
+    font-family: inherit;
+    color: var(--color-text-main);
+}
+
+.v3-section-header:hover {
+    background: var(--color-surface-hover, var(--color-surface));
+}
+
+.v3-section-title {
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.v3-section-icon {
+    color: var(--color-text-sub);
+}
+
+.v3-section-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.v3-section-score {
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.v3-section-score.good { color: var(--color-green, #10B981); }
+.v3-section-score.mid  { color: var(--color-yellow, #F59E0B); }
+.v3-section-score.low  { color: var(--color-red, #EF4444); }
+
+.v3-section-count {
+    color: var(--color-text-sub);
+}
+
+.v3-section-toggle {
+    color: var(--color-text-sub);
+    transition: transform 0.2s;
+    display: flex;
+}
+
+.v3-section-toggle.open {
+    transform: rotate(180deg);
+}
+
+.v3-section-body {
+    padding: 0 20px 16px;
+}
+
+/* v3 체크리스트 */
+.v3-checklist {
+    margin: 0;
+}
+
+.v3-check-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    font-size: 13px;
+    border-bottom: 1px solid #f5f5f4;
+}
+
+.v3-check-item:last-child {
+    border-bottom: none;
+}
+
+.v3-check-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.v3-check-icon.pass { background: var(--color-green-bg, #D1FAE5); color: var(--color-green, #10B981); }
+.v3-check-icon.warn { background: var(--color-yellow-bg, #FEF3C7); color: var(--color-yellow, #F59E0B); }
+.v3-check-icon.fail { background: var(--color-red-bg, #FEE2E2); color: var(--color-red, #EF4444); }
+.v3-check-icon.info { background: var(--color-blue-bg, #DBEAFE); color: var(--color-blue, #3B82F6); }
+
+.v3-check-label {
+    flex: 1;
+    line-height: 1.4;
+}
+
+.v3-check-value {
+    font-size: 12px;
+    color: var(--color-text-sub);
+    white-space: nowrap;
+}
+
+.v3-check-ai-badge {
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 6px;
+    background: var(--color-brand-light, #FFF3ED);
+    color: var(--color-brand, #FF6B35);
+    font-weight: 700;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.v3-perfect {
+    text-align: center;
+    padding: 12px;
+    font-size: 13px;
+    color: var(--color-green, #10B981);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+/* v3 개선 제안 */
+.v3-suggestions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.v3-suggestion-item {
+    background: var(--color-surface);
+    border-radius: 8px;
+    padding: 12px 14px;
+}
+
+.v3-suggestion-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.v3-suggestion-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.v3-suggestion-badge.seo { color: var(--color-yellow, #F59E0B); }
+.v3-suggestion-badge.natural { color: #8B5CF6; }
+
+.v3-suggestion-fix-btn {
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 6px;
+    border: none;
+    background: var(--color-brand, #FF6B35);
+    color: #fff;
+    cursor: pointer;
+    font-weight: 600;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.v3-suggestion-fix-btn:hover {
+    opacity: 0.9;
+}
+
+.v3-suggestion-fix-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.v3-suggestion-desc {
+    font-size: 12px;
+    color: var(--color-text-sub);
+    line-height: 1.5;
+}
+
+.v3-suggestion-detail {
+    font-size: 12px;
+    color: var(--color-text-main);
+    background: var(--color-bg, #fff);
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-top: 8px;
+    border-left: 3px solid var(--color-brand, #FF6B35);
+    line-height: 1.5;
+}
+
+/* v3 태그 도구 버튼 */
+.v3-tool-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 14px 20px;
+    background: none;
+    border: none;
+    border-top: 1px solid var(--color-border);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--color-text-main);
+    text-align: left;
+}
+
+.v3-tool-btn:hover {
+    background: var(--color-surface-hover, var(--color-surface));
+}
+
+.v3-tool-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.v3-tool-icon.tag {
+    background: var(--color-brand-light, #FFF3ED);
+    color: var(--color-brand, #FF6B35);
+}
+
+.v3-tool-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.v3-tool-name {
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.v3-tool-desc {
+    font-size: 11px;
+    color: var(--color-text-sub);
+    margin-top: 1px;
+}
+
+.v3-tool-arrow {
+    color: #C4C4C0;
+    display: flex;
+    transition: transform 0.2s;
+}
+
+.v3-tool-arrow.open {
+    transform: rotate(90deg);
+}
+
+/* v3 태그 확장 영역 */
+.v3-tag-expand {
+    padding: 0 20px 16px;
+}
+
+.v3-tag-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.v3-tag-chip {
+    padding: 5px 10px;
+    border-radius: 16px;
+    font-size: 12px;
+    background: var(--color-brand-light, #FFF7ED);
+    color: var(--color-brand, #FF6B35);
+    border: 1px solid #FFDFCC;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.v3-tag-chip.copied {
+    background: var(--color-brand, #FF6B35);
+    color: #fff;
+    border-color: var(--color-brand, #FF6B35);
+}
+
+.v3-tag-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.v3-tag-action-btn {
+    flex: 1;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg, #fff);
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.v3-tag-action-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.v3-tag-action-btn.primary {
+    background: var(--color-brand, #FF6B35);
+    color: #fff;
+    border-color: var(--color-brand, #FF6B35);
+}
+
+.v3-tag-action-btn.copied {
+    background: var(--color-green, #10B981);
+    color: #fff;
+    border-color: var(--color-green, #10B981);
+}
+
 
 /* ===== 다음 글 추천 섹션 ===== */
 

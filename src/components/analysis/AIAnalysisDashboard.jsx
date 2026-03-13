@@ -1,23 +1,31 @@
-import React, { useState } from 'react';
-import { ChevronDown } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { ChevronDown, Check, X, AlertTriangle, Sparkles, Hash, ChevronRight, BarChart3 } from 'lucide-react';
 import { useEditor } from '../../context/EditorContext';
 import { useToast } from '../common/Toast';
 import { AIService } from '../../services/openai';
 import { Loader2 } from 'lucide-react';
+import { analyzeHumanness } from '../../utils/humanness';
 import ReadabilityPanel from './ReadabilityPanel';
 import HumannessPanel from './HumannessPanel';
 import PostHistory from './PostHistory';
-import ThumbnailPanel from './ThumbnailPanel';
 
-const SidebarGroup = ({ title, defaultOpen = false, children }) => {
+// v3 접기/펼치기 섹션
+const Section = ({ title, icon: Icon, score, scoreClass, count, defaultOpen = false, children }) => {
     const [open, setOpen] = useState(defaultOpen);
     return (
-        <div className="sidebar-group">
-            <button className={`sidebar-group-toggle ${open ? 'open' : ''}`} onClick={() => setOpen(prev => !prev)}>
-                <span>{title}</span>
-                <ChevronDown size={16} className={`sidebar-group-chevron ${open ? 'open' : ''}`} />
+        <div className="v3-section">
+            <button className="v3-section-header" onClick={() => setOpen(prev => !prev)}>
+                <span className="v3-section-title">
+                    {Icon && <Icon size={14} className="v3-section-icon" />}
+                    {title}
+                </span>
+                <span className="v3-section-right">
+                    {score != null && <span className={`v3-section-score ${scoreClass || ''}`}>{score}%</span>}
+                    {count != null && <span className="v3-section-score v3-section-count">{count}건</span>}
+                    <ChevronDown size={14} className={`v3-section-toggle ${open ? 'open' : ''}`} />
+                </span>
             </button>
-            {open && <div className="sidebar-group-body">{children}</div>}
+            {open && <div className="v3-section-body">{children}</div>}
         </div>
     );
 };
@@ -31,20 +39,32 @@ const AI_FIXABLE_IDS = new Set([
     'intro_short', 'intro_long',
 ]);
 
+const getScoreClass = (pct) => pct >= 80 ? 'good' : pct >= 60 ? 'mid' : 'low';
+const getScoreColor = (pct) => pct >= 80 ? 'var(--color-green, #10B981)' : pct >= 60 ? 'var(--color-yellow, #F59E0B)' : 'var(--color-red, #EF4444)';
+
 const AIAnalysisDashboard = ({ onLocate, compact, mode }) => {
     const { analysis, content, title, setTitle, setContent, keywords, suggestedTone, recordAiAction } = useEditor();
     const { checks, issues, keywordDensity, introLength, headingCount } = analysis;
     const score = Object.values(checks).filter(Boolean).length;
     const maxScore = Object.keys(checks).length || 1;
-    const percentage = Math.round((score / maxScore) * 100);
+    const seoPercentage = Math.round((score / maxScore) * 100);
     const { showToast } = useToast();
+
+    // 자연스러움 점수 계산
+    const humanResult = useMemo(() => analyzeHumanness(content, suggestedTone), [content, suggestedTone]);
+    const naturalPercentage = humanResult.isEmpty ? 0 : humanResult.score;
+
+    // 종합 점수 (SEO 60% + 자연스러움 40%)
+    const totalPercentage = humanResult.isEmpty
+        ? seoPercentage
+        : Math.round(seoPercentage * 0.6 + naturalPercentage * 0.4);
 
     const [loading, setLoading] = useState(false);
     const [seoFixLoading, setSeoFixLoading] = useState(false);
     const [extractedTags, setExtractedTags] = useState([]);
     const [copiedTag, setCopiedTag] = useState(null);
     const [copiedAll, setCopiedAll] = useState(false);
-    const [activeMetric, setActiveMetric] = useState(null);
+    const [tagOpen, setTagOpen] = useState(false);
 
     const fixableIssues = issues.filter(i => AI_FIXABLE_IDS.has(i.id));
 
@@ -57,14 +77,8 @@ const AIAnalysisDashboard = ({ onLocate, compact, mode }) => {
             const result = await AIService.fixSeoIssues(
                 content, title, keywords.main, subKeywords, fixableIssues, suggestedTone || 'friendly'
             );
-
-            if (result.title && result.title !== title) {
-                setTitle(result.title);
-            }
-            if (result.content && result.content !== content) {
-                setContent(result.content);
-            }
-
+            if (result.title && result.title !== title) setTitle(result.title);
+            if (result.content && result.content !== content) setContent(result.content);
             const fixCount = result.fixes?.length || fixableIssues.length;
             showToast(`SEO 이슈 ${fixCount}건 수정 완료`, 'success');
         } catch (e) {
@@ -86,6 +100,7 @@ const AIAnalysisDashboard = ({ onLocate, compact, mode }) => {
             const tags = await AIService.extractTags(text);
             const cleanTags = (Array.isArray(tags) ? tags : []).map(t => t.replace('#', ''));
             setExtractedTags(cleanTags);
+            setTagOpen(true);
         } catch (e) {
             showToast("태그 추출 오류: " + e.message, "error");
         } finally {
@@ -94,8 +109,7 @@ const AIAnalysisDashboard = ({ onLocate, compact, mode }) => {
     };
 
     const handleCopyTags = () => {
-        const tagText = extractedTags.join(',');
-        navigator.clipboard.writeText(tagText);
+        navigator.clipboard.writeText(extractedTags.join(','));
         setCopiedAll(true);
         setTimeout(() => setCopiedAll(false), 1500);
     };
@@ -106,174 +120,193 @@ const AIAnalysisDashboard = ({ onLocate, compact, mode }) => {
         setTimeout(() => setCopiedTag(null), 1500);
     };
 
-    // 모바일 분석 탭: 점수 게이지 + 태그 + 히스토리
-    const renderTagSection = () => (
-        <>
-            <div className="dashboard-tag-section">
-                <button
-                    onClick={handleExtractTags}
-                    disabled={loading}
-                    className="dashboard-tag-btn"
-                >
-                    {loading ? <span className="btn-loading-spinner"><Loader2 size={14} className="spin" /> 분석 중...</span> : '# 블로그 태그 추출'}
-                </button>
-            </div>
-            {extractedTags.length > 0 && (
-                <div className="dashboard-tag-result">
-                    <div className="dashboard-tag-header">
-                        <h4 className="dashboard-section-title">추출된 태그</h4>
-                        <button onClick={handleCopyTags} className={`dashboard-copy-btn ${copiedAll ? 'copied' : ''}`}>
-                            {copiedAll ? '복사됨!' : '전체 복사'}
-                        </button>
+    // ── v3 종합 점수 게이지 ──
+    const renderV3Gauge = () => {
+        const circumference = 2 * Math.PI * 58;
+        const offset = circumference * (1 - totalPercentage / 100);
+        return (
+            <div className="v3-score-header">
+                <div className="v3-gauge-wrap">
+                    <svg viewBox="0 0 140 140" width="130" height="130">
+                        <circle cx="70" cy="70" r="58" fill="none" stroke="var(--color-border, #E3E2E0)" strokeWidth="10" />
+                        <circle
+                            cx="70" cy="70" r="58" fill="none"
+                            stroke={getScoreColor(totalPercentage)}
+                            strokeWidth="10" strokeLinecap="round"
+                            strokeDasharray={circumference}
+                            strokeDashoffset={offset}
+                            transform="rotate(-90 70 70)"
+                            style={{ transition: 'stroke-dashoffset 0.8s ease' }}
+                        />
+                    </svg>
+                    <div className="v3-gauge-text">
+                        <div className="v3-gauge-num">{totalPercentage}<span className="v3-gauge-pct">%</span></div>
+                        <div className="v3-gauge-label">종합 점수</div>
                     </div>
-                    <p className="dashboard-tag-hint">클릭하면 개별 복사됩니다</p>
-                    <div className="dashboard-tag-chips">
+                </div>
+                <div className="v3-score-breakdown">
+                    <div className="v3-score-part">
+                        <div className={`v3-score-part-value ${getScoreClass(seoPercentage)}`}>
+                            {seoPercentage}<span className="v3-score-part-pct">%</span>
+                        </div>
+                        <div className="v3-score-part-label">SEO</div>
+                    </div>
+                    <div className="v3-score-part">
+                        <div className={`v3-score-part-value ${humanResult.isEmpty ? '' : getScoreClass(naturalPercentage)}`}>
+                            {humanResult.isEmpty ? '-' : <>{naturalPercentage}<span className="v3-score-part-pct">%</span></>}
+                        </div>
+                        <div className="v3-score-part-label">자연스러움</div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // ── v3 SEO 체크리스트 (lucide 아이콘) ──
+    const renderV3SeoChecklist = () => (
+        <>
+            {issues.length === 0 ? (
+                <div className="v3-perfect">
+                    <Check size={16} /> 모든 항목 통과
+                </div>
+            ) : (
+                <div className="v3-checklist">
+                    {issues.map((issue, idx) => (
+                        <div key={idx} className="v3-check-item">
+                            <span className={`v3-check-icon ${issue.type === 'error' ? 'fail' : issue.type === 'warning' ? 'warn' : 'info'}`}>
+                                {issue.type === 'error' ? <X size={13} /> : <AlertTriangle size={12} />}
+                            </span>
+                            <span className="v3-check-label">{issue.text}</span>
+                            {issue.metric && <span className="v3-check-value">{issue.metric}</span>}
+                            {AI_FIXABLE_IDS.has(issue.id) && (
+                                <span className="v3-check-ai-badge"><Sparkles size={10} /> AI</span>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            )}
+        </>
+    );
+
+    // ── v3 개선 제안 (개별 AI 수정 버튼) ──
+    const renderV3Suggestions = () => (
+        <>
+            {fixableIssues.length === 0 ? (
+                <div className="v3-perfect">
+                    <Check size={16} /> 개선할 항목이 없습니다
+                </div>
+            ) : (
+                <div className="v3-suggestions">
+                    {fixableIssues.map((issue, idx) => (
+                        <div key={idx} className="v3-suggestion-item">
+                            <div className="v3-suggestion-header">
+                                <span className="v3-suggestion-badge seo">SEO · {issue.text.split(' ')[0]}</span>
+                                <button
+                                    className="v3-suggestion-fix-btn"
+                                    onClick={handleFixSeoIssues}
+                                    disabled={seoFixLoading}
+                                >
+                                    {seoFixLoading
+                                        ? <Loader2 size={11} className="spin" />
+                                        : <><Sparkles size={11} /> AI 수정</>
+                                    }
+                                </button>
+                            </div>
+                            <div className="v3-suggestion-desc">{issue.text}</div>
+                            {issue.metric && (
+                                <div className="v3-suggestion-detail">현재: {issue.metric}</div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            )}
+        </>
+    );
+
+    // ── v3 태그 도구 버튼 ──
+    const renderV3TagTool = () => (
+        <>
+            <button className="v3-tool-btn" onClick={() => { if (!extractedTags.length) handleExtractTags(); else setTagOpen(prev => !prev); }}>
+                <span className="v3-tool-icon tag">
+                    <Hash size={16} />
+                </span>
+                <span className="v3-tool-info">
+                    <span className="v3-tool-name">블로그 태그 추출</span>
+                    <span className="v3-tool-desc">본문 기반 해시태그 자동 생성</span>
+                </span>
+                <span className={`v3-tool-arrow ${tagOpen ? 'open' : ''}`}>
+                    {loading ? <Loader2 size={16} className="spin" /> : <ChevronRight size={16} />}
+                </span>
+            </button>
+            {tagOpen && extractedTags.length > 0 && (
+                <div className="v3-tag-expand">
+                    <div className="v3-tag-chips">
                         {extractedTags.map((tag, i) => (
                             <span
                                 key={i}
                                 onClick={() => handleCopySingleTag(tag)}
-                                className={`dashboard-tag-chip ${copiedTag === tag ? 'copied' : ''}`}
+                                className={`v3-tag-chip ${copiedTag === tag ? 'copied' : ''}`}
                             >
                                 {copiedTag === tag ? '복사됨!' : `#${tag}`}
                             </span>
                         ))}
                     </div>
+                    <div className="v3-tag-actions">
+                        <button className="v3-tag-action-btn" onClick={handleExtractTags} disabled={loading}>
+                            + 5개 더 추출
+                        </button>
+                        <button className={`v3-tag-action-btn primary ${copiedAll ? 'copied' : ''}`} onClick={handleCopyTags}>
+                            {copiedAll ? '복사됨!' : '전체 복사'}
+                        </button>
+                    </div>
                 </div>
             )}
         </>
     );
 
-    const renderGauge = () => (
-        <div className="dashboard-gauge">
-            <svg width="120" height="120" viewBox="0 0 120 120">
-                <circle cx="60" cy="60" r="54" fill="none" stroke="#e0e0e0" strokeWidth="12" />
-                <circle
-                    cx="60" cy="60" r="54" fill="none" stroke="var(--color-primary)" strokeWidth="12"
-                    strokeDasharray="339.292"
-                    strokeDashoffset={339.292 * (1 - percentage / 100)}
-                    transform="rotate(-90 60 60)"
-                    style={{ transition: 'stroke-dashoffset 0.5s ease' }}
-                />
-            </svg>
-            <div className="dashboard-gauge-text">
-                <div className="dashboard-gauge-score">{percentage}점</div>
-                <div className="dashboard-gauge-label">SEO 점수</div>
-            </div>
-        </div>
-    );
-
-    const renderSeoChecklist = () => (
-        <>
-            <div className="metrics-grid">
-                <div
-                    className={`metric-card metric-clickable ${activeMetric === 'density' ? 'active' : ''}`}
-                    onClick={() => setActiveMetric(prev => prev === 'density' ? null : 'density')}
-                >
-                    <div className="metric-value">{keywordDensity != null ? `${keywordDensity}%` : '-'}</div>
-                    <div className="metric-label">키워드 밀도</div>
-                </div>
-                <div
-                    className={`metric-card metric-clickable ${activeMetric === 'intro' ? 'active' : ''}`}
-                    onClick={() => setActiveMetric(prev => prev === 'intro' ? null : 'intro')}
-                >
-                    <div className="metric-value">{introLength != null ? `${introLength}자` : '-'}</div>
-                    <div className="metric-label">도입부 길이</div>
-                </div>
-                <div
-                    className={`metric-card metric-clickable ${activeMetric === 'heading' ? 'active' : ''}`}
-                    onClick={() => setActiveMetric(prev => prev === 'heading' ? null : 'heading')}
-                >
-                    <div className="metric-value">{headingCount != null ? headingCount : '-'}</div>
-                    <div className="metric-label">소제목 수</div>
-                </div>
-            </div>
-            {activeMetric && (
-                <div className="metric-info-bar">
-                    {activeMetric === 'density' && '(출현 횟수 × 키워드 글자수) ÷ 전체 글자수 × 100 — 적정: 1~3%'}
-                    {activeMetric === 'intro' && '첫 번째 문단의 글자수 — 권장: 140~160자'}
-                    {activeMetric === 'heading' && '소제목 개수 — 1,500자당 3~5개 권장'}
-                </div>
-            )}
-            <div className="dashboard-checklist">
-                <h4 className="dashboard-section-title">최적화 체크리스트</h4>
-                {issues.length === 0 ? (
-                    <div className="dashboard-perfect">완벽합니다!</div>
-                ) : (
-                    <>
-                        <ul className="dashboard-issues">
-                            {issues.map((issue, idx) => (
-                                <li key={idx} className={`dashboard-issue dashboard-issue-${issue.type}`}>
-                                    <span className="dashboard-issue-icon">{issue.type === 'error' ? '❌' : issue.type === 'warning' ? '⚠' : 'ℹ'}</span>
-                                    <span className="dashboard-issue-text">{issue.text}</span>
-                                    {issue.metric && <span className="dashboard-issue-metric">{issue.metric}</span>}
-                                    {AI_FIXABLE_IDS.has(issue.id) && <span className="dashboard-issue-ai-badge">AI</span>}
-                                </li>
-                            ))}
-                        </ul>
-                        {fixableIssues.length > 0 && (
-                            <button
-                                className="dashboard-seo-fix-btn"
-                                onClick={handleFixSeoIssues}
-                                disabled={seoFixLoading}
-                            >
-                                {seoFixLoading
-                                    ? <span className="btn-loading-spinner"><Loader2 size={14} className="spin" /> 수정 중...</span>
-                                    : `AI SEO 자동 수정 (${fixableIssues.length}건)`
-                                }
-                            </button>
-                        )}
-                    </>
-                )}
-            </div>
-        </>
-    );
-
-    // 모바일 mode="overview": 점수 + 태그 + 히스토리
+    // ── 모바일 mode="overview": 점수 + 태그 + 히스토리 ──
     if (mode === 'overview') {
         return (
-            <div className="ai-dashboard">
-                {renderGauge()}
-                {renderTagSection()}
-                <SidebarGroup title="작성 히스토리" defaultOpen={false}>
+            <div className="ai-dashboard v3">
+                {renderV3Gauge()}
+                {renderV3TagTool()}
+                <Section title="작성 히스토리" defaultOpen={false}>
                     <PostHistory />
-                </SidebarGroup>
+                </Section>
             </div>
         );
     }
 
-    // 모바일 mode="seo": SEO 체크리스트 + 수정 버튼
+    // ── 모바일 mode="seo": SEO 체크리스트 + 제안 ──
     if (mode === 'seo') {
         return (
-            <div className="ai-dashboard">
-                {renderSeoChecklist()}
+            <div className="ai-dashboard v3">
+                {renderV3SeoChecklist()}
+                <div style={{ padding: '0 16px 16px' }}>
+                    {renderV3Suggestions()}
+                </div>
             </div>
         );
     }
 
-    // 데스크톱 기본 (mode 없음): 전체 사이드바
+    // ── 데스크톱 기본 (v3 디자인) ──
     return (
-        <div className="ai-dashboard">
-            {renderGauge()}
+        <div className="ai-dashboard v3">
+            {renderV3Gauge()}
 
-            <SidebarGroup title="SEO 분석" defaultOpen={true}>
-                {renderSeoChecklist()}
-                {renderTagSection()}
-                {!compact && <ReadabilityPanel onLocate={onLocate} />}
-            </SidebarGroup>
+            <Section title="SEO" icon={BarChart3} score={seoPercentage} scoreClass={getScoreClass(seoPercentage)}>
+                {renderV3SeoChecklist()}
+            </Section>
 
-            {!compact && (
-                <>
-                    <SidebarGroup title="AI 도구" defaultOpen={false}>
-                        {renderTagSection()}
-                        <HumannessPanel />
-                        <ThumbnailPanel />
-                    </SidebarGroup>
+            <Section title="자연스러움" icon={Sparkles} score={humanResult.isEmpty ? null : naturalPercentage} scoreClass={getScoreClass(naturalPercentage)}>
+                <HumannessPanel onLocate={onLocate} />
+            </Section>
 
-                    <SidebarGroup title="작성 히스토리" defaultOpen={false}>
-                        <PostHistory />
-                    </SidebarGroup>
-                </>
-            )}
+            <Section title="개선 제안" count={fixableIssues.length} defaultOpen={true}>
+                {renderV3Suggestions()}
+            </Section>
+
+            {renderV3TagTool()}
         </div>
     );
 };
