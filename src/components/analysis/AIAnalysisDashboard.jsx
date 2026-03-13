@@ -31,7 +31,7 @@ const AI_FIXABLE_IDS = new Set([
     'intro_short', 'intro_long',
 ]);
 
-const AIAnalysisDashboard = ({ onLocate, compact }) => {
+const AIAnalysisDashboard = ({ onLocate, compact, mode }) => {
     const { analysis, content, title, setTitle, setContent, keywords, suggestedTone, recordAiAction } = useEditor();
     const { checks, issues, keywordDensity, introLength, headingCount } = analysis;
     const score = Object.values(checks).filter(Boolean).length;
@@ -106,177 +106,169 @@ const AIAnalysisDashboard = ({ onLocate, compact }) => {
         setTimeout(() => setCopiedTag(null), 1500);
     };
 
-    return (
-        <div className="ai-dashboard">
-            {/* Score Gauge — 항상 표시 */}
-            <div className="dashboard-gauge">
-                <svg width="120" height="120" viewBox="0 0 120 120">
-                    <circle cx="60" cy="60" r="54" fill="none" stroke="#e0e0e0" strokeWidth="12" />
-                    <circle
-                        cx="60" cy="60" r="54" fill="none" stroke="var(--color-primary)" strokeWidth="12"
-                        strokeDasharray="339.292"
-                        strokeDashoffset={339.292 * (1 - percentage / 100)}
-                        transform="rotate(-90 60 60)"
-                        style={{ transition: 'stroke-dashoffset 0.5s ease' }}
-                    />
-                </svg>
-                <div className="dashboard-gauge-text">
-                    <div className="dashboard-gauge-score">{percentage}점</div>
-                    <div className="dashboard-gauge-label">SEO 점수</div>
+    // 모바일 분석 탭: 점수 게이지 + 태그 + 히스토리
+    const renderTagSection = () => (
+        <>
+            <div className="dashboard-tag-section">
+                <button
+                    onClick={handleExtractTags}
+                    disabled={loading}
+                    className="dashboard-tag-btn"
+                >
+                    {loading ? <span className="btn-loading-spinner"><Loader2 size={14} className="spin" /> 분석 중...</span> : '# 블로그 태그 추출'}
+                </button>
+            </div>
+            {extractedTags.length > 0 && (
+                <div className="dashboard-tag-result">
+                    <div className="dashboard-tag-header">
+                        <h4 className="dashboard-section-title">추출된 태그</h4>
+                        <button onClick={handleCopyTags} className={`dashboard-copy-btn ${copiedAll ? 'copied' : ''}`}>
+                            {copiedAll ? '복사됨!' : '전체 복사'}
+                        </button>
+                    </div>
+                    <p className="dashboard-tag-hint">클릭하면 개별 복사됩니다</p>
+                    <div className="dashboard-tag-chips">
+                        {extractedTags.map((tag, i) => (
+                            <span
+                                key={i}
+                                onClick={() => handleCopySingleTag(tag)}
+                                className={`dashboard-tag-chip ${copiedTag === tag ? 'copied' : ''}`}
+                            >
+                                {copiedTag === tag ? '복사됨!' : `#${tag}`}
+                            </span>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </>
+    );
+
+    const renderGauge = () => (
+        <div className="dashboard-gauge">
+            <svg width="120" height="120" viewBox="0 0 120 120">
+                <circle cx="60" cy="60" r="54" fill="none" stroke="#e0e0e0" strokeWidth="12" />
+                <circle
+                    cx="60" cy="60" r="54" fill="none" stroke="var(--color-primary)" strokeWidth="12"
+                    strokeDasharray="339.292"
+                    strokeDashoffset={339.292 * (1 - percentage / 100)}
+                    transform="rotate(-90 60 60)"
+                    style={{ transition: 'stroke-dashoffset 0.5s ease' }}
+                />
+            </svg>
+            <div className="dashboard-gauge-text">
+                <div className="dashboard-gauge-score">{percentage}점</div>
+                <div className="dashboard-gauge-label">SEO 점수</div>
+            </div>
+        </div>
+    );
+
+    const renderSeoChecklist = () => (
+        <>
+            <div className="metrics-grid">
+                <div
+                    className={`metric-card metric-clickable ${activeMetric === 'density' ? 'active' : ''}`}
+                    onClick={() => setActiveMetric(prev => prev === 'density' ? null : 'density')}
+                >
+                    <div className="metric-value">{keywordDensity != null ? `${keywordDensity}%` : '-'}</div>
+                    <div className="metric-label">키워드 밀도</div>
+                </div>
+                <div
+                    className={`metric-card metric-clickable ${activeMetric === 'intro' ? 'active' : ''}`}
+                    onClick={() => setActiveMetric(prev => prev === 'intro' ? null : 'intro')}
+                >
+                    <div className="metric-value">{introLength != null ? `${introLength}자` : '-'}</div>
+                    <div className="metric-label">도입부 길이</div>
+                </div>
+                <div
+                    className={`metric-card metric-clickable ${activeMetric === 'heading' ? 'active' : ''}`}
+                    onClick={() => setActiveMetric(prev => prev === 'heading' ? null : 'heading')}
+                >
+                    <div className="metric-value">{headingCount != null ? headingCount : '-'}</div>
+                    <div className="metric-label">소제목 수</div>
                 </div>
             </div>
-
-            {/* 그룹 1: SEO 분석 (기본 펼침) */}
-            <SidebarGroup title="SEO 분석" defaultOpen={true}>
-                {/* Metrics Cards */}
-                <div className="metrics-grid">
-                    <div
-                        className={`metric-card metric-clickable ${activeMetric === 'density' ? 'active' : ''}`}
-                        onClick={() => setActiveMetric(prev => prev === 'density' ? null : 'density')}
-                    >
-                        <div className="metric-value">{keywordDensity != null ? `${keywordDensity}%` : '-'}</div>
-                        <div className="metric-label">키워드 밀도</div>
-                    </div>
-                    <div
-                        className={`metric-card metric-clickable ${activeMetric === 'intro' ? 'active' : ''}`}
-                        onClick={() => setActiveMetric(prev => prev === 'intro' ? null : 'intro')}
-                    >
-                        <div className="metric-value">{introLength != null ? `${introLength}자` : '-'}</div>
-                        <div className="metric-label">도입부 길이</div>
-                    </div>
-                    <div
-                        className={`metric-card metric-clickable ${activeMetric === 'heading' ? 'active' : ''}`}
-                        onClick={() => setActiveMetric(prev => prev === 'heading' ? null : 'heading')}
-                    >
-                        <div className="metric-value">{headingCount != null ? headingCount : '-'}</div>
-                        <div className="metric-label">소제목 수</div>
-                    </div>
+            {activeMetric && (
+                <div className="metric-info-bar">
+                    {activeMetric === 'density' && '(출현 횟수 × 키워드 글자수) ÷ 전체 글자수 × 100 — 적정: 1~3%'}
+                    {activeMetric === 'intro' && '첫 번째 문단의 글자수 — 권장: 140~160자'}
+                    {activeMetric === 'heading' && '소제목 개수 — 1,500자당 3~5개 권장'}
                 </div>
-                {activeMetric && (
-                    <div className="metric-info-bar">
-                        {activeMetric === 'density' && '(출현 횟수 × 키워드 글자수) ÷ 전체 글자수 × 100 — 적정: 1~3%'}
-                        {activeMetric === 'intro' && '첫 번째 문단의 글자수 — 권장: 140~160자'}
-                        {activeMetric === 'heading' && '소제목 개수 — 1,500자당 3~5개 권장'}
-                    </div>
-                )}
-
-                {/* 체크리스트 */}
-                <div className="dashboard-checklist">
-                    <h4 className="dashboard-section-title">최적화 체크리스트</h4>
-                    {issues.length === 0 ? (
-                        <div className="dashboard-perfect">완벽합니다!</div>
-                    ) : (
-                        <>
-                            <ul className="dashboard-issues">
-                                {issues.map((issue, idx) => (
-                                    <li key={idx} className={`dashboard-issue dashboard-issue-${issue.type}`}>
-                                        <span className="dashboard-issue-icon">{issue.type === 'error' ? '❌' : issue.type === 'warning' ? '⚠' : 'ℹ'}</span>
-                                        <span className="dashboard-issue-text">{issue.text}</span>
-                                        {issue.metric && <span className="dashboard-issue-metric">{issue.metric}</span>}
-                                        {AI_FIXABLE_IDS.has(issue.id) && <span className="dashboard-issue-ai-badge">AI</span>}
-                                    </li>
-                                ))}
-                            </ul>
-                            {fixableIssues.length > 0 && (
-                                <button
-                                    className="dashboard-seo-fix-btn"
-                                    onClick={handleFixSeoIssues}
-                                    disabled={seoFixLoading}
-                                >
-                                    {seoFixLoading
-                                        ? <span className="btn-loading-spinner"><Loader2 size={14} className="spin" /> 수정 중...</span>
-                                        : `AI SEO 자동 수정 (${fixableIssues.length}건)`
-                                    }
-                                </button>
-                            )}
-                        </>
-                    )}
-                </div>
-
-                {/* 태그 추출 */}
-                <div className="dashboard-tag-section">
-                    <button
-                        onClick={handleExtractTags}
-                        disabled={loading}
-                        className="dashboard-tag-btn"
-                    >
-                        {loading ? <span className="btn-loading-spinner"><Loader2 size={14} className="spin" /> 분석 중...</span> : '# 블로그 태그 추출'}
-                    </button>
-                </div>
-
-                {extractedTags.length > 0 && (
-                    <div className="dashboard-tag-result">
-                        <div className="dashboard-tag-header">
-                            <h4 className="dashboard-section-title">추출된 태그</h4>
-                            <button onClick={handleCopyTags} className={`dashboard-copy-btn ${copiedAll ? 'copied' : ''}`}>
-                                {copiedAll ? '복사됨!' : '전체 복사'}
-                            </button>
-                        </div>
-                        <p className="dashboard-tag-hint">클릭하면 개별 복사됩니다</p>
-                        <div className="dashboard-tag-chips">
-                            {extractedTags.map((tag, i) => (
-                                <span
-                                    key={i}
-                                    onClick={() => handleCopySingleTag(tag)}
-                                    className={`dashboard-tag-chip ${copiedTag === tag ? 'copied' : ''}`}
-                                >
-                                    {copiedTag === tag ? '복사됨!' : `#${tag}`}
-                                </span>
+            )}
+            <div className="dashboard-checklist">
+                <h4 className="dashboard-section-title">최적화 체크리스트</h4>
+                {issues.length === 0 ? (
+                    <div className="dashboard-perfect">완벽합니다!</div>
+                ) : (
+                    <>
+                        <ul className="dashboard-issues">
+                            {issues.map((issue, idx) => (
+                                <li key={idx} className={`dashboard-issue dashboard-issue-${issue.type}`}>
+                                    <span className="dashboard-issue-icon">{issue.type === 'error' ? '❌' : issue.type === 'warning' ? '⚠' : 'ℹ'}</span>
+                                    <span className="dashboard-issue-text">{issue.text}</span>
+                                    {issue.metric && <span className="dashboard-issue-metric">{issue.metric}</span>}
+                                    {AI_FIXABLE_IDS.has(issue.id) && <span className="dashboard-issue-ai-badge">AI</span>}
+                                </li>
                             ))}
-                        </div>
-                    </div>
+                        </ul>
+                        {fixableIssues.length > 0 && (
+                            <button
+                                className="dashboard-seo-fix-btn"
+                                onClick={handleFixSeoIssues}
+                                disabled={seoFixLoading}
+                            >
+                                {seoFixLoading
+                                    ? <span className="btn-loading-spinner"><Loader2 size={14} className="spin" /> 수정 중...</span>
+                                    : `AI SEO 자동 수정 (${fixableIssues.length}건)`
+                                }
+                            </button>
+                        )}
+                    </>
                 )}
+            </div>
+        </>
+    );
 
-                {/* 가독성 */}
+    // 모바일 mode="overview": 점수 + 태그 + 히스토리
+    if (mode === 'overview') {
+        return (
+            <div className="ai-dashboard">
+                {renderGauge()}
+                {renderTagSection()}
+                <SidebarGroup title="작성 히스토리" defaultOpen={false}>
+                    <PostHistory />
+                </SidebarGroup>
+            </div>
+        );
+    }
+
+    // 모바일 mode="seo": SEO 체크리스트 + 수정 버튼
+    if (mode === 'seo') {
+        return (
+            <div className="ai-dashboard">
+                {renderSeoChecklist()}
+            </div>
+        );
+    }
+
+    // 데스크톱 기본 (mode 없음): 전체 사이드바
+    return (
+        <div className="ai-dashboard">
+            {renderGauge()}
+
+            <SidebarGroup title="SEO 분석" defaultOpen={true}>
+                {renderSeoChecklist()}
+                {renderTagSection()}
                 {!compact && <ReadabilityPanel onLocate={onLocate} />}
             </SidebarGroup>
 
             {!compact && (
                 <>
-                    {/* 그룹 2: AI 도구 */}
                     <SidebarGroup title="AI 도구" defaultOpen={false}>
-                        {/* 태그 추출 */}
-                        <div className="dashboard-tag-section">
-                            <button
-                                onClick={handleExtractTags}
-                                disabled={loading}
-                                className="dashboard-tag-btn"
-                            >
-                                {loading ? <span className="btn-loading-spinner"><Loader2 size={14} className="spin" /> 분석 중...</span> : '# 블로그 태그 추출'}
-                            </button>
-                        </div>
-
-                        {extractedTags.length > 0 && (
-                            <div className="dashboard-tag-result">
-                                <div className="dashboard-tag-header">
-                                    <h4 className="dashboard-section-title">추출된 태그</h4>
-                                    <button onClick={handleCopyTags} className={`dashboard-copy-btn ${copiedAll ? 'copied' : ''}`}>
-                                        {copiedAll ? '복사됨!' : '전체 복사'}
-                                    </button>
-                                </div>
-                                <p className="dashboard-tag-hint">클릭하면 개별 복사됩니다</p>
-                                <div className="dashboard-tag-chips">
-                                    {extractedTags.map((tag, i) => (
-                                        <span
-                                            key={i}
-                                            onClick={() => handleCopySingleTag(tag)}
-                                            className={`dashboard-tag-chip ${copiedTag === tag ? 'copied' : ''}`}
-                                        >
-                                            {copiedTag === tag ? '복사됨!' : `#${tag}`}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* AI 감지 분석 */}
+                        {renderTagSection()}
                         <HumannessPanel />
-
-                        {/* 썸네일 생성 */}
                         <ThumbnailPanel />
                     </SidebarGroup>
 
-                    {/* 그룹 3: 히스토리 */}
                     <SidebarGroup title="작성 히스토리" defaultOpen={false}>
                         <PostHistory />
                     </SidebarGroup>

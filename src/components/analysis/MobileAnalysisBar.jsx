@@ -1,13 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Edit3, BarChart3, BookOpen, Sparkles, Image, ChevronUp } from 'lucide-react';
+import { Edit3, PieChart, BarChart3, Sparkles, Image, ChevronUp } from 'lucide-react';
 import { clearLocateHighlight } from '../../utils/readability';
 import BottomSheet from '../common/BottomSheet';
 
 const TABS = [
     { id: 'editor', icon: Edit3, label: '글' },
+    { id: 'analysis', icon: PieChart, label: '분석' },
     { id: 'seo', icon: BarChart3, label: 'SEO' },
-    { id: 'readability', icon: BookOpen, label: '읽기 쉬움' },
-    { id: 'humanness', icon: Sparkles, label: 'AI탐지' },
+    { id: 'natural', icon: Sparkles, label: '자연스러움' },
     { id: 'thumbnail', icon: Image, label: '썸네일' },
 ];
 
@@ -115,7 +115,7 @@ const MobileAnalysisBar = ({ seoScore, children }) => {
                         >
                             <div className="mobile-analysis-tab-icon">
                                 <Icon size={24} />
-                                {tab.id === 'seo' && seoScore != null && (
+                                {tab.id === 'analysis' && seoScore != null && (
                                     <span
                                         className="mobile-analysis-seo-badge"
                                         style={{ background: getScoreColor(seoScore) }}

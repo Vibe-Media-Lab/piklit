@@ -8,15 +8,21 @@ import ReadabilityPanel from '../analysis/ReadabilityPanel';
 import HumannessPanel from '../analysis/HumannessPanel';
 import ThumbnailPanel from '../analysis/ThumbnailPanel';
 import AIAnalysisDashboard from '../analysis/AIAnalysisDashboard';
+import PostHistory from '../analysis/PostHistory';
 
 const MobilePanelContent = ({ activeTab, onLocate }) => {
     switch (activeTab) {
+        case 'analysis':
+            return <AIAnalysisDashboard onLocate={onLocate} mode="overview" />;
         case 'seo':
-            return <AIAnalysisDashboard onLocate={onLocate} compact />;
-        case 'readability':
-            return <ReadabilityPanel onLocate={onLocate} />;
-        case 'humanness':
-            return <HumannessPanel onLocate={onLocate} />;
+            return <AIAnalysisDashboard onLocate={onLocate} mode="seo" />;
+        case 'natural':
+            return (
+                <>
+                    <HumannessPanel onLocate={onLocate} />
+                    <ReadabilityPanel onLocate={onLocate} />
+                </>
+            );
         case 'thumbnail':
             return <ThumbnailPanel />;
         default:
