@@ -87,6 +87,7 @@ const AIAnalysisDashboard = ({ onLocate, compact, mode }) => {
 
     const [loading, setLoading] = useState(false);
     const [seoFixLoading, setSeoFixLoading] = useState(false);
+    const [seoFixLoadingId, setSeoFixLoadingId] = useState(null);
     const [extractedTags, setExtractedTags] = useState([]);
     const [copiedTag, setCopiedTag] = useState(null);
     const [copiedAll, setCopiedAll] = useState(false);
@@ -119,22 +120,23 @@ const AIAnalysisDashboard = ({ onLocate, compact, mode }) => {
         _titleLen: title.length,
     }), [analysis, title]);
 
-    const handleFixSeoIssues = async () => {
-        if (fixableIssues.length === 0) return;
+    const handleFixSeoIssues = async (targetIssue) => {
+        const issuesToFix = targetIssue ? [targetIssue] : fixableIssues;
+        if (issuesToFix.length === 0) return;
         const prevSeo = seoPercentage;
         const prevTotal = totalPercentage;
-        setSeoFixLoading(true);
+        if (targetIssue) setSeoFixLoadingId(targetIssue.id);
+        else setSeoFixLoading(true);
         recordAiAction('seoFix');
         try {
             const subKeywords = keywords.sub?.filter(k => k.trim()) || [];
             const result = await AIService.fixSeoIssues(
-                content, title, keywords.main, subKeywords, fixableIssues, suggestedTone || 'friendly'
+                content, title, keywords.main, subKeywords, issuesToFix, suggestedTone || 'friendly'
             );
             if (result.title && result.title !== title) setTitle(result.title);
             if (result.content && result.content !== content) setContent(result.content);
-            const fixCount = result.fixes?.length || fixableIssues.length;
+            const fixCount = result.fixes?.length || issuesToFix.length;
             showToast(`SEO 이슈 ${fixCount}건 수정 완료`, 'success');
-            // 점수 변화 토스트 표시
             setScoreToast({
                 message: `SEO 이슈 ${fixCount}건 수정 완료`,
                 prevSeo,
@@ -144,6 +146,7 @@ const AIAnalysisDashboard = ({ onLocate, compact, mode }) => {
             showToast('SEO 수정 오류: ' + e.message, 'error');
         } finally {
             setSeoFixLoading(false);
+            setSeoFixLoadingId(null);
         }
     };
 
@@ -332,10 +335,10 @@ const AIAnalysisDashboard = ({ onLocate, compact, mode }) => {
                                 {item.fixable && (
                                     <button
                                         className="v3-suggestion-fix-btn"
-                                        onClick={handleFixSeoIssues}
-                                        disabled={seoFixLoading}
+                                        onClick={() => handleFixSeoIssues(item)}
+                                        disabled={seoFixLoading || seoFixLoadingId != null}
                                     >
-                                        {seoFixLoading
+                                        {seoFixLoadingId === item.id
                                             ? <Loader2 size={11} className="spin" />
                                             : <><Sparkles size={11} /> AI 수정</>
                                         }
@@ -400,9 +403,7 @@ const AIAnalysisDashboard = ({ onLocate, compact, mode }) => {
             <div className="ai-dashboard v3">
                 {renderV3Gauge()}
                 {renderV3TagTool()}
-                <Section title="작성 히스토리" defaultOpen={false}>
-                    <PostHistory />
-                </Section>
+                <PostHistory />
             </div>
         );
     }

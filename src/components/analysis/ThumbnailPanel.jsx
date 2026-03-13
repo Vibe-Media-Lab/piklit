@@ -27,6 +27,7 @@ const ThumbnailPanel = () => {
     }, [photoPreviewUrls, content]);
 
     const [isOpen, setIsOpen] = useState(window.innerWidth < 768);
+    const [brokenImgs, setBrokenImgs] = useState(new Set());
     const [style, setStyle] = useState('A');
     const [mainText, setMainText] = useState('');
     const [subText, setSubText] = useState('');
@@ -300,13 +301,13 @@ const ThumbnailPanel = () => {
                         <>
                             {/* 사진 선택 */}
                             <div className="thumbnail-photo-grid">
-                                {availablePhotos.map((url, i) => (
+                                {availablePhotos.filter(url => !brokenImgs.has(url)).map((url, i) => (
                                     <div
                                         key={i}
                                         className={`thumbnail-photo-option ${selectedPhoto === url ? 'selected' : ''}`}
                                         onClick={() => setSelectedPhoto(url)}
                                     >
-                                        <img src={url} alt={`사진 ${i + 1}`} />
+                                        <img src={url} alt={`사진 ${i + 1}`} onError={() => setBrokenImgs(prev => new Set(prev).add(url))} />
                                     </div>
                                 ))}
                             </div>

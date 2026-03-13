@@ -2012,7 +2012,7 @@ Output strictly a valid JSON:
 
         const result = await this.generateContent(
             [{ text: prompt }],
-            { thinkingBudget: 1024 },
+            { thinkingBudget: 2048 },
             'SEO 이슈 수정'
         );
 

@@ -21,7 +21,7 @@ const GRADE_LABELS = {
 
 const ReadabilityPanel = ({ onLocate }) => {
     const { content } = useEditor();
-    const [isOpen, setIsOpen] = useState(true);
+    const [isOpen, setIsOpen] = useState(false);
 
     const result = useMemo(() => analyzeReadability(content), [content]);
     const { score, grade, metrics, suggestions, isEmpty } = result;
