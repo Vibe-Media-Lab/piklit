@@ -5,7 +5,6 @@ import { useToast } from '../common/Toast';
 import { AIService } from '../../services/openai';
 import { Loader2 } from 'lucide-react';
 import { analyzeHumanness } from '../../utils/humanness';
-import { analyzeReadability } from '../../utils/readability';
 import HumannessPanel from './HumannessPanel';
 import PostHistory from './PostHistory';
 
@@ -69,9 +68,9 @@ const getScoreClass = (pct) => pct >= 80 ? 'good' : pct >= 60 ? 'mid' : 'low';
 const getScoreColor = (pct) => pct >= 80 ? 'var(--color-green, #10B981)' : pct >= 60 ? 'var(--color-yellow, #F59E0B)' : 'var(--color-red, #EF4444)';
 const getBarColor = (pct) => pct >= 80 ? 'var(--color-green, #10B981)' : pct >= 60 ? 'var(--color-yellow, #F59E0B)' : 'var(--color-red, #EF4444)';
 
-const AIAnalysisDashboard = ({ onLocate, compact, mode }) => {
+const AIAnalysisDashboard = ({ onLocate, mode }) => {
     const { analysis, content, title, setTitle, setContent, keywords, suggestedTone, recordAiAction, targetLength } = useEditor();
-    const { checks, issues, keywordDensity, introLength, headingCount, totalChars, imageCount } = analysis;
+    const { checks, issues } = analysis;
     const score = Object.values(checks).filter(Boolean).length;
     const maxScore = Object.keys(checks).length || 1;
     const seoPercentage = Math.round((score / maxScore) * 100);
@@ -82,7 +81,6 @@ const AIAnalysisDashboard = ({ onLocate, compact, mode }) => {
     const naturalPercentage = humanResult.isEmpty ? 0 : humanResult.score;
 
     // 가독성 점수 계산
-    const readabilityResult = useMemo(() => analyzeReadability(content), [content]);
 
     // 종합 점수 (SEO 60% + 자연스러움 40%)
     const totalPercentage = humanResult.isEmpty
@@ -400,43 +398,6 @@ const AIAnalysisDashboard = ({ onLocate, compact, mode }) => {
             )}
         </>
     );
-
-    // ── v3 가독성 바 차트 ──
-    const renderV3ReadabilityBars = () => {
-        if (readabilityResult.isEmpty) {
-            return <div className="v3-perfect" style={{ color: 'var(--color-text-sub)' }}>본문 작성 시 분석이 시작됩니다</div>;
-        }
-        const { metrics: rMetrics, suggestions: rSuggestions } = readabilityResult;
-        return (
-            <>
-                <div className="v3-natural-bars">
-                    {Object.entries(rMetrics).map(([key, m]) => {
-                        const pct = m.maxScore > 0 ? Math.round((m.score / m.maxScore) * 100) : 0;
-                        return (
-                            <div key={key} className="v3-natural-bar-row">
-                                <span className="v3-natural-bar-label">{m.label || key}</span>
-                                <div className="v3-natural-bar-track">
-                                    <div className="v3-natural-bar-fill" style={{ width: `${pct}%`, background: getBarColor(pct) }} />
-                                </div>
-                                <span className="v3-natural-bar-value">{pct}%</span>
-                            </div>
-                        );
-                    })}
-                </div>
-                {rSuggestions.length > 0 && (
-                    <div className="v3-suggestions" style={{ marginTop: 12 }}>
-                        {rSuggestions.slice(0, 3).map((s, i) => (
-                            <div key={i} className="v3-suggestion-item">
-                                <div className="v3-suggestion-desc">
-                                    <span className={`v3-suggestion-badge natural`}>개선 제안</span> {s.text}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </>
-        );
-    };
 
     // ── 모바일 mode="natural": AI 감지 분석 + 개선 제안 (v3 카드) ──
     if (mode === 'natural') {

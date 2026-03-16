@@ -1354,7 +1354,7 @@
     align-items: center;
     gap: 8px;
     font-size: 0.95rem;
-    color: var(--color-text);
+    color: var(--color-text-main);
 }
 
 .outline-header .outline-count {
@@ -1475,7 +1475,7 @@
     border: 1px solid var(--color-brand);
     border-radius: var(--radius-md);
     font-size: 0.9rem;
-    color: var(--color-text);
+    color: var(--color-text-main);
     background: white;
     min-width: 0;
 }
@@ -1512,7 +1512,7 @@
 .outline-action-btn:hover {
     background: var(--color-surface-hover);
     border-color: var(--color-border-hover);
-    color: var(--color-text);
+    color: var(--color-text-main);
 }
 
 .outline-action-btn:disabled {
@@ -4564,7 +4564,7 @@
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
     font-size: 0.8rem;
-    color: var(--color-text);
+    color: var(--color-text-main);
     cursor: pointer;
     white-space: nowrap;
     flex-shrink: 0;
@@ -4698,7 +4698,7 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
 
 .bug-report-btn-submit {
     padding: 8px 16px;
-    background: var(--color-text);
+    background: var(--color-text-main);
     color: white;
     border: none;
     border-radius: var(--radius-md);

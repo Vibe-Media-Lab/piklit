@@ -693,3 +693,178 @@
         padding-bottom: calc(10px + env(safe-area-inset-bottom));
     }
 }
+
+/* ── 다중 사진 선택 (Style H, I) ── */
+.thumbnail-multi-options {
+    margin-bottom: 12px;
+}
+
+.thumbnail-multi-photo-select {
+    margin-bottom: 8px;
+}
+
+.thumbnail-multi-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--color-text-sub);
+    margin-bottom: 4px;
+    display: block;
+}
+
+/* 사진 수 카운트 */
+.thumbnail-photo-count {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--color-brand, #FF6B35);
+    margin-left: 6px;
+}
+
+/* 슬롯 기반 사진 선택 */
+.thumbnail-slot-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.thumbnail-slot-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-sub);
+    min-width: 32px;
+    flex-shrink: 0;
+}
+
+.thumbnail-slot-photos {
+    flex: 1;
+    min-width: 0;
+}
+
+.thumbnail-photo-option.mini-slot {
+    width: 52px;
+    height: 52px;
+    position: relative;
+    display: inline-block;
+}
+
+.thumbnail-slot-badge {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--color-brand, #FF6B35);
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.thumbnail-slot-remove {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    font-size: 0.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.thumbnail-photo-option.mini-slot:hover .thumbnail-slot-remove {
+    opacity: 1;
+}
+
+.thumbnail-add-slot-btn {
+    width: 100%;
+    padding: 6px;
+    font-size: 0.75rem;
+    color: var(--color-brand, #FF6B35);
+    background: transparent;
+    border: 1px dashed var(--color-brand, #FF6B35);
+    border-radius: 6px;
+    cursor: pointer;
+    margin-bottom: 8px;
+    transition: background 0.15s;
+}
+
+.thumbnail-add-slot-btn:hover {
+    background: rgba(255, 107, 53, 0.06);
+}
+
+.thumbnail-photo-grid.mini {
+    gap: 4px;
+}
+
+.thumbnail-photo-grid.mini .thumbnail-photo-option {
+    width: 48px;
+    height: 48px;
+    position: relative;
+}
+
+.thumbnail-multi-badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--color-brand, #FF6B35);
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.thumbnail-multi-hint {
+    font-size: 0.75rem;
+    color: var(--color-text-sub);
+    padding: 8px 0;
+}
+
+.thumbnail-seg.compact {
+    gap: 4px;
+}
+
+.thumbnail-seg.compact .thumbnail-seg-btn {
+    padding: 4px 12px;
+    font-size: 0.75rem;
+}
+
+/* 사진별 확대 슬라이더 */
+.thumbnail-multi-zooms {
+    margin: 8px 0;
+}
+
+.thumbnail-zoom-row.compact {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.thumbnail-zoom-row.compact label {
+    font-size: 0.75rem;
+    color: var(--color-text-sub);
+    min-width: 48px;
+    flex-shrink: 0;
+}
+
+.thumbnail-zoom-row.compact input[type="range"] {
+    flex: 1;
+    height: 4px;
+}

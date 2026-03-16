@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useEditor } from '../../context/EditorContext';
 import { useToast } from '../common/Toast';
 import { AIService } from '../../services/openai';
-import { generateThumbnail, THUMBNAIL_STYLES, CATEGORY_FONT_MAP } from '../../utils/thumbnail';
+import { generateThumbnail, generateMultiThumbnail, THUMBNAIL_STYLES, CATEGORY_FONT_MAP, getMultiPhotoRegions } from '../../utils/thumbnail';
 import { loadGoogleFont, loadGoogleFonts } from '../../utils/fontLoader';
 import { Sparkles, Loader2, ChevronDown } from 'lucide-react';
 import '../../styles/ThumbnailPanel.css';
@@ -59,6 +59,14 @@ const ThumbnailPanel = ({ onLocate } = {}) => {
     const [outline, setOutline] = useState('없음');
     const [bgBox, setBgBox] = useState('없음');
 
+    // 다중 사진 (Style H, I)
+    const [extraPhotos, setExtraPhotos] = useState([]);
+    const [splitDirection, setSplitDirection] = useState('vertical');
+    const [gridGap, setGridGap] = useState(8);
+    // 사진별 확대/오프셋: [{zoom, ox, oy}, ...]
+    const [photoZooms, setPhotoZooms] = useState([]);
+    const multiDragRef = useRef(null);
+
     // 내 스타일
     const [savedStyles, setSavedStyles] = useState(() => {
         try { return JSON.parse(localStorage.getItem('piklit_thumb_styles') || '[]'); } catch { return []; }
@@ -108,6 +116,12 @@ const ThumbnailPanel = ({ onLocate } = {}) => {
         setOffsetY(0);
     }, [selectedPhoto]);
 
+    // 스타일 변경 시 extraPhotos/photoZooms 초기화
+    useEffect(() => {
+        setExtraPhotos([]);
+        setPhotoZooms([]);
+    }, [style]);
+
     useEffect(() => {
         const newDefault = (CATEGORY_FONT_MAP[categoryId] || CATEGORY_FONT_MAP.daily).fonts[0];
         setFontFamily(newDefault);
@@ -125,19 +139,36 @@ const ThumbnailPanel = ({ onLocate } = {}) => {
                 if (style !== 'G') {
                     await loadGoogleFont(fontFamily);
                 }
-                const dataUrl = await generateThumbnail(selectedPhoto, {
-                    style, mainText, subText, fontFamily,
-                    zoom, offsetX, offsetY,
-                    mainFontSize, subFontSize, fontColor,
-                    bandPosition, bandColor, bandHeight,
-                    shadow, outline, bgBox,
-                });
+
+                let dataUrl;
+                if ((style === 'H' || style === 'I') && extraPhotos.length > 0) {
+                    dataUrl = await generateMultiThumbnail(
+                        [selectedPhoto, ...extraPhotos],
+                        {
+                            style, mainText, subText, fontFamily,
+                            mainFontSize, subFontSize, fontColor,
+                            bandColor, bandHeight: style === 'H' ? bandHeight : 0,
+                            splitDirection, gridGap,
+                            shadow, outline, bgBox,
+                            photoZooms,
+                        }
+                    );
+                } else {
+                    dataUrl = await generateThumbnail(selectedPhoto, {
+                        style: (style === 'H' || style === 'I') ? 'A' : style,
+                        mainText, subText, fontFamily,
+                        zoom, offsetX, offsetY,
+                        mainFontSize, subFontSize, fontColor,
+                        bandPosition, bandColor, bandHeight,
+                        shadow, outline, bgBox,
+                    });
+                }
                 setPreviewUrl(dataUrl);
             } catch {
                 setPreviewUrl(null);
             }
         }, 200);
-    }, [selectedPhoto, style, mainText, subText, fontFamily, zoom, offsetX, offsetY, mainFontSize, subFontSize, fontColor, bandPosition, bandColor, bandHeight, shadow, outline, bgBox]);
+    }, [selectedPhoto, style, mainText, subText, fontFamily, zoom, offsetX, offsetY, mainFontSize, subFontSize, fontColor, bandPosition, bandColor, bandHeight, shadow, outline, bgBox, extraPhotos, splitDirection, gridGap, photoZooms]);
 
     useEffect(() => {
         if (isOpen) renderPreview();
@@ -185,6 +216,85 @@ const ThumbnailPanel = ({ onLocate } = {}) => {
             window.removeEventListener('touchend', handlePointerUp);
         };
     }, [isOpen, handlePointerMove, handlePointerUp]);
+
+    // ── 다중 사진 드래그 패닝 ──
+    const handleMultiPointerDown = (e) => {
+        if (!isMultiStyle || extraPhotos.length === 0) return;
+        const rect = previewRef.current?.getBoundingClientRect();
+        if (!rect) return;
+
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        const rx = (clientX - rect.left) / rect.width;
+        const ry = (clientY - rect.top) / rect.height;
+
+        // 어떤 영역을 클릭했는지 감지
+        const regions = getMultiPhotoRegions(style, 1 + extraPhotos.length, splitDirection, bandHeight, gridGap);
+        let hitIdx = -1;
+        for (let i = 0; i < regions.length; i++) {
+            const r = regions[i];
+            if (rx >= r.x && rx <= r.x + r.w && ry >= r.y && ry <= r.y + r.h) {
+                hitIdx = i;
+                break;
+            }
+        }
+        if (hitIdx < 0) return;
+
+        const pz = photoZooms[hitIdx] || { zoom: 1, ox: 0, oy: 0 };
+        if (pz.zoom <= 1) return; // 확대 안 된 사진은 드래그 불가
+
+        e.preventDefault();
+        multiDragRef.current = { startX: clientX, startY: clientY, startOx: pz.ox, startOy: pz.oy, idx: hitIdx };
+    };
+
+    const handleMultiPointerMove = useCallback((e) => {
+        if (!multiDragRef.current) return;
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        const rect = previewRef.current?.getBoundingClientRect();
+        if (!rect) return;
+
+        const dx = (clientX - multiDragRef.current.startX) / (rect.width / 2);
+        const dy = (clientY - multiDragRef.current.startY) / (rect.height / 2);
+        const idx = multiDragRef.current.idx;
+
+        setPhotoZooms(prev => {
+            const next = [...prev];
+            const cur = next[idx] || { zoom: 1, ox: 0, oy: 0 };
+            next[idx] = { ...cur, ox: clamp(multiDragRef.current.startOx - dx, -1, 1), oy: clamp(multiDragRef.current.startOy - dy, -1, 1) };
+            return next;
+        });
+    }, []);
+
+    const handleMultiPointerUp = useCallback(() => {
+        multiDragRef.current = null;
+    }, []);
+
+    useEffect(() => {
+        if (!isOpen || !isMultiStyle) return;
+        window.addEventListener('mousemove', handleMultiPointerMove);
+        window.addEventListener('mouseup', handleMultiPointerUp);
+        window.addEventListener('touchmove', handleMultiPointerMove, { passive: false });
+        window.addEventListener('touchend', handleMultiPointerUp);
+        return () => {
+            window.removeEventListener('mousemove', handleMultiPointerMove);
+            window.removeEventListener('mouseup', handleMultiPointerUp);
+            window.removeEventListener('touchmove', handleMultiPointerMove);
+            window.removeEventListener('touchend', handleMultiPointerUp);
+        };
+    }, [isOpen, isMultiStyle, handleMultiPointerMove, handleMultiPointerUp]);
+
+    // 사진별 확대 변경 헬퍼
+    const updatePhotoZoom = (idx, zoom) => {
+        setPhotoZooms(prev => {
+            const next = [...prev];
+            const cur = next[idx] || { zoom: 1, ox: 0, oy: 0 };
+            next[idx] = { ...cur, zoom };
+            // 줌이 1이면 오프셋 초기화
+            if (zoom <= 1) next[idx] = { zoom: 1, ox: 0, oy: 0 };
+            return next;
+        });
+    };
 
     const handleGenerateText = async () => {
         if (!title) return showToast('제목을 먼저 입력해주세요.', 'warning');
@@ -277,6 +387,8 @@ const ThumbnailPanel = ({ onLocate } = {}) => {
 
     const hasPhotos = availablePhotos.length > 0;
     const showTextControls = style !== 'G';
+    const isMultiStyle = style === 'H' || style === 'I';
+    const maxExtraPhotos = style === 'I' ? 3 : 2; // I: 최대 4장(1+3), H: 3장(1+2)
 
     const SHADOW_OPTIONS = ['없음', '약하게', '보통', '강하게', '네온'];
     const OUTLINE_OPTIONS = ['없음', '얇은', '보통', '두꺼운'];
@@ -321,9 +433,9 @@ const ThumbnailPanel = ({ onLocate } = {}) => {
                             {/* 미리보기 */}
                             <div
                                 ref={previewRef}
-                                className={`thumbnail-preview ${zoom > 1 ? 'thumbnail-preview-draggable' : ''}`}
-                                onMouseDown={handlePointerDown}
-                                onTouchStart={handlePointerDown}
+                                className={`thumbnail-preview ${(isMultiStyle ? photoZooms.some(z => z?.zoom > 1) : zoom > 1) ? 'thumbnail-preview-draggable' : ''}`}
+                                onMouseDown={isMultiStyle ? handleMultiPointerDown : handlePointerDown}
+                                onTouchStart={isMultiStyle ? handleMultiPointerDown : handlePointerDown}
                             >
                                 {previewUrl ? (
                                     <img src={previewUrl} alt="썸네일 미리보기" draggable={false} />
@@ -332,8 +444,8 @@ const ThumbnailPanel = ({ onLocate } = {}) => {
                                 )}
                             </div>
 
-                            {/* 확대 */}
-                            <div className="thumbnail-zoom-row">
+                            {/* 확대 (다중 사진 스타일에서는 숨김) */}
+                            {!isMultiStyle && <div className="thumbnail-zoom-row">
                                 <label>확대</label>
                                 <input
                                     type="range"
@@ -344,7 +456,7 @@ const ThumbnailPanel = ({ onLocate } = {}) => {
                                     onChange={e => setZoom(parseFloat(e.target.value))}
                                 />
                                 <span className="thumbnail-zoom-value">{zoom.toFixed(1)}x</span>
-                            </div>
+                            </div>}
 
                             {/* 스타일 칩 */}
                             <div className="thumbnail-style-chips">
@@ -394,6 +506,169 @@ const ThumbnailPanel = ({ onLocate } = {}) => {
                                         />
                                         <span className="thumbnail-slider-value">{bandHeight}px</span>
                                     </div>
+                                </div>
+                            )}
+
+                            {/* 반분할 옵션 (스타일 H) */}
+                            {style === 'H' && (() => {
+                                const slotLabels = splitDirection === 'vertical'
+                                    ? ['상단', '중단', '하단'] : ['좌측', '중앙', '우측'];
+                                const allPhotos = [selectedPhoto, ...extraPhotos];
+                                const totalPhotos = allPhotos.length;
+                                const otherPhotos = availablePhotos.filter(url => !brokenImgs.has(url) && !allPhotos.includes(url));
+                                return (
+                                <div className="thumbnail-multi-options">
+                                    <div className="thumbnail-section-label">
+                                        반분할 설정
+                                        <span className="thumbnail-photo-count">{totalPhotos}/{maxExtraPhotos + 1}장</span>
+                                    </div>
+                                    {/* 슬롯별 사진 선택 */}
+                                    {slotLabels.slice(0, totalPhotos < 3 ? 2 : 3).map((label, slotIdx) => (
+                                        <div key={slotIdx} className="thumbnail-slot-row">
+                                            <span className="thumbnail-slot-label">{label}</span>
+                                            <div className="thumbnail-slot-photos">
+                                                {slotIdx === 0 ? (
+                                                    <div className="thumbnail-photo-option selected mini-slot">
+                                                        <img src={selectedPhoto} alt="사진 1" />
+                                                        <span className="thumbnail-slot-badge">1</span>
+                                                    </div>
+                                                ) : extraPhotos[slotIdx - 1] ? (
+                                                    <div
+                                                        className="thumbnail-photo-option selected mini-slot"
+                                                        onClick={() => setExtraPhotos(prev => prev.filter((_, i) => i !== slotIdx - 1))}
+                                                    >
+                                                        <img src={extraPhotos[slotIdx - 1]} alt={`사진 ${slotIdx + 1}`} />
+                                                        <span className="thumbnail-slot-badge">{slotIdx + 1}</span>
+                                                        <span className="thumbnail-slot-remove">✕</span>
+                                                    </div>
+                                                ) : (
+                                                    <div className="thumbnail-photo-grid mini">
+                                                        {otherPhotos.map((url, i) => (
+                                                            <div
+                                                                key={i}
+                                                                className="thumbnail-photo-option"
+                                                                onClick={() => setExtraPhotos(prev => {
+                                                                    const next = [...prev];
+                                                                    next[slotIdx - 1] = url;
+                                                                    return next;
+                                                                })}
+                                                            >
+                                                                <img src={url} alt={`후보 ${i + 1}`} />
+                                                            </div>
+                                                        ))}
+                                                        {otherPhotos.length === 0 && (
+                                                            <div className="thumbnail-multi-hint">사진이 부족합니다</div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {/* 3번째 슬롯 추가 버튼 */}
+                                    {totalPhotos === 2 && otherPhotos.length > 0 && (
+                                        <button
+                                            className="thumbnail-add-slot-btn"
+                                            onClick={() => setExtraPhotos(prev => [...prev, otherPhotos[0]])}
+                                        >
+                                            + {slotLabels[2]} 사진 추가
+                                        </button>
+                                    )}
+                                    {/* 사진별 확대 */}
+                                    {extraPhotos.length > 0 && (
+                                        <div className="thumbnail-multi-zooms">
+                                            {Array.from({ length: totalPhotos }, (_, idx) => (
+                                                <div key={idx} className="thumbnail-zoom-row compact">
+                                                    <label>{slotLabels[idx]}</label>
+                                                    <input
+                                                        type="range" min="1" max="2.5" step="0.1"
+                                                        value={(photoZooms[idx]?.zoom) || 1}
+                                                        onChange={e => updatePhotoZoom(idx, parseFloat(e.target.value))}
+                                                    />
+                                                    <span className="thumbnail-zoom-value">{((photoZooms[idx]?.zoom) || 1).toFixed(1)}x</span>
+                                                </div>
+                                            ))}
+                                            <div className="thumbnail-multi-hint">확대 후 미리보기를 드래그하여 위치를 조정하세요</div>
+                                        </div>
+                                    )}
+                                    <div className="thumbnail-band-row">
+                                        <label>방향</label>
+                                        <div className="thumbnail-seg compact">
+                                            <button className={`thumbnail-seg-btn ${splitDirection === 'vertical' ? 'on' : ''}`} onClick={() => setSplitDirection('vertical')}>상하</button>
+                                            <button className={`thumbnail-seg-btn ${splitDirection === 'horizontal' ? 'on' : ''}`} onClick={() => setSplitDirection('horizontal')}>좌우</button>
+                                        </div>
+                                    </div>
+                                    <div className="thumbnail-band-row">
+                                        <label>색상</label>
+                                        <div className="thumbnail-color-picker">
+                                            <input type="color" value={bandColor} onChange={e => setBandColor(e.target.value)} />
+                                            <span>{bandColor}</span>
+                                        </div>
+                                    </div>
+                                    <div className="thumbnail-band-row">
+                                        <label>띠 두께</label>
+                                        <input type="range" min="40" max="200" step="10" value={bandHeight} onChange={e => setBandHeight(Number(e.target.value))} />
+                                        <span className="thumbnail-slider-value">{bandHeight}px</span>
+                                    </div>
+                                </div>
+                                );
+                            })()}
+
+                            {/* 매거진 옵션 (스타일 I) */}
+                            {style === 'I' && (
+                                <div className="thumbnail-multi-options">
+                                    <div className="thumbnail-section-label">
+                                        매거진 사진 선택
+                                        <span className="thumbnail-photo-count">{1 + extraPhotos.length}/{maxExtraPhotos + 1}장</span>
+                                    </div>
+                                    <div className="thumbnail-multi-photo-select">
+                                        <div className="thumbnail-photo-grid mini">
+                                            {availablePhotos.filter(url => url !== selectedPhoto && !brokenImgs.has(url)).map((url, i) => {
+                                                const isSelected = extraPhotos.includes(url);
+                                                const idx = extraPhotos.indexOf(url);
+                                                return (
+                                                    <div
+                                                        key={i}
+                                                        className={`thumbnail-photo-option ${isSelected ? 'selected' : ''}`}
+                                                        onClick={() => {
+                                                            if (isSelected) {
+                                                                setExtraPhotos(prev => prev.filter(u => u !== url));
+                                                            } else if (extraPhotos.length < maxExtraPhotos) {
+                                                                setExtraPhotos(prev => [...prev, url]);
+                                                            }
+                                                        }}
+                                                    >
+                                                        <img src={url} alt={`사진 ${i + 2}`} />
+                                                        {isSelected && <span className="thumbnail-multi-badge">{idx + 2}</span>}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                        {availablePhotos.filter(url => url !== selectedPhoto && !brokenImgs.has(url)).length === 0 && (
+                                            <div className="thumbnail-multi-hint">사진이 2장 이상 필요합니다</div>
+                                        )}
+                                    </div>
+                                    <div className="thumbnail-band-row">
+                                        <label>간격</label>
+                                        <input type="range" min="0" max="24" step="2" value={gridGap} onChange={e => setGridGap(Number(e.target.value))} />
+                                        <span className="thumbnail-slider-value">{gridGap}px</span>
+                                    </div>
+                                    {/* 사진별 확대 */}
+                                    {extraPhotos.length > 0 && (
+                                        <div className="thumbnail-multi-zooms">
+                                            {Array.from({ length: 1 + extraPhotos.length }, (_, idx) => (
+                                                <div key={idx} className="thumbnail-zoom-row compact">
+                                                    <label>사진 {idx + 1}</label>
+                                                    <input
+                                                        type="range" min="1" max="2.5" step="0.1"
+                                                        value={(photoZooms[idx]?.zoom) || 1}
+                                                        onChange={e => updatePhotoZoom(idx, parseFloat(e.target.value))}
+                                                    />
+                                                    <span className="thumbnail-zoom-value">{((photoZooms[idx]?.zoom) || 1).toFixed(1)}x</span>
+                                                </div>
+                                            ))}
+                                            <div className="thumbnail-multi-hint">확대 후 미리보기를 드래그하여 위치를 조정하세요</div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 

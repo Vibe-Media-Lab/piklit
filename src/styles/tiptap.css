@@ -151,7 +151,7 @@
 .rewrite-undo-btn:hover {
     background: var(--color-surface);
     border-color: var(--color-text-sub, #787774);
-    color: var(--color-text);
+    color: var(--color-text-main);
 }
 
 .rewrite-close-btn {

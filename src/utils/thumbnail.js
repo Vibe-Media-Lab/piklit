@@ -1,6 +1,6 @@
 /**
  * 썸네일 Canvas 렌더링 엔진
- * 7가지 스타일 × 카테고리별 폰트 × 자동 대비
+ * 9가지 스타일 × 카테고리별 폰트 × 자동 대비
  * 1:1 정사각형 (1080×1080) — 네이버 블로그 대표이미지 최적화
  */
 
@@ -16,6 +16,8 @@ export const THUMBNAIL_STYLES = [
     { id: 'E', label: '컬러 띠', desc: '위치/색상/두께 커스텀 컬러 띠' },
     { id: 'F', label: '전면 블러', desc: '블러 오버레이 + 흰 텍스트' },
     { id: 'G', label: '원본', desc: '텍스트 없는 원본 사진' },
+    { id: 'H', label: '반분할', desc: '사진 2장 + 중앙 텍스트 띠', multi: true },
+    { id: 'I', label: '매거진', desc: '사진 2~4장 격자 레이아웃', multi: true },
 ];
 
 export const CATEGORY_FONT_MAP = {
@@ -347,7 +349,7 @@ const applyTextEffects = (ctx, shadow, outlineOpt, bgBoxOpt, mainText, subText, 
 
     // 배경박스
     if (bgBoxOpt !== '없음' && (mainText || subText)) {
-        const paddingX = 40, paddingY = 24;
+        const paddingY = 24;
         const boxH = (mainText ? mainFontSize : 0) + (subText ? subFontSize * 1.2 : 0) + paddingY * 2;
         const boxY = (mainText ? mainY - mainFontSize * 0.7 : subY - subFontSize * 0.7) - paddingY;
         const boxW = maxW * 0.7;
@@ -496,4 +498,296 @@ export const generateThumbnail = (imageUrl, options = {}) => {
         img.onerror = () => reject(new Error('이미지 로드 실패'));
         img.src = imageUrl;
     });
+};
+
+/**
+ * 이미지 URL → Image 객체 로드 헬퍼
+ */
+const loadImage = (url) => new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('이미지 로드 실패'));
+    img.src = url;
+});
+
+/**
+ * 이미지를 지정 영역에 crop-fit으로 그리기 (zoom + offset 지원)
+ * @param {number} zoom - 확대 배율 (1 = 기본)
+ * @param {number} ox - 수평 오프셋 (-1 ~ 1)
+ * @param {number} oy - 수직 오프셋 (-1 ~ 1)
+ */
+const drawImageToRegion = (ctx, img, dx, dy, dw, dh, zoom = 1, ox = 0, oy = 0) => {
+    const imgRatio = img.naturalWidth / img.naturalHeight;
+    const regionRatio = dw / dh;
+    let sx = 0, sy = 0, sw = img.naturalWidth, sh = img.naturalHeight;
+
+    if (imgRatio > regionRatio) {
+        sw = img.naturalHeight * regionRatio;
+        sx = (img.naturalWidth - sw) / 2;
+    } else {
+        sh = img.naturalWidth / regionRatio;
+        sy = (img.naturalHeight - sh) / 2;
+    }
+
+    // 줌 적용: 소스 영역 축소
+    const zSw = sw / zoom;
+    const zSh = sh / zoom;
+    const maxOx = (sw - zSw) / 2;
+    const maxOy = (sh - zSh) / 2;
+
+    ctx.drawImage(
+        img,
+        sx + (sw - zSw) / 2 + ox * maxOx,
+        sy + (sh - zSh) / 2 + oy * maxOy,
+        zSw, zSh,
+        dx, dy, dw, dh
+    );
+};
+
+/**
+ * 스타일 H: 반분할 콜라주
+ * 사진 2~3장 (상하/좌우/상중하) + 컬러 띠 + 텍스트
+ * @param {Array} photoZooms - [{zoom, ox, oy}, ...] 사진별 확대/오프셋
+ */
+const renderStyleH = (ctx, imgs, direction, bandColor, bandH, photoZooms = []) => {
+    const gap = bandH;
+    const z = (i) => photoZooms[i] || { zoom: 1, ox: 0, oy: 0 };
+
+    if (imgs.length === 3 && direction === 'vertical') {
+        // 3분할 상중하
+        const sectionH = (HEIGHT - gap * 2) / 3;
+        drawImageToRegion(ctx, imgs[0], 0, 0, WIDTH, sectionH, z(0).zoom, z(0).ox, z(0).oy);
+        drawImageToRegion(ctx, imgs[1], 0, sectionH + gap, WIDTH, sectionH, z(1).zoom, z(1).ox, z(1).oy);
+        drawImageToRegion(ctx, imgs[2], 0, sectionH * 2 + gap * 2, WIDTH, sectionH, z(2).zoom, z(2).ox, z(2).oy);
+        ctx.fillStyle = bandColor;
+        ctx.fillRect(0, sectionH, WIDTH, gap);
+        ctx.fillRect(0, sectionH * 2 + gap, WIDTH, gap);
+    } else if (imgs.length === 3 && direction === 'horizontal') {
+        // 3분할 좌중우
+        const sectionW = (WIDTH - gap * 2) / 3;
+        drawImageToRegion(ctx, imgs[0], 0, 0, sectionW, HEIGHT, z(0).zoom, z(0).ox, z(0).oy);
+        drawImageToRegion(ctx, imgs[1], sectionW + gap, 0, sectionW, HEIGHT, z(1).zoom, z(1).ox, z(1).oy);
+        drawImageToRegion(ctx, imgs[2], sectionW * 2 + gap * 2, 0, sectionW, HEIGHT, z(2).zoom, z(2).ox, z(2).oy);
+        ctx.fillStyle = bandColor;
+        ctx.fillRect(sectionW, 0, gap, HEIGHT);
+        ctx.fillRect(sectionW * 2 + gap, 0, gap, HEIGHT);
+    } else if (direction === 'horizontal') {
+        const halfW = (WIDTH - gap) / 2;
+        drawImageToRegion(ctx, imgs[0], 0, 0, halfW, HEIGHT, z(0).zoom, z(0).ox, z(0).oy);
+        drawImageToRegion(ctx, imgs[1], halfW + gap, 0, halfW, HEIGHT, z(1).zoom, z(1).ox, z(1).oy);
+        ctx.fillStyle = bandColor;
+        ctx.fillRect(halfW, 0, gap, HEIGHT);
+    } else {
+        const halfH = (HEIGHT - gap) / 2;
+        drawImageToRegion(ctx, imgs[0], 0, 0, WIDTH, halfH, z(0).zoom, z(0).ox, z(0).oy);
+        drawImageToRegion(ctx, imgs[1], 0, halfH + gap, WIDTH, halfH, z(1).zoom, z(1).ox, z(1).oy);
+        ctx.fillStyle = bandColor;
+        ctx.fillRect(0, halfH, WIDTH, gap);
+    }
+};
+
+/**
+ * 스타일 I: 매거진 그리드
+ * 사진 2~4장 격자 + 흰색 간격
+ * @param {Array} photoZooms - [{zoom, ox, oy}, ...] 사진별 확대/오프셋
+ */
+const renderStyleI = (ctx, imgs, gridGap = 8, photoZooms = []) => {
+    const g = gridGap;
+    const z = (i) => photoZooms[i] || { zoom: 1, ox: 0, oy: 0 };
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+    const count = imgs.length;
+
+    if (count === 2) {
+        const w = (WIDTH - g) / 2;
+        drawImageToRegion(ctx, imgs[0], 0, 0, w, HEIGHT, z(0).zoom, z(0).ox, z(0).oy);
+        drawImageToRegion(ctx, imgs[1], w + g, 0, w, HEIGHT, z(1).zoom, z(1).ox, z(1).oy);
+    } else if (count === 3) {
+        const leftW = Math.round(WIDTH * 0.55);
+        const rightW = WIDTH - leftW - g;
+        const rightH = (HEIGHT - g) / 2;
+        drawImageToRegion(ctx, imgs[0], 0, 0, leftW, HEIGHT, z(0).zoom, z(0).ox, z(0).oy);
+        drawImageToRegion(ctx, imgs[1], leftW + g, 0, rightW, rightH, z(1).zoom, z(1).ox, z(1).oy);
+        drawImageToRegion(ctx, imgs[2], leftW + g, rightH + g, rightW, rightH, z(2).zoom, z(2).ox, z(2).oy);
+    } else {
+        const cellW = (WIDTH - g) / 2;
+        const cellH = (HEIGHT - g) / 2;
+        drawImageToRegion(ctx, imgs[0], 0, 0, cellW, cellH, z(0).zoom, z(0).ox, z(0).oy);
+        drawImageToRegion(ctx, imgs[1], cellW + g, 0, cellW, cellH, z(1).zoom, z(1).ox, z(1).oy);
+        drawImageToRegion(ctx, imgs[2], 0, cellH + g, cellW, cellH, z(2).zoom, z(2).ox, z(2).oy);
+        drawImageToRegion(ctx, imgs[3], cellW + g, cellH + g, cellW, cellH, z(3).zoom, z(3).ox, z(3).oy);
+    }
+};
+
+/**
+ * 다중 사진 썸네일 렌더링 (Style H, I용)
+ * @param {string[]} imageUrls - 이미지 URL 배열 (2~4장)
+ * @param {object} options
+ * @returns {Promise<string>} dataURL (PNG)
+ */
+export const generateMultiThumbnail = async (imageUrls, options = {}) => {
+    const {
+        style = 'H', mainText = '', subText = '',
+        fontFamily = 'Pretendard', mainFontSize = 64, subFontSize = 36,
+        fontColor = '', bandColor = '#FF6B35', bandHeight = 80,
+        splitDirection = 'vertical', gridGap = 8,
+        shadow = '약하게', outline = '없음', bgBox = '없음',
+        photoZooms = [],
+    } = options;
+
+    const imgs = await Promise.all(imageUrls.map(loadImage));
+
+    const canvas = document.createElement('canvas');
+    canvas.width = WIDTH;
+    canvas.height = HEIGHT;
+    const ctx = canvas.getContext('2d');
+
+    if (style === 'H') {
+        renderStyleH(ctx, imgs, splitDirection, bandColor, bandHeight, photoZooms);
+
+        // 텍스트: 띠 중앙에 배치
+        const finalColor = fontColor || '#fff';
+        if (imgs.length === 3) {
+            // 3분할: 중앙 띠(두 번째 띠)에 텍스트
+            if (splitDirection === 'vertical') {
+                const sectionH = (HEIGHT - bandHeight * 2) / 3;
+                const bandY = sectionH; // 첫 번째 띠 위치
+                const bandInfo = { bandY, bandH: bandHeight };
+                applyTextEffects(ctx, shadow, outline, bgBox, mainText, subText, fontFamily, mainFontSize, subFontSize, finalColor, 'band', bandInfo);
+            } else {
+                const sectionW = (WIDTH - bandHeight * 2) / 3;
+                const centerX = sectionW + bandHeight / 2;
+                ctx.textAlign = 'center';
+                ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                ctx.shadowBlur = 8;
+                ctx.shadowOffsetY = 2;
+                if (mainText) {
+                    ctx.font = `bold ${mainFontSize}px "${fontFamily}", Pretendard, sans-serif`;
+                    ctx.fillStyle = finalColor;
+                    ctx.fillText(mainText, centerX, HEIGHT / 2 - (subText ? subFontSize * 0.3 : 0), bandHeight * 0.9);
+                }
+                if (subText) {
+                    ctx.font = `600 ${subFontSize}px "${fontFamily}", Pretendard, sans-serif`;
+                    ctx.fillStyle = finalColor;
+                    ctx.fillText(subText, centerX, HEIGHT / 2 + mainFontSize * 0.5, bandHeight * 0.9);
+                }
+                ctx.shadowColor = 'transparent';
+                ctx.shadowBlur = 0;
+            }
+        } else if (splitDirection === 'horizontal') {
+            // 2분할 좌우: 세로 띠
+            const halfW = (WIDTH - bandHeight) / 2;
+            const centerX = halfW + bandHeight / 2;
+            ctx.textAlign = 'center';
+            ctx.shadowColor = 'rgba(0,0,0,0.5)';
+            ctx.shadowBlur = 8;
+            ctx.shadowOffsetY = 2;
+            if (mainText) {
+                ctx.font = `bold ${mainFontSize}px "${fontFamily}", Pretendard, sans-serif`;
+                ctx.fillStyle = finalColor;
+                ctx.fillText(mainText, centerX, HEIGHT / 2 - (subText ? subFontSize * 0.3 : 0), bandHeight * 0.9);
+            }
+            if (subText) {
+                ctx.font = `600 ${subFontSize}px "${fontFamily}", Pretendard, sans-serif`;
+                ctx.fillStyle = finalColor;
+                ctx.fillText(subText, centerX, HEIGHT / 2 + mainFontSize * 0.5, bandHeight * 0.9);
+            }
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+        } else {
+            // 2분할 상하: 가로 띠
+            const halfH = (HEIGHT - bandHeight) / 2;
+            const bandInfo = { bandY: halfH, bandH: bandHeight };
+            applyTextEffects(ctx, shadow, outline, bgBox, mainText, subText, fontFamily, mainFontSize, subFontSize, finalColor, 'band', bandInfo);
+        }
+    } else if (style === 'I') {
+        renderStyleI(ctx, imgs, gridGap, photoZooms);
+
+        // 하단 그라데이션 + 텍스트
+        if (mainText || subText) {
+            const grad = ctx.createLinearGradient(0, HEIGHT * 0.6, 0, HEIGHT);
+            grad.addColorStop(0, 'rgba(0,0,0,0)');
+            grad.addColorStop(1, 'rgba(0,0,0,0.7)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+            const finalColor = fontColor || '#fff';
+            applyTextEffects(ctx, shadow, outline, bgBox, mainText, subText, fontFamily, mainFontSize, subFontSize, finalColor, 'bottom', null);
+        }
+    }
+
+    return canvas.toDataURL('image/png');
+};
+
+/**
+ * 다중 사진 영역 좌표 반환 (드래그 영역 감지용)
+ * 반환: [{x, y, w, h}, ...] 비율 (0~1) 기준
+ */
+export const getMultiPhotoRegions = (style, photoCount, splitDirection, bandHeight, gridGap) => {
+    if (style === 'H') {
+        const gap = bandHeight / HEIGHT;
+        if (photoCount === 3 && splitDirection === 'vertical') {
+            const sH = (1 - gap * 2) / 3;
+            return [
+                { x: 0, y: 0, w: 1, h: sH },
+                { x: 0, y: sH + gap, w: 1, h: sH },
+                { x: 0, y: sH * 2 + gap * 2, w: 1, h: sH },
+            ];
+        }
+        if (photoCount === 3 && splitDirection === 'horizontal') {
+            const sW = (1 - gap * 2) / 3;
+            return [
+                { x: 0, y: 0, w: sW, h: 1 },
+                { x: sW + gap, y: 0, w: sW, h: 1 },
+                { x: sW * 2 + gap * 2, y: 0, w: sW, h: 1 },
+            ];
+        }
+        if (splitDirection === 'horizontal') {
+            const halfW = (1 - gap) / 2;
+            return [
+                { x: 0, y: 0, w: halfW, h: 1 },
+                { x: halfW + gap, y: 0, w: halfW, h: 1 },
+            ];
+        }
+        const halfH = (1 - gap) / 2;
+        return [
+            { x: 0, y: 0, w: 1, h: halfH },
+            { x: 0, y: halfH + gap, w: 1, h: halfH },
+        ];
+    }
+
+    if (style === 'I') {
+        const g = gridGap / WIDTH;
+        if (photoCount === 2) {
+            const w = (1 - g) / 2;
+            return [
+                { x: 0, y: 0, w, h: 1 },
+                { x: w + g, y: 0, w, h: 1 },
+            ];
+        }
+        if (photoCount === 3) {
+            const leftW = 0.55;
+            const rightW = 1 - leftW - g;
+            const rightH = (1 - g) / 2;
+            return [
+                { x: 0, y: 0, w: leftW, h: 1 },
+                { x: leftW + g, y: 0, w: rightW, h: rightH },
+                { x: leftW + g, y: rightH + g, w: rightW, h: rightH },
+            ];
+        }
+        // 4장
+        const cellW = (1 - g) / 2;
+        const cellH = (1 - g) / 2;
+        return [
+            { x: 0, y: 0, w: cellW, h: cellH },
+            { x: cellW + g, y: 0, w: cellW, h: cellH },
+            { x: 0, y: cellH + g, w: cellW, h: cellH },
+            { x: cellW + g, y: cellH + g, w: cellW, h: cellH },
+        ];
+    }
+
+    return [];
 };

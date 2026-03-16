@@ -6,7 +6,6 @@ import { callGetUsageInfo, callBetaStatus, callBetaActivate } from '../../servic
 const SettingsModal = ({ isOpen, onClose }) => {
     const { showToast } = useToast();
     const { user, logout } = useAuth();
-    const [apiKey, setApiKey] = useState('');
     const [usage, setUsage] = useState(null);
     const [usageLoading, setUsageLoading] = useState(false);
     const [betaCode, setBetaCode] = useState('');
@@ -19,7 +18,6 @@ const SettingsModal = ({ isOpen, onClose }) => {
 
     useEffect(() => {
         if (isOpen) {
-            setApiKey(localStorage.getItem('openai_api_key') || '');
             if (user) {
                 // 사용량 조회
                 setUsageLoading(true);
