@@ -54,7 +54,7 @@ export const EditorProvider = ({ children }) => {
         cloudInitRef.current = true;
 
         setCloudLoading(true);
-        loadPostsFromCloud(user.uid)
+        loadPostsFromCloud()
             .then(cloudPosts => {
                 if (cloudPosts.length > 0) {
                     // 클라우드 글이 있으면 로컬과 병합 (클라우드 우선)

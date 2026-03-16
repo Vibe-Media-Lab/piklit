@@ -1,11 +1,10 @@
 /**
  * 클라우드 이미지 저장 서비스
  * - 이미지 압축 (썸네일 1080px/90%, 본문 800px/70%)
- * - Firebase Storage 업로드/삭제
+ * - Vercel Functions 경유 Firebase Storage 업로드/삭제
  * - HTML content 내 base64 → Storage URL 치환
  */
-import { storage } from './firebase';
-import { ref, uploadBytes, getDownloadURL, deleteObject, listAll } from 'firebase/storage';
+import { callUploadImage } from './firebase';
 
 /**
  * 이미지 압축 (Canvas 리사이즈 + JPEG 변환)
@@ -20,7 +19,6 @@ export const compressImage = (dataUrl, { maxSize = 800, quality = 0.7 } = {}) =>
             let w = img.naturalWidth;
             let h = img.naturalHeight;
 
-            // 이미 작으면 리사이즈 안 함
             if (w <= maxSize && h <= maxSize) {
                 const canvas = document.createElement('canvas');
                 canvas.width = w;
@@ -31,7 +29,6 @@ export const compressImage = (dataUrl, { maxSize = 800, quality = 0.7 } = {}) =>
                 return;
             }
 
-            // 비율 유지 리사이즈
             if (w > h) {
                 h = Math.round(h * (maxSize / w));
                 w = maxSize;
@@ -53,31 +50,27 @@ export const compressImage = (dataUrl, { maxSize = 800, quality = 0.7 } = {}) =>
 };
 
 /**
- * Firebase Storage에 이미지 업로드
- * @param {string} userId
- * @param {string} postId
- * @param {Blob} blob - 압축된 이미지
- * @param {string} fileName - 파일명 (예: 'img_0.jpg')
- * @returns {Promise<string>} 다운로드 URL
+ * Blob → base64 문자열 변환
  */
-export const uploadImage = async (userId, postId, blob, fileName) => {
-    const storageRef = ref(storage, `users/${userId}/posts/${postId}/${fileName}`);
-    await uploadBytes(storageRef, blob, { contentType: 'image/jpeg' });
-    return getDownloadURL(storageRef);
-};
+function blobToBase64(blob) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            // data:image/jpeg;base64,XXXX → XXXX 부분만 추출
+            const base64 = reader.result.split(',')[1];
+            resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
+}
 
 /**
  * HTML content 내 base64 이미지를 Storage URL로 치환
- * @param {string} userId
- * @param {string} postId
- * @param {string} htmlContent - base64 이미지 포함 HTML
- * @param {object} options - { maxSize, quality }
- * @returns {Promise<{ html: string, uploadedCount: number }>}
  */
 export const extractAndUploadImages = async (userId, postId, htmlContent, options = {}) => {
     const { maxSize = 800, quality = 0.7 } = options;
 
-    // base64 이미지 src 추출
     const base64Regex = /src="(data:image\/[^;]+;base64,[^"]+)"/g;
     const matches = [...htmlContent.matchAll(base64Regex)];
 
@@ -86,7 +79,6 @@ export const extractAndUploadImages = async (userId, postId, htmlContent, option
     let result = htmlContent;
     let uploadedCount = 0;
 
-    // 병렬 업로드 (최대 5개씩)
     const batchSize = 5;
     for (let i = 0; i < matches.length; i += batchSize) {
         const batch = matches.slice(i, i + batchSize);
@@ -95,11 +87,12 @@ export const extractAndUploadImages = async (userId, postId, htmlContent, option
             const idx = i + batchIdx;
             try {
                 const blob = await compressImage(dataUrl, { maxSize, quality });
-                const url = await uploadImage(userId, postId, blob, `img_${idx}.jpg`);
-                return { original: dataUrl, url };
+                const base64Data = await blobToBase64(blob);
+                const { data } = await callUploadImage(postId, `img_${idx}.jpg`, base64Data);
+                return { original: dataUrl, url: data.url };
             } catch (err) {
                 console.warn(`이미지 ${idx} 업로드 실패:`, err.message);
-                return null; // 실패 시 base64 유지
+                return null;
             }
         });
 
@@ -116,14 +109,9 @@ export const extractAndUploadImages = async (userId, postId, htmlContent, option
 };
 
 /**
- * 글 삭제 시 Storage 이미지 정리
+ * 글 삭제 시 Storage 이미지 정리 (서버에서 처리)
+ * api/posts.js의 delete 액션에서 deleteFolder 호출하므로 클라이언트에서는 불필요
  */
-export const deletePostImages = async (userId, postId) => {
-    try {
-        const folderRef = ref(storage, `users/${userId}/posts/${postId}`);
-        const list = await listAll(folderRef);
-        await Promise.all(list.items.map(item => deleteObject(item)));
-    } catch (err) {
-        console.warn('이미지 삭제 실패:', err.message);
-    }
+export const deletePostImages = async () => {
+    // 서버(api/posts.js)에서 deleteFolder로 처리
 };

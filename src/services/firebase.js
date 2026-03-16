@@ -1,7 +1,5 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -15,8 +13,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
-export const db = getFirestore(app);
-export const storage = getStorage(app);
 
 // Vercel Serverless Functions 호출 헬퍼
 async function callVercelFunction(path, payload) {
@@ -112,5 +108,13 @@ export const callSubmitBugReport = (data) => callVercelFunction('/api/bug-report
 export const callListBugReports = () => callVercelFunction('/api/bug-report', { action: 'list' });
 export const callUpdateBugStatus = (reportId, status) => callVercelFunction('/api/bug-report', { action: 'updateStatus', reportId, status });
 export const callDeleteBugReport = (reportId) => callVercelFunction('/api/bug-report', { action: 'delete', reportId });
+
+// 글 클라우드 저장 API
+export const callSavePost = (post) => callVercelFunction('/api/posts', { action: 'save', post });
+export const callLoadPosts = () => callVercelFunction('/api/posts', { action: 'list' });
+export const callLoadPost = (postId) => callVercelFunction('/api/posts', { action: 'get', postId });
+export const callDeletePost = (postId) => callVercelFunction('/api/posts', { action: 'delete', postId });
+export const callUploadImage = (postId, fileName, base64Data, contentType) =>
+    callVercelFunction('/api/upload-image', { postId, fileName, base64Data, contentType });
 
 export default app;

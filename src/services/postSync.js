@@ -1,23 +1,16 @@
 /**
- * Firestore 글 동기화 서비스
- * - CRUD: 저장/불러오기/삭제
+ * 클라우드 글 동기화 서비스
+ * - CRUD: Vercel Functions 경유 Firestore 저장/불러오기/삭제
  * - 마이그레이션: localStorage → Firestore
  */
-import { db } from './firebase';
-import {
-    collection, doc, setDoc, getDoc, getDocs,
-    deleteDoc, query, orderBy
-} from 'firebase/firestore';
+import { callSavePost, callLoadPosts, callDeletePost } from './firebase';
 import { extractAndUploadImages, deletePostImages } from './cloudStorage';
 
-const postsCollection = (userId) => collection(db, 'users', userId, 'posts');
-
 /**
- * Firestore에 글 저장
+ * 클라우드에 글 저장
  * content 내 base64 이미지 → Storage URL 치환 후 저장
  */
 export const savePostToCloud = async (userId, post) => {
-    // base64 이미지를 Storage URL로 치환
     let cloudContent = post.content || '';
     let uploadedCount = 0;
 
@@ -28,6 +21,7 @@ export const savePostToCloud = async (userId, post) => {
     }
 
     const docData = {
+        id: post.id,
         title: post.title || '',
         content: cloudContent,
         keywords: post.keywords || { main: '', sub: [] },
@@ -42,51 +36,37 @@ export const savePostToCloud = async (userId, post) => {
         updatedAt: post.updatedAt || new Date().toISOString(),
     };
 
-    await setDoc(doc(postsCollection(userId), post.id), docData);
+    await callSavePost(docData);
     return { uploadedCount };
 };
 
 /**
- * Firestore에서 전체 글 목록 로드
+ * 클라우드에서 전체 글 목록 로드
  */
-export const loadPostsFromCloud = async (userId) => {
-    const q = query(postsCollection(userId), orderBy('updatedAt', 'desc'));
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+export const loadPostsFromCloud = async () => {
+    const { data } = await callLoadPosts();
+    return data.posts || [];
 };
 
 /**
- * Firestore에서 단일 글 로드
- */
-export const loadPostFromCloud = async (userId, postId) => {
-    const snap = await getDoc(doc(postsCollection(userId), postId));
-    if (!snap.exists()) return null;
-    return { id: snap.id, ...snap.data() };
-};
-
-/**
- * Firestore + Storage에서 글 삭제
+ * 클라우드에서 글 삭제
  */
 export const deletePostFromCloud = async (userId, postId) => {
-    await deleteDoc(doc(postsCollection(userId), postId));
-    await deletePostImages(userId, postId);
+    await callDeletePost(postId);
 };
 
 /**
- * localStorage → Firestore 마이그레이션
+ * localStorage → 클라우드 마이그레이션
  * @param {string} userId
  * @param {Array} localPosts - localStorage의 글 배열
  * @param {function} onProgress - (current, total) 진행률 콜백
  * @returns {Promise<{ migrated: number, failed: number }>}
  */
 export const migrateLocalToCloud = async (userId, localPosts, onProgress) => {
-    // 이미 클라우드에 있는 글 ID 조회
-    const cloudPosts = await loadPostsFromCloud(userId);
+    const cloudPosts = await loadPostsFromCloud();
     const cloudIds = new Set(cloudPosts.map(p => p.id));
 
-    // 로컬에만 있는 글 필터
     const toMigrate = localPosts.filter(p => !cloudIds.has(p.id));
-
     if (toMigrate.length === 0) return { migrated: 0, failed: 0 };
 
     let migrated = 0;
