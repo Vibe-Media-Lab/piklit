@@ -32,6 +32,13 @@ const recommendLength = (avgCharCount) => {
 
 const getKw = (item) => item?.keyword || item;
 const getDifficulty = (item) => item?.difficulty || 'medium';
+const getCategory = (item) => item?.category || 'inflow';
+
+const CATEGORY_LABELS = {
+    direct: { label: '이 주제 키워드', desc: '이 주제를 검색하는 사람이 쓰는 키워드' },
+    inflow: { label: '관련 검색어', desc: '관련 정보를 찾다가 유입되는 키워드' },
+    niche: { label: '숨은 검색어', desc: '경쟁 적은 틈새 키워드' },
+};
 
 const DifficultyBadge = ({ difficulty }) => {
     const map = {
@@ -122,12 +129,23 @@ const KeywordStep = ({
 
     const handleCheckDifficulty = () => {
         setIsCheckingDifficulty(true);
+        const topic = wizardData?.initialMainKeyword || mainKeyword;
         const addDifficulty = (kwObj) => {
             const word = kwObj.keyword || kwObj;
             const wordCount = word.trim().split(/\s+/).length;
+            const cat = getCategory(kwObj);
             let difficulty = 'medium';
-            if (wordCount <= 2) difficulty = 'hard';
-            else if (wordCount >= 4) difficulty = 'easy';
+            // direct 키워드 (브랜드/주제명 포함): 대체로 쉬움
+            if (cat === 'direct') {
+                difficulty = wordCount >= 3 ? 'easy' : 'medium';
+            // niche 키워드: 롱테일이므로 쉬움
+            } else if (cat === 'niche') {
+                difficulty = 'easy';
+            // inflow 키워드: 일반 경쟁
+            } else {
+                if (wordCount <= 2) difficulty = 'hard';
+                else if (wordCount >= 4) difficulty = 'easy';
+            }
             return { ...kwObj, difficulty };
         };
         setSelectedKeywords(prev => prev.map(addDifficulty));
@@ -226,7 +244,7 @@ const KeywordStep = ({
                 <Search size={20} /> 키워드 분석
             </h2>
             <p className="wizard-step-desc">
-                AI가 SEO 키워드를 제안합니다. 키워드를 선택하고 설정을 조정하세요.
+                AI가 SEO 키워드를 제안합니다. 선택한 키워드가 소제목과 본문에 자동 반영됩니다.
             </p>
             <div className="wizard-step-meta-badges">
                 <span className="wizard-meta-badge">
@@ -308,26 +326,34 @@ const KeywordStep = ({
                         ))}
                     </div>
 
-                    {/* AI 제안 키워드 */}
+                    {/* AI 제안 키워드 — 카테고리별 구분선 */}
                     {suggestedKeywords.length > 0 && (
                         <div className="wizard-suggested-section">
-                            <div className="wizard-suggested-divider">
-                                <span className="wizard-suggested-divider-line" />
-                                <span className="wizard-suggested-divider-label">AI 추천</span>
-                                <span className="wizard-suggested-divider-line" />
-                            </div>
-                            <div className="wizard-chip-list">
-                                {suggestedKeywords.map((kwObj, i) => (
-                                    <span
-                                        key={`sug-${i}`}
-                                        onClick={() => handleKeywordToggle(kwObj)}
-                                        className={`wizard-suggested-chip ${selectedKeywords.length >= 5 ? 'disabled' : ''}`}
-                                    >
-                                        {getKw(kwObj)}
-                                        {difficultyChecked && <DifficultyBadge difficulty={getDifficulty(kwObj)} />}
-                                    </span>
-                                ))}
-                            </div>
+                            {['direct', 'inflow', 'niche'].map(cat => {
+                                const catKeywords = suggestedKeywords.filter(k => getCategory(k) === cat);
+                                if (catKeywords.length === 0) return null;
+                                return (
+                                    <React.Fragment key={cat}>
+                                        <div className="wizard-suggested-divider">
+                                            <span className="wizard-suggested-divider-line" />
+                                            <span className="wizard-suggested-divider-label">{CATEGORY_LABELS[cat].label}</span>
+                                            <span className="wizard-suggested-divider-line" />
+                                        </div>
+                                        <div className="wizard-chip-list">
+                                            {catKeywords.map((kwObj, i) => (
+                                                <span
+                                                    key={`sug-${cat}-${i}`}
+                                                    onClick={() => handleKeywordToggle(kwObj)}
+                                                    className={`wizard-suggested-chip ${selectedKeywords.length >= 5 ? 'disabled' : ''}`}
+                                                >
+                                                    {getKw(kwObj)}
+                                                    {difficultyChecked && <DifficultyBadge difficulty={getDifficulty(kwObj)} />}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </React.Fragment>
+                                );
+                            })}
                             <button
                                 onClick={isAnalyzingKeywords ? undefined : handleAnalyzeKeywords}
                                 disabled={isAnalyzingKeywords}

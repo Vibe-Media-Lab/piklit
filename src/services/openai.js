@@ -217,30 +217,45 @@ export const AIService = {
 
         const prompt = `너는 네이버 블로그 SEO 키워드 전문가야.
 "${topic}"에 대해 네이버 검색 유입을 최대한 끌어올릴 키워드를 추천해줘.
-구글 검색으로 "${topic}" 관련 블로그, 카페, 리뷰를 조사해.
+구글 검색으로 "${topic}" 관련 블로그, 카페, 리뷰, 네이버 연관검색어를 조사해.
 ${excludeInstruction}${categoryInstruction}${titleInstruction}
 
+[주제 유형별 전략]
+- 특정 장소/브랜드/제품인 경우 (예: "제주 김선문", "갤럭시 S25"):
+  → direct 키워드 우선: "브랜드명+메뉴/가격/예약/위치/후기" 형태
+  → inflow 키워드: "지역+카테고리+수식어" 형태 (브랜드명 미포함)
+  → niche 키워드: 3어절 이상 구체적 롱테일
+- 일반 주제인 경우 (예: "제주 카페 추천", "강남 맛집"):
+  → direct 키워드: "주제+세분화/목적별" 형태
+  → inflow 키워드: "상위 카테고리+수식어" 형태
+  → niche 키워드: 경쟁 적은 롱테일 조합
+
 [키워드 추천 규칙]
-1. 브랜드명 단독 키워드 금지 (예: "김선문 메뉴" ❌)
-2. "지역+카테고리+수식어" 조합 우선 (예: "제주 애월 파인다이닝" ✅)
-3. 일반 사용자가 실제로 검색할 법한 키워드
+1. 특정 장소/브랜드 주제일 때: "브랜드명+속성" 키워드 필수 포함 (예: "김선문 메뉴" ✅, "김선문 예약" ✅). 단, 브랜드명만 단독 사용 금지
+2. 일반 주제일 때: "지역+카테고리+수식어" 조합 우선
+3. 일반 사용자가 네이버에서 실제로 검색할 법한 키워드
 4. 롱테일 키워드 포함 (3~5어절)
 5. 메인 키워드는 검색량이 가장 많을 핵심 키워드
 6. 주제의 카테고리와 무관한 키워드 금지 (예: 맛집인데 "숙소", "명소" ❌)
 7. 시즌·계절 키워드 금지 — 시즌 키워드는 별도 기능에서 추천함
-8. 주제의 지역·업종·특징에 정확히 맞는 키워드만 추천 (예: 애월 파인다이닝인데 "서귀포 브런치" ❌)
+8. 주제의 지역·업종·특징에 정확히 맞는 키워드만 추천
+
+[카테고리 분류]
+- direct: 이 주제를 이미 아는 사람이 검색하는 키워드 (예: "김선문 메뉴", "김선문 주차")
+- inflow: 이 주제를 모르지만 관련 정보를 찾다가 유입될 키워드 (예: "제주 파인다이닝 추천")
+- niche: 경쟁이 적고 구체적인 롱테일 키워드 (예: "애월 프라이빗 코스요리")
 
 [출력]
 - 메인 키워드 1개
-- 서브 키워드 10개
+- 서브 키워드 10개 (direct 4개, inflow 3개, niche 3개)
 
 Output strictly a valid JSON:
-{"mainKeyword": "메인 키워드", "subKeywords": ["서브1","서브2","서브3","서브4","서브5","서브6","서브7","서브8","서브9","서브10"]}`;
+{"mainKeyword":"메인 키워드","subKeywords":[{"keyword":"서브1","category":"direct"},{"keyword":"서브2","category":"inflow"},{"keyword":"서브3","category":"niche"}]}`;
 
-        // 1차 시도: google_search + thinkingBudget 0
+        // 1차 시도: google_search + thinkingBudget 1024 (유형 감지 + 카테고리 분류 필요)
         let result = await this.generateContent([{ text: prompt }], {
             tools: [{ google_search: {} }],
-            thinkingBudget: 0
+            thinkingBudget: 1024
         }, '키워드 분석');
 
         // google_search 응답이 JSON이 아닌 텍스트인 경우
@@ -254,23 +269,31 @@ Output strictly a valid JSON:
 원문의 키워드를 그대로 활용하고, 임의로 새 키워드를 만들지 마.${titleContext}
 시즌·계절 키워드는 제외하고, 주제에 정확히 맞는 키워드만 포함해.
 
+각 서브 키워드에 category를 분류해:
+- direct: 주제를 아는 사람이 검색하는 키워드
+- inflow: 관련 정보를 찾다가 유입될 키워드
+- niche: 경쟁 적은 롱테일 키워드
+
 ---
 ${rawText.slice(0, 3000)}
 ---
 
 Output strictly a valid JSON:
-{"mainKeyword": "메인 키워드", "subKeywords": ["서브1","서브2","서브3","서브4","서브5","서브6","서브7","서브8","서브9","서브10"]}`;
+{"mainKeyword":"메인 키워드","subKeywords":[{"keyword":"서브1","category":"direct"},{"keyword":"서브2","category":"inflow"},{"keyword":"서브3","category":"niche"}]}`;
             result = await this.generateContent([{ text: formatPrompt }], {
                 generationConfig: { responseMimeType: 'application/json' },
-                thinkingBudget: 0
+                thinkingBudget: 1024
             }, '키워드 분석 (JSON 변환)');
         }
 
-        // 후처리: 문자열 배열 → {keyword} 객체 배열로 변환 (difficulty는 별도 확인)
+        // 후처리: 문자열/객체 → {keyword, category} 정규화
         if (result?.subKeywords && Array.isArray(result.subKeywords)) {
             result.subKeywords = result.subKeywords.map(kw => {
-                const word = typeof kw === 'string' ? kw : (kw.keyword || kw);
-                return { keyword: word };
+                if (typeof kw === 'string') return { keyword: kw, category: 'inflow' };
+                return {
+                    keyword: kw.keyword || kw,
+                    category: ['direct', 'inflow', 'niche'].includes(kw.category) ? kw.category : 'inflow',
+                };
             });
         }
 
