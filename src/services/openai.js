@@ -396,58 +396,89 @@ Output strictly a valid JSON:
         const baseHeadings = getRecommendedHeadings(category);
         const recommendedImages = getRecommendedImages(category);
 
-        // 깊이 수준 → 글자수 매핑
-        const DEPTH_CHAR_MAP = { light: 1200, standard: 2000, detailed: 2800, comprehensive: 3500 };
-        const DEPTH_HEADING_MAP = { light: 3, standard: 5, detailed: 7, comprehensive: 9 };
-
         const prompt = `너는 네이버 블로그 SEO 분석 전문가야.
-"${keyword} site:blog.naver.com"을 검색하여 상위 네이버 블로그 글들의 깊이 수준을 판단해줘.
+"${keyword}" 관련 네이버 블로그 상위 글 3~5개를 구글 검색으로 조사해.
 
-[깊이 수준 기준]
-- light: 간단 후기 (사진 위주, 텍스트 적음)
-- standard: 일반 리뷰 (메뉴/가격/분위기 등 기본 정보 포함)
-- detailed: 상세 리뷰 (코스별 설명, 비교, 꿀팁 포함)
-- comprehensive: 가이드급 (위치/주차/예약/주변정보 등 종합)
+[분석 항목]
+각 상위 글에서 다음을 추정해:
+1. 글자수 (본문 텍스트 분량, 이미지 제외)
+2. 소제목(H2) 개수
+3. 이미지 개수
+4. 공통으로 다루는 소제목 주제 패턴
 
-[중요]
-- 실제 검색 결과의 상위 글들을 보고 판단할 것
-- depth는 반드시 light/standard/detailed/comprehensive 중 하나
-- 설명이나 부가 텍스트 절대 금지. JSON만 출력.
+[추정 기준]
+- 글자수: 짧은 후기 = 800~1200자, 일반 리뷰 = 1500~2500자, 상세 가이드 = 2500~4000자
+- 소제목: 블로그 글의 굵은 글씨/구분선 기준 섹션 수
+- 이미지: 사진 + 지도/메뉴판 등 포함
+
+[출력]
+- avgCharCount: 상위 글 평균 글자수 (100 단위 반올림)
+- avgHeadingCount: 상위 글 평균 소제목 수 (정수)
+- avgImageCount: 상위 글 평균 이미지 수 (정수)
+- commonHeadings: 상위 글에서 공통으로 등장하는 소제목 주제 3~5개 (한국어, 간결하게)
 
 Output strictly a valid JSON:
-{"depth":"standard"}`;
+{"avgCharCount":2000,"avgHeadingCount":5,"avgImageCount":10,"commonHeadings":["소제목 주제1","소제목 주제2","소제목 주제3"]}`;
 
         try {
-            const result = await this.generateContent([{ text: prompt }], {
+            let result = await this.generateContent([{ text: prompt }], {
                 tools: [{ google_search: {} }],
-                thinkingBudget: 0
+                thinkingBudget: 1024
             }, '경쟁 블로그 분석');
 
-            // 깊이 수준 추출
-            let depth = result?.depth;
-
-            // fallback: rawText에서 depth 추출
-            if (!depth) {
+            // google_search 응답이 JSON이 아닌 경우 2차 변환
+            if (!result?.avgCharCount) {
                 const rawText = result?.text || result?.html || JSON.stringify(result) || '';
-                const depthMatch = rawText.match(/"depth"\s*:\s*"(light|standard|detailed|comprehensive)"/);
-                if (depthMatch) depth = depthMatch[1];
+                // rawText에서 JSON 추출 시도
+                const jsonMatch = rawText.match(/\{[\s\S]*avgCharCount[\s\S]*\}/);
+                if (jsonMatch) {
+                    try { result = JSON.parse(jsonMatch[0]); } catch { /* fallthrough */ }
+                }
+                // 여전히 없으면 2차 프롬프트
+                if (!result?.avgCharCount) {
+                    console.log('[경쟁 분석] 검색 데이터 기반 JSON 변환 재시도...');
+                    const hasContent = rawText.length > 50;
+                    const formatPrompt = hasContent
+                        ? `아래는 "${keyword}" 관련 네이버 블로그 상위 글 분석 결과야.
+이 내용을 기반으로 상위 글들의 평균 수치를 JSON으로 정리해.
+수치를 추출할 수 없으면, "${keyword}" 주제의 네이버 블로그 상위 글 특성을 기반으로 합리적으로 추정해.
+반드시 숫자를 채울 것 (null 금지).
+
+---
+${rawText.slice(0, 3000)}
+---
+
+Output strictly a valid JSON:
+{"avgCharCount":2000,"avgHeadingCount":5,"avgImageCount":10,"commonHeadings":["소제목 주제1","소제목 주제2","소제목 주제3"]}`
+                        : `"${keyword}" 주제로 네이버 블로그 상위 노출 글을 작성한다고 가정해.
+이 주제의 네이버 블로그 상위 글들이 보통 어떤 구조인지 추정해줘.
+반드시 숫자를 채울 것 (null 금지).
+
+Output strictly a valid JSON:
+{"avgCharCount":2000,"avgHeadingCount":5,"avgImageCount":10,"commonHeadings":["소제목 주제1","소제목 주제2","소제목 주제3"]}`;
+                    result = await this.generateContent([{ text: formatPrompt }], {
+                        generationConfig: { responseMimeType: 'application/json' },
+                        thinkingBudget: 1024
+                    }, '경쟁 분석 (JSON 변환)');
+                }
             }
 
-            // AI 결과 기반 글자수/소제목 산출 (카테고리 하한선과 비교하여 높은 값 채택)
-            const aiCharCount = DEPTH_CHAR_MAP[depth] || 0;
-            const aiHeadings = DEPTH_HEADING_MAP[depth] || 0;
+            // 결과 정규화 (카테고리 하한선 적용)
+            const aiCharCount = parseInt(result?.avgCharCount) || 0;
+            const aiHeadings = parseInt(result?.avgHeadingCount) || 0;
+            const aiImages = parseInt(result?.avgImageCount) || 0;
+            const commonHeadings = Array.isArray(result?.commonHeadings) ? result.commonHeadings : [];
 
             const avg = {
                 charCount: Math.max(baseCharCount, aiCharCount),
                 headingCount: Math.max(baseHeadings, aiHeadings),
-                imageCount: recommendedImages,
-                _imageIsRecommendation: true,
-                _depth: depth || null,
+                imageCount: Math.max(recommendedImages, aiImages),
+                commonHeadings,
             };
 
             const data = { average: avg };
             this._competitorCache = { keyword, data };
-            console.log(`[경쟁 분석] 깊이: ${depth}, 글자수: ${avg.charCount}, 소제목: ${avg.headingCount}`);
+            console.log(`[경쟁 분석] 글자수: ${avg.charCount}, 소제목: ${avg.headingCount}, 이미지: ${avg.imageCount}, 공통 소제목: ${commonHeadings.join(', ')}`);
             return data;
 
         } catch (e) {
@@ -457,8 +488,7 @@ Output strictly a valid JSON:
                 charCount: baseCharCount,
                 headingCount: baseHeadings,
                 imageCount: recommendedImages,
-                _imageIsRecommendation: true,
-                _depth: null,
+                commonHeadings: [],
             };
             const data = { average: avg };
             this._competitorCache = { keyword, data };
@@ -835,6 +865,10 @@ ${list}
         const headingTarget = competitorData?.average?.headingCount
             ? `경쟁 블로그 평균 소제목 ${competitorData.average.headingCount}개 이상 확보할 것.`
             : 'H2 3~5개 배치.';
+        const commonHeadings = competitorData?.average?.commonHeadings;
+        const commonHeadingsHint = commonHeadings?.length > 0
+            ? `\n상위 블로그 공통 소제목 주제: ${commonHeadings.join(', ')}. 이 주제들을 참고하되, 그대로 복사하지 말고 키워드를 녹여서 재구성해.`
+            : '';
 
         const prompt = `너는 네이버 블로그 SEO 전문가야.
 구글 검색으로 "${mainKeyword}" 관련 상위 블로그 글의 소제목 구조를 참고해서 아웃라인을 생성해줘.
@@ -843,7 +877,7 @@ ${list}
 서브 키워드: ${subKeywords.join(', ') || '없음'}
 카테고리: ${category}
 톤: ${this._toneMap[tone] || this._toneMap['friendly']}
-
+${commonHeadingsHint}
 [작업]
 "${mainKeyword}" 주제로 블로그 글의 소제목 아웃라인을 H2로만 생성해줘.
 
