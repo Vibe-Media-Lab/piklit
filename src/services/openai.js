@@ -969,7 +969,7 @@ ${tree}
         const prompt = `너는 네이버 블로그 SEO 전문가야.
 ${this._htmlRules(mainKeyword, paragraphStyle)}
 주제: ${category} | 키워드: ${mainKeyword} | 글자수: ${targetLength} (최소 ${parseInt(targetLength) || 1500}자 이상 필수!!!)
-톤: ${this._toneMap[tone] || this._toneMap['friendly']}${toneBoost ? `\n[카테고리 맞춤 톤 보정] ${toneBoost}` : ''}${wannabeStyleRules}
+톤: ${wannabeStyleRules ? '(아래 스타일 규칙 우선 적용)' : (this._toneMap[tone] || this._toneMap['friendly'])}${toneBoost && !wannabeStyleRules ? `\n[카테고리 맞춤 톤 보정] ${toneBoost}` : ''}
 ${this._subKeywordPrompt(subKeywords)}
 ${this._photoPrompt(photoAnalysis, photoAssets, category, verifiedDetails)}
 ${this._competitorPrompt(competitorData)}
@@ -985,7 +985,7 @@ ${imageInstructions}
 ${this._introPromptByCategory(category, mainKeyword)}
 2. 본문: h2 사용. 구글 검색으로 '${mainKeyword}' 실제 정보를 찾아 작성. 서브 키워드는 문맥에 맞게 자연스럽게 녹여넣기. [[VIDEO]] 1개 배치.
 [글자수 — 필수!!!] 본문 전체(HTML 태그 제외, 공백 제외)가 반드시 ${parseInt(targetLength) || 1500}자 이상이어야 함. 부족하면 각 섹션을 더 풍성하게 작성할 것.
-Output strictly a valid JSON: {"title": "SEO 최적화된 블로그 제목 (메인 키워드로 시작, 15~30자)", "html": "..."}`;
+${wannabeStyleRules ? `${wannabeStyleRules}\n위 스타일 규칙은 [필수]이다. 모든 문장에서 반드시 준수하라.\n` : ''}Output strictly a valid JSON: {"title": "SEO 최적화된 블로그 제목 (메인 키워드로 시작, 15~30자)", "html": "..."}`;
 
         const parts = [{ text: prompt }];
         if (!photoAnalysis) {
@@ -1058,7 +1058,7 @@ Output strictly a valid JSON:
         const toneBoost = this._categoryToneBoost('food', tone);
         const prompt = `너는 네이버 블로그 맛집 전문 블로거야.
 ${this._htmlRules(keyword, paragraphStyle)}
-키워드: ${keyword} | 톤: ${this._toneMap[tone] || this._toneMap['friendly']}${toneBoost ? `\n[카테고리 맞춤 톤 보정] ${toneBoost}` : ''}${wannabeStyleRules} | 글자수: ${targetLength} (최소 ${parseInt(targetLength) || 1500}자 이상 필수!!!)
+키워드: ${keyword} | 톤: ${wannabeStyleRules ? '(아래 스타일 규칙 우선 적용)' : (this._toneMap[tone] || this._toneMap['friendly'])}${toneBoost && !wannabeStyleRules ? `\n[카테고리 맞춤 톤 보정] ${toneBoost}` : ''} | 글자수: ${targetLength} (최소 ${parseInt(targetLength) || 1500}자 이상 필수!!!)
 사진: ${slots}
 ${this._subKeywordPrompt(subKeywords)}
 ${this._photoPrompt(photoAnalysis, photoAssets, 'food', verifiedDetails)}
@@ -1079,7 +1079,7 @@ ${this._introPromptByCategory('food', keyword)}
 ${infoCard}
 → 가게 정보는 반드시 글의 맨 마지막에 위치해야 함. 도입부나 본문 중간에 넣지 말 것. 독자가 글을 끝까지 읽고 방문을 결심한 후 확인하는 정보임.
 [글자수 — 필수!!!] 본문 전체(HTML 태그 제외, 공백 제외)가 반드시 ${parseInt(targetLength) || 1500}자 이상이어야 함. 부족하면 각 섹션을 더 풍성하게 작성할 것.
-Output strictly a valid JSON: {"title": "SEO 최적화된 블로그 제목 (메인 키워드로 시작, 15~30자)", "html": "..."}`;
+${wannabeStyleRules ? `${wannabeStyleRules}\n위 스타일 규칙은 [필수]이다. 모든 문장에서 반드시 준수하라.\n` : ''}Output strictly a valid JSON: {"title": "SEO 최적화된 블로그 제목 (메인 키워드로 시작, 15~30자)", "html": "..."}`;
 
         const parts = [{ text: prompt }];
         if (!photoAnalysis) {
@@ -1148,7 +1148,7 @@ Output strictly a valid JSON:
         const toneBoost = this._categoryToneBoost('shopping', tone);
         const prompt = `너는 네이버 블로그 쇼핑 리뷰 전문 블로거야.
 ${this._htmlRules(keyword, paragraphStyle)}
-키워드: ${keyword} | 톤: ${this._toneMap[tone] || this._toneMap['friendly']}${toneBoost ? `\n[카테고리 맞춤 톤 보정] ${toneBoost}` : ''}${wannabeStyleRules} | 글자수: ${targetLength} (최소 ${parseInt(targetLength) || 1500}자 이상 필수!!!)
+키워드: ${keyword} | 톤: ${wannabeStyleRules ? '(아래 스타일 규칙 우선 적용)' : (this._toneMap[tone] || this._toneMap['friendly'])}${toneBoost && !wannabeStyleRules ? `\n[카테고리 맞춤 톤 보정] ${toneBoost}` : ''} | 글자수: ${targetLength} (최소 ${parseInt(targetLength) || 1500}자 이상 필수!!!)
 사진: ${slots}
 ${this._subKeywordPrompt(subKeywords)}
 ${this._photoPrompt(photoAnalysis, photoAssets, 'shopping', verifiedDetails)}
@@ -1170,7 +1170,7 @@ ${infoCard}
 [장단점 섹션 — 필수]
 본문 후반부에 장점과 아쉬운 점을 <h2>✅ 장점</h2>과 <h2>❌ 아쉬운 점</h2> 소제목 아래 <ul><li> 리스트로 각각 3~5개씩 정리.
 [글자수 — 필수!!!] 본문 전체(HTML 태그 제외, 공백 제외)가 반드시 ${parseInt(targetLength) || 1500}자 이상이어야 함. 부족하면 각 섹션을 더 풍성하게 작성할 것.
-Output strictly a valid JSON: {"title": "SEO 최적화된 블로그 제목 (메인 키워드로 시작, 15~30자)", "html": "..."}`;
+${wannabeStyleRules ? `${wannabeStyleRules}\n위 스타일 규칙은 [필수]이다. 모든 문장에서 반드시 준수하라.\n` : ''}Output strictly a valid JSON: {"title": "SEO 최적화된 블로그 제목 (메인 키워드로 시작, 15~30자)", "html": "..."}`;
 
         const parts = [{ text: prompt }];
         if (!photoAnalysis) {
