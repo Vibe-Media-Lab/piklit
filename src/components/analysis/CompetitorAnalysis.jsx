@@ -51,9 +51,6 @@ const CompetitorAnalysis = ({ data, loading, onAnalyze, compact }) => {
                             <CheckCircle size={13} />
                             <span>이 분석 기준으로 글 길이가 자동 설정되었습니다</span>
                         </div>
-                        <button onClick={onAnalyze} className="competitor-compact-reanalyze">
-                            <BarChart3 size={13} /> 다시 분석
-                        </button>
                     </>
                 )}
             </div>
