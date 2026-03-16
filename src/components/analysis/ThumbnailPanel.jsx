@@ -175,6 +175,9 @@ const ThumbnailPanel = ({ onLocate } = {}) => {
         return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
     }, [isOpen, renderPreview]);
 
+    // 스타일 모드 판별 (useEffect 의존성으로 사용되므로 선행 선언 필수)
+    const isMultiStyle = style === 'H' || style === 'I';
+
     // ── 드래그 패닝 ──
     const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
 
@@ -387,7 +390,6 @@ const ThumbnailPanel = ({ onLocate } = {}) => {
 
     const hasPhotos = availablePhotos.length > 0;
     const showTextControls = style !== 'G';
-    const isMultiStyle = style === 'H' || style === 'I';
     const maxExtraPhotos = style === 'I' ? 3 : 2; // I: 최대 4장(1+3), H: 3장(1+2)
 
     const SHADOW_OPTIONS = ['없음', '약하게', '보통', '강하게', '네온'];
