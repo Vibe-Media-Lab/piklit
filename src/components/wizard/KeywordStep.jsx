@@ -58,7 +58,7 @@ const KeywordStep = ({
     canProceed,
     renderStepIndicator,
 }) => {
-    const { recordAiAction } = useEditor();
+    const { recordAiAction, title } = useEditor();
     const { showToast } = useToast();
 
     // 내부 상태
@@ -82,7 +82,9 @@ const KeywordStep = ({
         recordAiAction('keywordAnalysis');
         try {
             const excludeKeywords = selectedKeywords.map(k => getKw(k)).join(', ');
-            const result = await AIService.analyzeKeywords(topic, excludeKeywords, categoryId);
+            // title이 있으면 전달 (기존 글 수정 시), 없으면 빈 문자열
+            const effectiveTitle = title || '';
+            const result = await AIService.analyzeKeywords(topic, excludeKeywords, categoryId, effectiveTitle);
 
             if (result) {
                 if (result.competitors && result.competitors.blogs) {

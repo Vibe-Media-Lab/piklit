@@ -7,12 +7,16 @@ import {
     updateWeeklyScores, updateCategoryStats,
     updateKeywordHistory, pruneHistory,
 } from '../utils/history';
+import { useAuth } from './AuthContext';
+import { savePostToCloud, loadPostsFromCloud, deletePostFromCloud, migrateLocalToCloud } from '../services/postSync';
 
 const EditorContext = createContext();
 
 export const useEditor = () => useContext(EditorContext);
 
 export const EditorProvider = ({ children }) => {
+    const { user } = useAuth();
+
     // 1. Posts — 동기 초기화 (localStorage는 동기 API이므로 첫 렌더부터 데이터 사용 가능)
     const [posts, setPosts] = useState(() => {
         const savedPosts = localStorage.getItem('naver_blog_posts');
@@ -24,6 +28,9 @@ export const EditorProvider = ({ children }) => {
         return [];
     });
     const [currentPostId, setCurrentPostId] = useState(null);
+    const [cloudLoading, setCloudLoading] = useState(false);
+    const [cloudSyncStatus, setCloudSyncStatus] = useState('idle'); // idle | syncing | synced | error
+    const [migrationNeeded, setMigrationNeeded] = useState(false);
 
     // Editor State
     const [keywords, setKeywords] = useState({ main: '', sub: ['', '', ''] });
@@ -40,7 +47,58 @@ export const EditorProvider = ({ children }) => {
     // Session tracking ref (in-memory only, no re-renders)
     const sessionRef = React.useRef(null);
 
-    // 1-b. History rebuild (마운트 시 1회)
+    // 1-a. 로그인 시 Firestore에서 글 로드 + 마이그레이션 감지
+    const cloudInitRef = useRef(false);
+    useEffect(() => {
+        if (!user || cloudInitRef.current) return;
+        cloudInitRef.current = true;
+
+        setCloudLoading(true);
+        loadPostsFromCloud(user.uid)
+            .then(cloudPosts => {
+                if (cloudPosts.length > 0) {
+                    // 클라우드 글이 있으면 로컬과 병합 (클라우드 우선)
+                    setPosts(localPosts => {
+                        const cloudIds = new Set(cloudPosts.map(p => p.id));
+                        const localOnly = localPosts.filter(p => !cloudIds.has(p.id));
+                        const merged = [...cloudPosts, ...localOnly];
+                        // 로컬에만 있는 글이 있으면 마이그레이션 필요
+                        if (localOnly.length > 0) setMigrationNeeded(true);
+                        return merged;
+                    });
+                } else {
+                    // 클라우드 비어있고 로컬에 글이 있으면 마이그레이션 필요
+                    const savedPosts = localStorage.getItem('naver_blog_posts');
+                    if (savedPosts) {
+                        const parsed = JSON.parse(savedPosts);
+                        if (parsed.length > 0) setMigrationNeeded(true);
+                    }
+                }
+            })
+            .catch(err => console.warn('[Cloud] 글 로드 실패:', err.message))
+            .finally(() => setCloudLoading(false));
+    }, [user]);
+
+    // 1-b. 마이그레이션 자동 실행 (로컬 → 클라우드)
+    useEffect(() => {
+        if (!migrationNeeded || !user) return;
+        setMigrationNeeded(false);
+
+        const localPosts = posts.filter(p => p.title?.trim() || (p.content?.replace(/<[^>]*>/g, '').trim().length > 20));
+        if (localPosts.length === 0) return;
+
+        console.log(`[Cloud] 로컬 글 ${localPosts.length}개 마이그레이션 시작...`);
+        migrateLocalToCloud(user.uid, localPosts, (current, total) => {
+            console.log(`[Cloud] 마이그레이션 ${current}/${total}`);
+        })
+        .then(({ migrated, failed }) => {
+            console.log(`[Cloud] 마이그레이션 완료: 성공 ${migrated}, 실패 ${failed}`);
+        })
+        .catch(err => console.warn('[Cloud] 마이그레이션 실패:', err.message));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [migrationNeeded, user]);
+
+    // 1-c. History rebuild (마운트 시 1회)
     useEffect(() => {
         if (posts.length === 0) return;
         const history = loadHistory();
@@ -52,7 +110,7 @@ export const EditorProvider = ({ children }) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // 초기 로드 시 1회만 실행 — posts는 동기 초기화로 이미 존재
 
-    // 2. Save Posts
+    // 2. Save Posts (localStorage)
     useEffect(() => {
         try {
             localStorage.setItem('naver_blog_posts', JSON.stringify(posts));
@@ -60,6 +118,30 @@ export const EditorProvider = ({ children }) => {
             console.warn('[EditorContext] localStorage 저장 실패:', e.message);
         }
     }, [posts]);
+
+    // 2-b. 클라우드 동기화 (디바운스 10초)
+    const cloudSaveTimerRef = useRef(null);
+    const lastCloudSavedRef = useRef(null);
+    const userRef = useRef(user);
+    useEffect(() => { userRef.current = user; }, [user]);
+
+    const saveToCloud = useCallback((post) => {
+        const u = userRef.current;
+        if (!u || !post?.id) return;
+        // 같은 글 연속 저장 방지
+        if (lastCloudSavedRef.current === `${post.id}_${post.updatedAt}`) return;
+
+        setCloudSyncStatus('syncing');
+        savePostToCloud(u.uid, post)
+            .then(() => {
+                lastCloudSavedRef.current = `${post.id}_${post.updatedAt}`;
+                setCloudSyncStatus('synced');
+            })
+            .catch(err => {
+                console.warn('[Cloud] 저장 실패:', err.message);
+                setCloudSyncStatus('error');
+            });
+    }, []);
 
     // 3. Auto-save (Debounced 3초) — with SEO snapshot update
     const autoSave = useCallback(() => {
@@ -95,9 +177,17 @@ export const EditorProvider = ({ children }) => {
 
     useEffect(() => {
         if (!currentPostId) return;
-        const timer = setTimeout(autoSave, 3000);
+        const timer = setTimeout(() => {
+            autoSave();
+            // 클라우드 동기화 (디바운스 10초)
+            if (cloudSaveTimerRef.current) clearTimeout(cloudSaveTimerRef.current);
+            cloudSaveTimerRef.current = setTimeout(() => {
+                const post = postsRef.current.find(p => p.id === currentPostIdRef.current);
+                if (post) saveToCloud(post);
+            }, 10000);
+        }, 3000);
         return () => clearTimeout(timer);
-    }, [title, content, keywords, currentPostId, targetLength, autoSave]);
+    }, [title, content, keywords, currentPostId, targetLength, autoSave, saveToCloud]);
 
     // 페이지 이탈 시 즉시 저장
     useEffect(() => {
@@ -256,14 +346,20 @@ export const EditorProvider = ({ children }) => {
     const savePost = useCallback(() => {
         if (!currentPostId) return false;
         const now = new Date().toISOString();
+        const updatedPost = { id: currentPostId, title, content, keywords, updatedAt: now };
         setPosts(prevPosts => prevPosts.map(p =>
             p.id === currentPostId
                 ? { ...p, title, content, keywords, updatedAt: now, savedAt: now,
                     _snapshot: { title, content, keywords } }
                 : p
         ));
+        // 명시적 저장 시 즉시 클라우드 동기화
+        if (userRef.current) {
+            const fullPost = postsRef.current.find(p => p.id === currentPostId);
+            if (fullPost) saveToCloud({ ...fullPost, ...updatedPost });
+        }
         return true;
-    }, [currentPostId, title, content, keywords]);
+    }, [currentPostId, title, content, keywords, saveToCloud]);
 
     const revertPost = useCallback((id) => {
         setPosts(prev => prev.map(p => {
@@ -275,6 +371,13 @@ export const EditorProvider = ({ children }) => {
     const deletePost = useCallback((id) => {
         setPosts(prev => prev.filter(p => p.id !== id));
         setCurrentPostId(curr => curr === id ? null : curr);
+
+        // 클라우드 삭제
+        if (userRef.current) {
+            deletePostFromCloud(userRef.current.uid, id).catch(err =>
+                console.warn('[Cloud] 삭제 실패:', err.message)
+            );
+        }
 
         // Update category stats after deletion
         setTimeout(() => {
@@ -349,7 +452,11 @@ export const EditorProvider = ({ children }) => {
 
         // 에디터 이탈 방지 가드
         navigationGuardRef,
-    }), [posts, currentPostId, createPost, openPostStable, savePost, deletePost, revertPost, keywords, updateMainKeyword, updateSubKeyword, updateSubKeywords, title, content, analysis, suggestedTone, targetLength, closeSession, recordAiAction, updatePostMeta, photoPreviewUrls, humanTip]);
+
+        // 클라우드 동기화 상태
+        cloudLoading,
+        cloudSyncStatus,
+    }), [posts, currentPostId, createPost, openPostStable, savePost, deletePost, revertPost, keywords, updateMainKeyword, updateSubKeyword, updateSubKeywords, title, content, analysis, suggestedTone, targetLength, closeSession, recordAiAction, updatePostMeta, photoPreviewUrls, humanTip, cloudLoading, cloudSyncStatus]);
 
     return (
         <EditorContext.Provider value={value}>

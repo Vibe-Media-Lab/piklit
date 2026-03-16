@@ -198,7 +198,7 @@ export const AIService = {
     // 경쟁 분석 캐시 (키워드 분석 통합 호출에서 함께 수신한 데이터)
     _competitorCache: { keyword: null, data: null },
 
-    async analyzeKeywords(topic, excludeKeywords = '', categoryId = '') {
+    async analyzeKeywords(topic, excludeKeywords = '', categoryId = '', title = '') {
         const excludeInstruction = excludeKeywords
             ? `\n다음 키워드는 반드시 제외: ${excludeKeywords}`
             : '';
@@ -210,18 +210,15 @@ export const AIService = {
             ? `\n이 주제의 카테고리: "${categoryLabel}". 반드시 이 카테고리와 직접 관련된 키워드만 추천해. 카테고리와 무관한 키워드(숙소, 관광지, 축제 등)는 절대 포함하지 마.`
             : '';
 
-        // 시즌/트렌드 반영을 위한 날짜·계절 변수
-        const now = new Date();
-        const month = now.getMonth() + 1;
-        const seasonMap = {12:'겨울',1:'겨울',2:'겨울',3:'봄',4:'봄',5:'봄',6:'여름',7:'여름',8:'여름',9:'가을',10:'가을',11:'가을'};
-        const season = seasonMap[month];
-        const nextMonth = month === 12 ? 1 : month + 1;
-        const nextSeason = seasonMap[nextMonth];
+        // 글 제목이 있으면 맥락 보강
+        const titleInstruction = title && title !== topic
+            ? `\n글 제목: "${title}". 이 제목에 포함된 핵심 단어(지역, 업종, 특징)를 반드시 반영해.`
+            : '';
 
         const prompt = `너는 네이버 블로그 SEO 키워드 전문가야.
 "${topic}"에 대해 네이버 검색 유입을 최대한 끌어올릴 키워드를 추천해줘.
 구글 검색으로 "${topic}" 관련 블로그, 카페, 리뷰를 조사해.
-${excludeInstruction}${categoryInstruction}
+${excludeInstruction}${categoryInstruction}${titleInstruction}
 
 [키워드 추천 규칙]
 1. 브랜드명 단독 키워드 금지 (예: "김선문 메뉴" ❌)
@@ -230,11 +227,8 @@ ${excludeInstruction}${categoryInstruction}
 4. 롱테일 키워드 포함 (3~5어절)
 5. 메인 키워드는 검색량이 가장 많을 핵심 키워드
 6. 주제의 카테고리와 무관한 키워드 금지 (예: 맛집인데 "숙소", "명소" ❌)
-
-[시즌/트렌드 반영]
-현재: ${now.getFullYear()}년 ${month}월 (${season}). 다음 달: ${nextMonth}월 (${nextSeason}).
-7. 현재 시즌(${season})과 다가올 시즌(${nextSeason})에 검색량이 오를 키워드를 2~3개 포함
-8. 명절·방학·연휴 등 시기적 이벤트 관련 롱테일 키워드 우선 고려
+7. 시즌·계절 키워드 금지 — 시즌 키워드는 별도 기능에서 추천함
+8. 주제의 지역·업종·특징에 정확히 맞는 키워드만 추천 (예: 애월 파인다이닝인데 "서귀포 브런치" ❌)
 
 [출력]
 - 메인 키워드 1개
@@ -254,9 +248,11 @@ Output strictly a valid JSON:
         if (!result?.subKeywords || !Array.isArray(result.subKeywords)) {
             const rawText = result?.text || result?.html || '';
             console.log('[키워드 분석] 검색 데이터 기반 JSON 변환 재시도...');
+            const titleContext = title && title !== topic ? `\n글 제목: "${title}". 제목에 포함된 핵심 단어(지역, 업종, 특징)를 반드시 반영해.` : '';
             const formatPrompt = `아래는 "${topic}"에 대한 네이버 SEO 키워드 분석 결과야.
 이 내용을 기반으로 메인 키워드 1개와 서브 키워드 10개를 JSON으로 정리해.
-원문의 키워드를 그대로 활용하고, 임의로 새 키워드를 만들지 마.
+원문의 키워드를 그대로 활용하고, 임의로 새 키워드를 만들지 마.${titleContext}
+시즌·계절 키워드는 제외하고, 주제에 정확히 맞는 키워드만 포함해.
 
 ---
 ${rawText.slice(0, 3000)}
