@@ -2026,6 +2026,32 @@ Output strictly valid HTML only. No JSON wrapping, no explanation.`;
 
     async fixSeoIssues(htmlContent, title, mainKeyword, subKeywords, issues, tone = 'friendly') {
         const issueDescriptions = issues.map(i => `- ${i.id}: ${i.text} ${i.metric || ''}`).join('\n');
+        const issueIds = new Set(issues.map(i => i.id));
+
+        // 요청된 이슈에 해당하는 규칙만 선별
+        const RULE_MAP = {
+            title_start: '제목을 메인 키워드로 시작하도록 자연스럽게 재배치.',
+            title_long: '제목을 10~30자로 축약.',
+            title_short: '제목을 10~30자로 확장.',
+            key_density: '본문에 메인 키워드를 자연스럽게 추가 삽입하거나, 과다 시 유의어로 대체.',
+            keyword_density_low: '본문에 메인 키워드를 자연스럽게 추가 삽입.',
+            keyword_density_high: '과도한 키워드 반복을 유의어로 대체.',
+            key_first: '첫 문단에 메인 키워드를 자연스럽게 포함.',
+            sub_missing: '서브 키워드를 본문에 자연스럽게 녹여넣기.',
+            structure_missing: '적절한 위치에 <h2> 소제목 추가.',
+            heading_keyword: '소제목 중 하나 이상에 메인 키워드 포함.',
+            intro_short: '첫 문단을 140~160자로 확장.',
+            intro_long: '첫 문단을 140~160자로 축약.',
+            length_short: '본문 글자수가 목표에 부족함. 기존 문단 중 내용이 얇은 섹션을 골라 구체적 디테일·경험·팁을 자연스럽게 추가하여 목표 글자수를 채울 것. 새 문단을 억지로 만들지 말고 기존 흐름을 풍성하게 확장.',
+        };
+        const selectedRules = issues
+            .map((iss, idx) => RULE_MAP[iss.id] ? `${idx + 1}. ${iss.id}: ${RULE_MAP[iss.id]}` : null)
+            .filter(Boolean)
+            .join('\n');
+
+        // 제목 관련 이슈가 아니면 제목 변경 금지
+        const TITLE_ISSUE_IDS = new Set(['title_start', 'title_long', 'title_short']);
+        const hasTitleIssue = issues.some(i => TITLE_ISSUE_IDS.has(i.id));
 
         // base64 이미지를 플레이스홀더로 치환 (토큰 오버플로 방지)
         const imgMap = [];
@@ -2048,27 +2074,20 @@ ${issueDescriptions}
 [현재 본문 HTML]
 ${strippedContent}
 
-[수정 규칙]
-1. 위 이슈들만 정확히 수정해. 이슈와 무관한 내용은 절대 변경하지 마.
-2. 원문의 톤, 스타일, 의미를 최대한 유지해.
-3. title_start: 제목을 메인 키워드로 시작하도록 자연스럽게 재배치.
-4. title_long/title_short: 제목을 10~30자로 조정.
-5. key_density/keyword_density_low: 본문에 메인 키워드를 자연스럽게 추가 삽입.
-6. keyword_density_high/key_density(과다): 과도한 키워드 반복을 유의어로 대체.
-7. key_first: 첫 문단에 메인 키워드를 자연스럽게 포함.
-8. sub_missing: 서브 키워드를 본문에 자연스럽게 녹여넣기.
-9. structure_missing: 적절한 위치에 <h2> 소제목 추가.
-10. heading_keyword: 소제목 중 하나 이상에 메인 키워드 포함.
-11. intro_short: 첫 문단을 140~160자로 확장.
-12. intro_long: 첫 문단을 140~160자로 축약.
-13. 한 문장은 80자 이내. "다양한", "풍부한" 등 AI 냄새나는 수식어 금지.
-14. 이미지(<img>) 태그는 절대 변경하지 마.
+[수정 규칙 — 아래 규칙만 적용하고, 나머지는 절대 변경하지 마]
+${selectedRules}
+
+[금지 사항]
+- 위 이슈 외 다른 부분을 수정하면 안 된다. 원문을 최대한 보존해라.
+${hasTitleIssue ? '' : '- 제목(title)은 절대 변경하지 마. 원본 그대로 반환해라.'}
+- 이미지(<img>) 태그는 절대 변경하지 마.
+- 한 문장은 80자 이내. "다양한", "풍부한" 등 AI 냄새나는 수식어 금지.
 
 Output strictly a valid JSON:
 {
-  "title": "수정된 제목 (변경 없으면 원본 그대로)",
-  "content": "수정된 본문 HTML (변경 없으면 원본 그대로)",
-  "fixes": ["수정 내용 1줄 요약", "수정 내용 1줄 요약"]
+  "title": "${hasTitleIssue ? '수정된 제목' : '원본 제목 그대로 반환'}",
+  "content": "수정된 본문 HTML",
+  "fixes": ["수정 내용 1줄 요약"]
 }`;
 
         const result = await this.generateContent(
@@ -2090,7 +2109,7 @@ Output strictly a valid JSON:
         });
 
         return {
-            title: result?.title || title,
+            title: hasTitleIssue ? (result?.title || title) : title,
             content: fixedContent,
             fixes: result?.fixes || [],
         };

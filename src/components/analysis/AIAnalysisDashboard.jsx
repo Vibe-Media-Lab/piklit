@@ -136,15 +136,29 @@ const AIAnalysisDashboard = ({ onLocate, mode }) => {
             const result = await AIService.fixSeoIssues(
                 content, title, keywords.main, subKeywords, issuesToFix, suggestedTone || 'friendly'
             );
-            if (result.title && result.title !== title) setTitle(result.title);
+            // 제목 관련 이슈일 때만 제목 변경 적용 (이중 보호)
+            const TITLE_ISSUE_IDS = new Set(['title_start', 'title_long', 'title_short']);
+            const hasTitleIssue = issuesToFix.some(i => TITLE_ISSUE_IDS.has(i.id));
+            if (hasTitleIssue && result.title && result.title !== title) {
+                setTitle(result.title);
+            }
             if (result.content && result.content !== content) setContent(result.content);
-            const fixCount = issuesToFix.length;
-            showToast(`SEO 이슈 ${fixCount}건 수정 완료`, 'success');
-            setScoreToast({
-                message: `SEO 이슈 ${fixCount}건 수정 완료`,
-                prevSeo,
-                prevTotal,
-            });
+
+            // 수정 후 검증: 짧은 딜레이 후 점수 비교 (re-render 대기)
+            setTimeout(() => {
+                const newSeo = Math.round((Object.values(analysis.checks).filter(Boolean).length / (Object.keys(analysis.checks).length || 1)) * 100);
+                const issueName = targetIssue ? targetIssue.text : `${issuesToFix.length}건`;
+                if (newSeo > prevSeo) {
+                    showToast(`${issueName} 수정 완료 · SEO ${prevSeo}% → ${newSeo}%`, 'success');
+                } else {
+                    showToast(`${issueName} 수정 적용됨 · 점수 변동 확인 중...`, 'info');
+                }
+                setScoreToast({
+                    message: `${issueName} 수정`,
+                    prevSeo,
+                    prevTotal,
+                });
+            }, 500);
         } catch (e) {
             showToast('SEO 수정 오류: ' + e.message, 'error');
         } finally {
