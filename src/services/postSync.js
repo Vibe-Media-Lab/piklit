@@ -15,9 +15,14 @@ export const savePostToCloud = async (userId, post) => {
     let uploadedCount = 0;
 
     if (cloudContent.includes('data:image/')) {
-        const result = await extractAndUploadImages(userId, post.id, cloudContent);
-        cloudContent = result.html;
-        uploadedCount = result.uploadedCount;
+        try {
+            const result = await extractAndUploadImages(userId, post.id, cloudContent);
+            cloudContent = result.html;
+            uploadedCount = result.uploadedCount;
+        } catch (err) {
+            // Storage 미활성 시 base64 유지 (fallback)
+            console.warn('이미지 업로드 실패, base64 유지:', err.message);
+        }
     }
 
     const docData = {

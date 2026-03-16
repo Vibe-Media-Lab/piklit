@@ -134,12 +134,21 @@
     font-weight: 700;
 }
 
+/* ─── Slot count badge ────────────────────────────── */
+.wannabe-slot-count {
+    margin-left: auto;
+    font-size: 0.65rem;
+    font-weight: 500;
+    color: var(--color-text-sub);
+}
+
+/* ─── Empty slot (dashed, PhotoUploader style) ───── */
 .wannabe-slot-empty {
     width: 100%;
     aspect-ratio: 3/4;
-    border: 2px dashed var(--color-border);
-    border-radius: var(--radius-md);
-    background: none;
+    border: 1px dashed var(--color-border, #E3E2E0);
+    border-radius: var(--radius-md, 6px);
+    background: var(--color-surface-hover, #F7F6F3);
     cursor: pointer;
     display: flex;
     flex-direction: column;
@@ -148,12 +157,13 @@
     gap: 4px;
     color: var(--color-text-sub);
     font-size: 0.7rem;
-    transition: border-color 0.2s, color 0.2s;
+    transition: all 0.2s ease;
 }
 
 .wannabe-slot-empty:hover {
-    border-color: var(--color-brand);
-    color: var(--color-brand);
+    border-color: var(--color-brand, #FF6B35);
+    background: var(--color-brand-light, #FFF3ED);
+    color: var(--color-brand, #FF6B35);
 }
 
 .wannabe-slot-empty.small {
@@ -162,69 +172,87 @@
     height: 56px;
 }
 
-.wannabe-slot-thumb {
+/* ─── Filled slot (representative image + badge) ─── */
+.wannabe-slot-preview {
     position: relative;
     width: 100%;
     aspect-ratio: 3/4;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-md, 6px);
     overflow: hidden;
-    border: 1px solid var(--color-border);
+    border: 1px solid var(--color-border, #E3E2E0);
+    cursor: default;
 }
 
-.wannabe-slot-thumb.small {
+.wannabe-slot-preview.addable {
+    cursor: pointer;
+}
+
+.wannabe-slot-preview.addable:hover {
+    border-color: var(--color-brand, #FF6B35);
+}
+
+.wannabe-slot-preview.small {
     width: 56px;
     height: 56px;
     aspect-ratio: 1;
 }
 
-.wannabe-slot-thumb img {
+.wannabe-slot-preview img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
+/* +N badge (PhotoUploader style) */
+.wannabe-slot-badge {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    font-size: 0.7rem;
+    padding: 1px 6px;
+    border-radius: 10px;
+    pointer-events: none;
+}
+
+/* Remove button */
 .wannabe-slot-remove {
     position: absolute;
-    top: 3px;
-    right: 3px;
+    top: 4px;
+    right: 4px;
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background: rgba(0, 0, 0, 0.6);
-    color: white;
-    border: none;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid var(--color-border, #E3E2E0);
+    color: var(--color-text-sub, #787774);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 10;
+    transition: background 0.2s;
 }
 
-/* ─── Multi-image slot ────────────────────────────── */
-.wannabe-slot-images {
-    display: flex;
-    gap: 4px;
-    flex-wrap: wrap;
+.wannabe-slot-remove:hover {
+    background: var(--color-error, #EB5757);
+    color: white;
+    border-color: var(--color-error, #EB5757);
 }
-.wannabe-slot-images .wannabe-slot-thumb {
-    width: calc(50% - 2px);
-    aspect-ratio: 3/4;
-}
-.wannabe-slot-add-more {
-    width: calc(50% - 2px);
-    aspect-ratio: 3/4;
-    border: 1px dashed var(--color-border);
-    border-radius: var(--radius-md);
-    background: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--color-text-sub);
-    transition: border-color 0.2s, color 0.2s;
-}
-.wannabe-slot-add-more:hover {
-    border-color: var(--color-brand);
-    color: var(--color-brand);
+
+/* Label overlay (PhotoUploader style) */
+.wannabe-slot-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 2px 4px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    font-size: 0.65rem;
+    text-align: center;
+    font-weight: 600;
 }
 
 /* ─── Extras ─────────────────────────────────────── */

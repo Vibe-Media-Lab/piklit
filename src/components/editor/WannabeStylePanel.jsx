@@ -18,6 +18,7 @@ const SLOTS = [
 ];
 
 const MAX_EXTRA = 3;
+const MAX_PER_SLOT = 5;
 
 /** 체크리스트 그룹 (접이식) */
 const ChecklistGroup = ({ groupKey, items, onToggle }) => {
@@ -72,26 +73,41 @@ export default function WannabeStylePanel({ isOpen, onClose, onSave, userPlan = 
 
     const hasRequired = slots.top?.length > 0 && slots.mid?.length > 0;
 
-    // 파일 선택 핸들러 (압축 적용)
+    // 파일 선택 핸들러 (복수 파일, 압축 적용)
     const handleFileSelect = useCallback(async (e) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        const base64 = await fileToBase64(file, 512);
-        const preview = URL.createObjectURL(file);
-        const data = { preview, base64, mimeType: 'image/jpeg' };
+        const files = Array.from(e.target.files || []);
+        if (files.length === 0) return;
 
         const slotId = activeSlotRef.current;
-        if (slotId === 'extra') {
-            setExtras(prev => [...prev, data]);
-        } else {
-            setSlots(prev => ({
-                ...prev,
-                [slotId]: [...(prev[slotId] || []), data],
-            }));
+
+        for (const file of files) {
+            // 슬롯별 최대 장수 체크
+            if (slotId === 'extra') {
+                if ((extras.length + files.indexOf(file)) >= MAX_EXTRA) break;
+            } else {
+                const current = slots[slotId]?.length || 0;
+                if (current + files.indexOf(file) >= MAX_PER_SLOT) break;
+            }
+
+            const base64 = await fileToBase64(file, 512);
+            const preview = URL.createObjectURL(file);
+            const data = { preview, base64, mimeType: 'image/jpeg' };
+
+            if (slotId === 'extra') {
+                setExtras(prev => {
+                    if (prev.length >= MAX_EXTRA) return prev;
+                    return [...prev, data];
+                });
+            } else {
+                setSlots(prev => {
+                    const arr = prev[slotId] || [];
+                    if (arr.length >= MAX_PER_SLOT) return prev;
+                    return { ...prev, [slotId]: [...arr, data] };
+                });
+            }
         }
         e.target.value = '';
-    }, []);
+    }, [slots, extras]);
 
     const triggerFileInput = (slotId) => {
         activeSlotRef.current = slotId;
@@ -246,28 +262,32 @@ export default function WannabeStylePanel({ isOpen, onClose, onSave, userPlan = 
                             <div className="wannabe-slot-grid">
                                 {SLOTS.map(slot => {
                                     const images = slots[slot.id] || [];
+                                    const isFull = images.length >= MAX_PER_SLOT;
                                     return (
                                         <div key={slot.id} className="wannabe-slot">
                                             <div className="wannabe-slot-label">
                                                 <span className="wannabe-slot-icon">{slot.icon}</span>
                                                 {slot.label}
+                                                <span className="wannabe-slot-count">
+                                                    {images.length}/{MAX_PER_SLOT}
+                                                </span>
                                             </div>
                                             {images.length > 0 ? (
-                                                <div className="wannabe-slot-images">
-                                                    {images.map((img, i) => (
-                                                        <div key={i} className="wannabe-slot-thumb">
-                                                            <img src={img.preview} alt={`${slot.label} ${i + 1}`} />
-                                                            <button className="wannabe-slot-remove" onClick={() => removeSlotImage(slot.id, i)}>
-                                                                <X size={12} />
-                                                            </button>
-                                                        </div>
-                                                    ))}
+                                                <div
+                                                    className={`wannabe-slot-preview ${isFull ? '' : 'addable'}`}
+                                                    onClick={() => !isFull && triggerFileInput(slot.id)}
+                                                >
+                                                    <img src={images[0].preview} alt={slot.label} />
+                                                    {images.length > 1 && (
+                                                        <span className="wannabe-slot-badge">+{images.length - 1}</span>
+                                                    )}
                                                     <button
-                                                        className="wannabe-slot-add-more"
-                                                        onClick={() => triggerFileInput(slot.id)}
+                                                        className="wannabe-slot-remove"
+                                                        onClick={e => { e.stopPropagation(); removeSlotImage(slot.id, images.length - 1); }}
                                                     >
-                                                        <ImagePlus size={14} />
+                                                        <X size={12} />
                                                     </button>
+                                                    <span className="wannabe-slot-overlay">{slot.label}</span>
                                                 </div>
                                             ) : (
                                                 <button
@@ -290,7 +310,7 @@ export default function WannabeStylePanel({ isOpen, onClose, onSave, userPlan = 
                                 </div>
                                 <div className="wannabe-extras-row">
                                     {extras.map((ex, i) => (
-                                        <div key={i} className="wannabe-slot-thumb small">
+                                        <div key={i} className="wannabe-slot-preview small">
                                             <img src={ex.preview} alt={`추가 ${i + 1}`} />
                                             <button className="wannabe-slot-remove" onClick={() => removeExtra(i)}>
                                                 <X size={12} />
@@ -312,6 +332,7 @@ export default function WannabeStylePanel({ isOpen, onClose, onSave, userPlan = 
                                 ref={fileInputRef}
                                 type="file"
                                 accept="image/*"
+                                multiple
                                 hidden
                                 onChange={handleFileSelect}
                             />

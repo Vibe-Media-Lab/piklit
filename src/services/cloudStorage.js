@@ -91,7 +91,8 @@ export const extractAndUploadImages = async (userId, postId, htmlContent, option
                 const { data } = await callUploadImage(postId, `img_${idx}.jpg`, base64Data);
                 return { original: dataUrl, url: data.url };
             } catch (err) {
-                console.warn(`이미지 ${idx} 업로드 실패:`, err.message);
+                // Storage 미활성 시 base64 유지 (fallback)
+                console.warn(`이미지 ${idx} 업로드 실패, base64 유지:`, err.message);
                 return null;
             }
         });
