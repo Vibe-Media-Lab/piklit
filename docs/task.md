@@ -942,6 +942,34 @@
 - [x] 베타 테스터 + 버그 리포트 실제 동작 검증
 - [x] 배포 후 전체 플로우 E2E 테스트
 
+## 완료된 작업 (2026-03-16) — 스타일 반영 강화 + 버그 수정 세션
+
+### 스타일 반영 강화
+- [x] `wannabeStyle.js` — `buildStyleRules()` 명령형 전면 개편 (16항목 × 구체적 AI 명령 매핑 RULE_COMMANDS)
+- [x] `wannabeStyle.js` — sampleSentences 문체 예시 프롬프트 활용 추가
+- [x] `openai.js` — 스타일 규칙 프롬프트 위치를 Output JSON 직전(최하단)으로 이동 (3개 Draft 메서드)
+- [x] `openai.js` — 스타일 분석 시 기본 톤 대신 스타일 규칙 우선 적용
+
+### AI 수정 고도화
+- [x] `openai.js` fixSeoIssues — RULE_MAP 기반 이슈별 규칙 분리 (13개 규칙 일괄 → 요청된 이슈만)
+- [x] `openai.js` fixSeoIssues — 제목 보호 이중 가드 (TITLE_ISSUE_IDS + 클라이언트 검증)
+- [x] `openai.js` fixSeoIssues — length_short 규칙 추가
+- [x] `AIAnalysisDashboard.jsx` — AI 수정 후 검증 토스트 (점수 비교 표시)
+
+### 버그 수정
+- [x] `ThumbnailPanel.jsx` — isMultiStyle TDZ 에러 수정 (프로덕션 빌드 크래시)
+- [x] `postSync.js` — Firebase Storage 미활성 시 base64 fallback 추가
+- [x] `EditorContext.jsx` — localStorage 저장 시 base64 이미지 제거 (5MB 용량 초과 방지)
+- [x] `AIAnalysisDashboard.jsx` — length_short AI 수정 버튼 추가
+
+### 기타
+- [x] `WannabeStylePanel.jsx` — 다중 이미지 업로드 (슬롯당 최대 5장, 대표 이미지 + +N 뱃지)
+- [x] `WannabeStyle.css` — PhotoUploader 디자인 매칭
+
+### 남은 작업
+- [ ] Firebase Storage 관리자 확인 (bucket does not exist 근본 원인 미해결, base64 fallback 가동 중)
+- [ ] 미푸쉬 커밋 5건 배포
+
 ## 아이디어 보관함 (Icebox)
 
 > 당장 구현하지 않지만 나중에 재검토할 수 있는 아이디어

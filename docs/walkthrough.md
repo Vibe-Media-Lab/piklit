@@ -1,23 +1,25 @@
-# 피클잇 (Piklit) - 세션 워크스루 (2026-03-13)
+# 피클잇 (Piklit) - 세션 워크스루 (2026-03-16)
 
 ## 프로젝트 개요
 네이버 블로그 SEO 최적화 AI 작성기 (React 19 + Vite 7 + TipTap + Google Gemini 2.5 Flash API)
 
 ## 이번 세션 요약
-모바일 이슈 13건 수정 + 자연스러움 탭 V3 디자인 통일 + SEO AI 수정 개선 + 프리뷰 파일 정리
+워너비/내 스타일 16항목 본문 반영 강화 + AI 수정 고도화 + TDZ/Storage/localStorage 버그 3건 수정
 
 ## 수정 파일
 
 | 파일 | 변경 사항 |
 |------|----------|
-| `src/components/analysis/AIAnalysisDashboard.jsx` | mode="natural" 추가, SEO 제안 필터링, 개별 AI 수정, 히스토리 중복 제거 |
-| `src/components/analysis/HumannessPanel.jsx` | suggestOnly 모드 추가 (V3 대시보드용) |
-| `src/components/analysis/ReadabilityPanel.jsx` | 기본 접힘 설정 |
-| `src/components/analysis/ThumbnailPanel.jsx` | 깨진 이미지 숨김 + 본문 삽입 후 바텀시트 닫기 |
-| `src/components/layout/MainContainer.jsx` | 자연스러움 탭 V3 모드 전환, 미사용 import 정리 |
-| `src/services/openai.js` | fixSeoIssues responseMimeType + base64 복원 개선 + content 키 파싱 fallback |
+| `src/utils/wannabeStyle.js` | buildStyleRules() 명령형 전면 개편 (RULE_COMMANDS 매핑 + sampleSentences 활용) |
+| `src/services/openai.js` | 스타일 규칙 위치 최하단 이동 + 기본 톤 대신 스타일 우선 + fixSeoIssues RULE_MAP + 제목 보호 |
+| `src/components/analysis/AIAnalysisDashboard.jsx` | length_short AI 수정 추가 + 검증 토스트 + 제목 보호 |
+| `src/components/analysis/ThumbnailPanel.jsx` | isMultiStyle TDZ 에러 수정 |
+| `src/services/postSync.js` | Firebase Storage base64 fallback |
+| `src/context/EditorContext.jsx` | localStorage base64 이미지 제거 |
+| `src/components/editor/WannabeStylePanel.jsx` | 다중 이미지 업로드 (최대 5장/슬롯) |
+| `src/styles/WannabeStyle.css` | PhotoUploader 디자인 매칭 |
 
 ## 현재 릴리즈 상태
-- 빌드: 정상 (2.04s)
-- 마지막 커밋: b41c1da
-- 배포: Vercel 자동 배포 (push 완료)
+- 빌드: 정상 (1.93s)
+- 마지막 커밋: cf5b516
+- 미푸쉬: 5건 (origin/main 대비)
