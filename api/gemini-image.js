@@ -1,5 +1,5 @@
-import { verifyFirebaseToken } from './lib/auth.js';
-import { getDoc, setDoc } from './lib/firestore.js';
+import { verifyFirebaseToken } from './_lib/auth.js';
+import { getDoc, setDoc } from './_lib/firestore.js';
 
 const PROMO_DAYS = 30;
 const BETA_DAYS = 7;

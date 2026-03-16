@@ -1,5 +1,5 @@
-import { verifyFirebaseToken } from './lib/auth.js';
-import { getDoc, setDoc } from './lib/firestore.js';
+import { verifyFirebaseToken } from './_lib/auth.js';
+import { getDoc, setDoc } from './_lib/firestore.js';
 
 const BETA_CODE = process.env.BETA_CODE || 'PIKLIT-VIP';
 const BETA_MAX_USERS = 100;

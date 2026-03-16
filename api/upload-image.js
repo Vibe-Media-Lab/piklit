@@ -1,5 +1,5 @@
-import { verifyFirebaseToken } from './lib/auth.js';
-import { uploadFile } from './lib/storage.js';
+import { verifyFirebaseToken } from './_lib/auth.js';
+import { uploadFile } from './_lib/storage.js';
 
 export const config = {
     api: { bodyParser: { sizeLimit: '10mb' } },

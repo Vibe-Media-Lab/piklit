@@ -1,6 +1,6 @@
-import { verifyFirebaseToken } from './lib/auth.js';
-import { listDocs, getDoc, setDoc, removeFields } from './lib/firestore.js';
-import { isAdmin } from './lib/adminEmails.js';
+import { verifyFirebaseToken } from './_lib/auth.js';
+import { listDocs, getDoc, setDoc, removeFields } from './_lib/firestore.js';
+import { isAdmin } from './_lib/adminEmails.js';
 
 const BETA_DAYS = 7;
 const BETA_FIELDS = [

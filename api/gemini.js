@@ -1,5 +1,5 @@
-import { verifyFirebaseToken } from './lib/auth.js';
-import { getDoc, setDoc } from './lib/firestore.js';
+import { verifyFirebaseToken } from './_lib/auth.js';
+import { getDoc, setDoc } from './_lib/firestore.js';
 
 const DRAFT_ACTIONS = ['본문 생성', '맛집 본문 생성'];
 const MONTHLY_LIMIT = 3;

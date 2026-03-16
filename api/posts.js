@@ -1,6 +1,6 @@
-import { verifyFirebaseToken } from './lib/auth.js';
-import { getDoc, setDoc, deleteDoc, listDocs } from './lib/firestore.js';
-import { deleteFolder } from './lib/storage.js';
+import { verifyFirebaseToken } from './_lib/auth.js';
+import { getDoc, setDoc, deleteDoc, listDocs } from './_lib/firestore.js';
+import { deleteFolder } from './_lib/storage.js';
 
 // 복합 필드 (object/array) → JSON 문자열로 직렬화
 const COMPLEX_FIELDS = ['keywords'];

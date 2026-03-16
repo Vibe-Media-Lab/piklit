@@ -1,6 +1,6 @@
-import { verifyFirebaseToken } from './lib/auth.js';
-import { getDoc, setDoc, deleteDoc } from './lib/firestore.js';
-import { isAdmin as checkAdmin } from './lib/adminEmails.js';
+import { verifyFirebaseToken } from './_lib/auth.js';
+import { getDoc, setDoc, deleteDoc } from './_lib/firestore.js';
+import { isAdmin as checkAdmin } from './_lib/adminEmails.js';
 
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
