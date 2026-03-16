@@ -110,10 +110,16 @@ export const EditorProvider = ({ children }) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // 초기 로드 시 1회만 실행 — posts는 동기 초기화로 이미 존재
 
-    // 2. Save Posts (localStorage)
+    // 2. Save Posts (localStorage) — base64 이미지 제거하여 용량 초과 방지
     useEffect(() => {
         try {
-            localStorage.setItem('naver_blog_posts', JSON.stringify(posts));
+            const stripped = posts.map(p => ({
+                ...p,
+                content: p.content
+                    ? p.content.replace(/src="data:image\/[^"]{1000,}"/g, 'src="__stripped__"')
+                    : p.content,
+            }));
+            localStorage.setItem('naver_blog_posts', JSON.stringify(stripped));
         } catch (e) {
             console.warn('[EditorContext] localStorage 저장 실패:', e.message);
         }
