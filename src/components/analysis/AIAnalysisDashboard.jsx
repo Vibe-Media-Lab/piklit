@@ -36,6 +36,7 @@ const AI_FIXABLE_IDS = new Set([
     'structure_missing', 'heading_keyword',
     'keyword_density_low', 'keyword_density_high',
     'intro_short', 'intro_long',
+    'length_short',
 ]);
 
 // SEO 체크 항목 정의 (checks 키 → 라벨 + 메트릭 함수)
