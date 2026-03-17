@@ -1833,8 +1833,8 @@ recommendations는 ${hasStats ? '5' : '3'}개.`;
      * @param {Array|null} screenshots - 스크린샷 base64 배열 [{base64, mimeType}]
      * @returns {Promise<Object>} 스타일 프로필 (checklist 구조)
      */
-    async analyzeWannabeStyle(url, screenshots = []) {
-        if (!url && (!screenshots || screenshots.length === 0)) {
+    async analyzeWannabeStyle(_url, screenshots = []) {
+        if (!screenshots || screenshots.length === 0) {
             throw new Error('스크린샷을 하나 이상 입력해주세요.');
         }
 
@@ -1993,6 +1993,7 @@ Output strictly a valid JSON:
 [메인 키워드] ${mainKeyword || '없음'}
 [톤] ${toneInstruction}
 ${styleRules}
+${this._htmlRules(mainKeyword)}
 
 [현재 본문 HTML]
 ${htmlContent}
@@ -2000,11 +2001,8 @@ ${htmlContent}
 [재작성 규칙]
 1. 소제목(h2, h3) 구조와 이미지(<img>) 태그는 그대로 유지. 텍스트만 재작성.
 2. 각 섹션의 주제와 순서를 유지하되, 문장은 완전히 새로 작성.
-3. 한 문장은 80자 이내. 80자를 넘길 것 같으면 두 문장으로 나눠.
-4. "다양한", "풍부한", "완벽한", "특별한" 등 AI 냄새나는 수식어 금지.
-5. "살펴보겠습니다", "알아보겠습니다" 금지.
-6. 구체적 수치·감각 표현·개인 경험 톤으로 작성.
-7. 결과는 HTML로 출력. <h2>, <p>, <img>, <b>, <em> 태그 사용.
+3. 구체적 수치·감각 표현·개인 경험 톤으로 작성.
+4. 결과는 HTML로 출력. <h2>, <p>, <img>, <b>, <em> 태그 사용.
 
 Output strictly valid HTML only. No JSON wrapping, no explanation.`;
 
@@ -2085,7 +2083,9 @@ ${selectedRules}
 - 위 이슈 외 다른 부분을 수정하면 안 된다. 원문을 최대한 보존해라.
 ${hasTitleIssue ? '' : '- 제목(title)은 절대 변경하지 마. 원본 그대로 반환해라.'}
 - 이미지(<img>) 태그는 절대 변경하지 마.
-- 한 문장은 80자 이내. "다양한", "풍부한" 등 AI 냄새나는 수식어 금지.
+- 한 문장은 80자 이내. 80자 넘기면 두 문장으로 나눠.
+- AI 패턴 표현 절대 금지: "다양한", "풍부한", "완벽한", "특별한", "놀라운", "인상적인", "독특한", "매력적인", "효과적인", "핵심적인", "필수적인", "최적의", "한층 더", "그야말로", "무엇보다", "안성맞춤" → 구체적 수치·감각 표현으로 대체.
+- "살펴보겠습니다", "알아보겠습니다", "소개해 드리겠습니다", "결론적으로", "종합적으로" 금지.
 
 Output strictly a valid JSON:
 {
