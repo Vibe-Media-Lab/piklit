@@ -666,6 +666,34 @@ body:has(.my-menu-overlay) .image-gen-floating-btn {
     box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
 }
 
+/* ===== 소형 모바일 480px ===== */
+@media (max-width: 480px) {
+    .topbar {
+        padding: 0 var(--spacing-sm);
+    }
+
+    .topbar-mobile-nav-item {
+        padding: var(--spacing-sm) 8px;
+        font-size: var(--font-size-xs);
+    }
+
+    .topbar-actions .topbar-btn {
+        padding: 6px 10px;
+        font-size: var(--font-size-xs);
+    }
+
+    .main-container {
+        padding: var(--spacing-xs);
+    }
+
+    .mobile-fab {
+        width: 44px;
+        height: 44px;
+        bottom: calc(16px + var(--safe-area-bottom));
+        right: 16px;
+    }
+}
+
 /* 모바일 네비 — 데스크톱에서 숨김 */
 @media (min-width: 769px) {
     .topbar-mobile-nav,
