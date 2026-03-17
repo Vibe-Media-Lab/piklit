@@ -379,44 +379,33 @@ const TiptapEditor = () => {
         }
     }, [content, editor]);
 
-    // AI 푸터 토글
+    // AI 푸터 토글 — setContent 미사용 (모바일 "..." 방지)
     const toggleAiFooter = useCallback(() => {
         if (!editor) return;
         const next = !aiFooterEnabled;
         setAiFooterEnabled(next);
 
-        const html = editor.getHTML();
         if (next) {
             // 이미 있으면 추가하지 않음
-            if (!html.includes(AI_FOOTER_MARKER)) {
-                // 끝에 빈 문단 정리 후 한번에 삽입 (2회 렌더링 방지)
-                const trimmed = html.replace(/(<p>\s*<\/p>)+$/, '');
-                editor.commands.setContent(trimmed + AI_FOOTER_HTML);
+            if (!editor.getHTML().includes(AI_FOOTER_MARKER)) {
+                editor.chain().focus('end').insertContent(AI_FOOTER_HTML).run();
             }
         } else {
-            // 푸터가 포함된 <p> 태그만 정확히 제거 (마커 텍스트가 있는 <p>만 대상)
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-            const allP = doc.body.querySelectorAll('p');
-            let removed = false;
-            allP.forEach(p => {
-                if (p.textContent.includes(AI_FOOTER_MARKER)) {
-                    // 고지 앞의 연속 빈 <p> 모두 제거 ("..." 방지)
-                    let prev = p.previousElementSibling;
-                    while (prev && prev.tagName === 'P' && !prev.textContent.trim()) {
-                        const target = prev;
-                        prev = prev.previousElementSibling;
-                        target.remove();
-                    }
-                    p.remove();
-                    removed = true;
+            // DOM에서 직접 마커 포함 노드 제거 (setContent 없이)
+            const { doc, tr } = editor.state;
+            let transaction = tr;
+            doc.descendants((node, pos) => {
+                if (node.isText && node.text?.includes(AI_FOOTER_MARKER)) {
+                    // 부모 노드(paragraph) 전체 삭제
+                    const resolved = doc.resolve(pos);
+                    const parent = resolved.parent;
+                    const parentPos = resolved.before(resolved.depth);
+                    transaction = transaction.delete(parentPos, parentPos + parent.nodeSize);
+                    return false;
                 }
             });
-            if (removed) {
-                // 끝에 남은 빈 <p> 모두 정리
-                let cleaned = doc.body.innerHTML;
-                while (cleaned !== (cleaned = cleaned.replace(/(<p>\s*<\/p>)\s*$/, ''))) {}
-                editor.commands.setContent(cleaned);
+            if (transaction.docChanged) {
+                editor.view.dispatch(transaction);
             }
         }
     }, [editor, aiFooterEnabled]);
