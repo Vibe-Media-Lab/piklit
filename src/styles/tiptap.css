@@ -1564,6 +1564,16 @@
     .tiptap-editor-wrapper {
         position: relative;
     }
+
+    /* CTA 드롭다운 — 모바일에서 하단 고정 */
+    .cta-dropdown {
+        position: fixed;
+        bottom: 80px;
+        left: 16px;
+        right: 16px;
+        min-width: auto;
+        border-radius: 12px;
+    }
 }
 
 /* ===== 소형 모바일 (480px) ===== */

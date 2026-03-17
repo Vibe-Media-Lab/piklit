@@ -22,13 +22,13 @@ const GRADE_LABELS = {
     '-': '분석 대기'
 };
 
-const HumannessPanel = ({ onLocate, suggestOnly = false }) => {
+const HumannessPanel = ({ onLocate, suggestOnly = false, cachedAiSuggestions = null, onCacheAiSuggestions, cachedAppliedIndices, onCacheAppliedIndices }) => {
     const { content, suggestedTone, keywords, recordAiAction, editorRef, humanTip, setHumanTip } = useEditor();
     const { showToast } = useToast();
     const [isOpen, setIsOpen] = useState(true);
     const [aiLoading, setAiLoading] = useState(false);
-    const [aiSuggestions, setAiSuggestions] = useState(null);
-    const [appliedIndices, setAppliedIndices] = useState(new Set());
+    const [aiSuggestions, setAiSuggestions] = useState(cachedAiSuggestions);
+    const [appliedIndices, setAppliedIndices] = useState(cachedAppliedIndices || new Set());
     const prevHumanTipRef = useRef(null);
 
     // 팝업에서 적용 시 (humanTip이 index 포함 상태에서 null로 전환) → applied 동기화
@@ -39,6 +39,14 @@ const HumannessPanel = ({ onLocate, suggestOnly = false }) => {
         }
         prevHumanTipRef.current = humanTip;
     }, [humanTip]);
+
+    // 부모에 캐시 동기화 (탭 전환 시 소실 방지)
+    useEffect(() => {
+        if (onCacheAiSuggestions && aiSuggestions) onCacheAiSuggestions(aiSuggestions);
+    }, [aiSuggestions, onCacheAiSuggestions]);
+    useEffect(() => {
+        if (onCacheAppliedIndices) onCacheAppliedIndices(appliedIndices);
+    }, [appliedIndices, onCacheAppliedIndices]);
 
     const result = useMemo(() => analyzeHumanness(content, suggestedTone), [content, suggestedTone]);
     const { score, grade, metrics, suggestions, isEmpty } = result;

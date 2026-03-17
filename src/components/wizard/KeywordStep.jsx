@@ -276,7 +276,6 @@ const KeywordStep = ({
             {isAnalyzingKeywords && (
                 <div className="ai-progress-card">
                     <div className="ai-progress-header">
-                        <Loader2 size={16} className="spin" />
                         네이버 검색 데이터를 기반으로 키워드를 분석하고 있습니다
                         <div className="ai-progress-dots"><span /><span /><span /></div>
                     </div>

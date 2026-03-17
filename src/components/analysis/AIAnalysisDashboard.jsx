@@ -88,6 +88,10 @@ const AIAnalysisDashboard = ({ onLocate, mode }) => {
         ? seoPercentage
         : Math.round(seoPercentage * 0.6 + naturalPercentage * 0.4);
 
+    // 자연스러움 AI 제안 캐시 (탭 전환 시 소실 방지)
+    const [cachedAiSuggestions, setCachedAiSuggestions] = useState(null);
+    const [cachedAppliedIndices, setCachedAppliedIndices] = useState(new Set());
+
     const [loading, setLoading] = useState(false);
     const [seoFixLoading, setSeoFixLoading] = useState(false);
     const [seoFixLoadingId, setSeoFixLoadingId] = useState(null);
@@ -421,7 +425,7 @@ const AIAnalysisDashboard = ({ onLocate, mode }) => {
             <div className="ai-dashboard v3">
                 <Section title="AI 감지 분석" icon={Sparkles} score={humanResult.isEmpty ? null : naturalPercentage} scoreClass={getScoreClass(naturalPercentage)} defaultOpen={true}>
                     {renderV3HumannessBars()}
-                    <HumannessPanel onLocate={onLocate} suggestOnly />
+                    <HumannessPanel onLocate={onLocate} suggestOnly cachedAiSuggestions={cachedAiSuggestions} onCacheAiSuggestions={setCachedAiSuggestions} cachedAppliedIndices={cachedAppliedIndices} onCacheAppliedIndices={setCachedAppliedIndices} />
                 </Section>
                 {naturalSuggestions.length > 0 && (
                     <Section title="개선 제안" count={naturalSuggestions.length} defaultOpen={true}>

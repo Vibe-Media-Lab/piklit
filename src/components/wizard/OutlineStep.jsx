@@ -148,7 +148,6 @@ const OutlineStep = ({
             {isGeneratingOutline && (
                 <div className="ai-progress-card wizard-section-mb">
                     <div className="ai-progress-header">
-                        <Loader2 size={16} className="spin" />
                         글의 구조를 설계하고 있습니다
                         <div className="ai-progress-dots"><span /><span /><span /></div>
                     </div>

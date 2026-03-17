@@ -401,18 +401,21 @@ const TiptapEditor = () => {
             let removed = false;
             allP.forEach(p => {
                 if (p.textContent.includes(AI_FOOTER_MARKER)) {
-                    // 고지 바로 앞의 빈 <p>도 함께 제거 ("..." 방지)
-                    const prev = p.previousElementSibling;
-                    if (prev && prev.tagName === 'P' && !prev.textContent.trim()) {
-                        prev.remove();
+                    // 고지 앞의 연속 빈 <p> 모두 제거 ("..." 방지)
+                    let prev = p.previousElementSibling;
+                    while (prev && prev.tagName === 'P' && !prev.textContent.trim()) {
+                        const target = prev;
+                        prev = prev.previousElementSibling;
+                        target.remove();
                     }
                     p.remove();
                     removed = true;
                 }
             });
             if (removed) {
-                // 끝에 남은 빈 <p> 정리
-                let cleaned = doc.body.innerHTML.replace(/(<p>\s*<\/p>)+$/, '');
+                // 끝에 남은 빈 <p> 모두 정리
+                let cleaned = doc.body.innerHTML;
+                while (cleaned !== (cleaned = cleaned.replace(/(<p>\s*<\/p>)\s*$/, ''))) {}
                 editor.commands.setContent(cleaned);
             }
         }
