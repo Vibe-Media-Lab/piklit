@@ -753,13 +753,13 @@
 
 #### 우선순위 MEDIUM
 - [x] 에디터 내 재생성 진입 경로 (위자드로 돌아가기) ← 2026-03-11 완료
-- [ ] 생성된 글 경쟁 블로그 대비 품질 비교 피드백
+- [x] 생성된 글 경쟁 블로그 대비 품질 비교 피드백 — 제거 (경쟁 데이터 기반 생성 + SEO 체크리스트와 중복)
 - [x] 랜딩 페이지에 워너비 스타일 기능 소개 추가 ← 2026-03-11 완료 (스크린샷 슬롯 + 내스타일 이원화 반영)
 
 #### 우선순위 LOW (디자인 QA 잔여)
-- [ ] history.css: gap 10px/12px → 토큰 정규화 (8px 또는 var(--spacing-sm))
-- [ ] history.css: font-size 0.78rem/0.8rem → 토큰 정규화
-- [ ] Layout.css: 480px 미디어쿼리 블록 추가 (소형 모바일 대응)
+- [x] history.css: gap 10px/12px → 8px 토큰 정규화 ← 2026-03-17 완료
+- [x] history.css: font-size 0.78rem/0.8rem → var(--font-size-2xs) 토큰 정규화 ← 2026-03-17 완료
+- [x] Layout.css: 480px 미디어쿼리 블록 추가 (소형 모바일 대응) ← 2026-03-17 완료
 
 #### Phase 3 (Firebase 필요)
 - [ ] 발행 후 성과 추적 (검색 순위, 조회수 대시보드)
@@ -967,8 +967,34 @@
 - [x] `WannabeStyle.css` — PhotoUploader 디자인 매칭
 
 ### 남은 작업
-- [ ] Firebase Storage 관리자 확인 (bucket does not exist 근본 원인 미해결, base64 fallback 가동 중)
-- [ ] 미푸쉬 커밋 5건 배포
+- [x] Firebase Storage 관리자 확인 — 정상 동작 확인 (2026-03-17)
+- [x] 미푸쉬 커밋 5건 배포 — 완료 (2026-03-17)
+
+## 완료된 작업 (2026-03-17) — 버그 수정 + 프롬프트 감사 + 디자인 QA 완료
+
+### 버그 수정
+- [x] 키워드 밀도 AI 수정 핑퐁 해소 — fixSeoIssues에 현재 횟수/목표 범위 구체적 숫자 전달
+- [x] 썸네일 매거진 드래그 크래시 수정 (단일+다중) — multiDragRef/dragRef null 참조 방지
+- [x] 사진 분석 시 일부 사진 누락 방지 — 프롬프트에 전체 사진 수만큼 출력 형식 명시
+- [x] 저장/복사 버튼 클릭 피드백 추가 — :active 스타일 (scale + 색상 변화)
+
+### 프롬프트 감사 완료 (6건 전부 처리)
+- [x] rewriteFullContent — _htmlRules 호출로 인라인 규칙 중복 제거
+- [x] fixSeoIssues — AI 금지어 2개 → 16개 확대 + 금지 문형 추가
+- [x] analyzeWannabeStyle — 미사용 url 파라미터 정리
+
+### 디자인 QA 잔여 3건 완료
+- [x] history.css gap 10px → 8px 정규화
+- [x] history.css font-size 0.78rem/0.8rem → var(--font-size-2xs) 정규화
+- [x] Layout.css 480px 소형 모바일 미디어쿼리 추가
+- [x] variables.css — --font-size-2xs: 0.8rem 토큰 신설
+
+### 기타
+- [x] Firebase Storage 정상 동작 확인
+- [x] 경쟁 대비 품질 비교 기능 — 제거 (SEO 체크리스트와 중복)
+
+### 남은 작업
+- [ ] 미푸쉬 커밋 2건 배포
 
 ## 아이디어 보관함 (Icebox)
 
