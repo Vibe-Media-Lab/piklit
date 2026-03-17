@@ -190,16 +190,17 @@ const ThumbnailPanel = ({ onLocate } = {}) => {
     };
 
     const handlePointerMove = useCallback((e) => {
-        if (!dragRef.current) return;
+        const drag = dragRef.current;
+        if (!drag) return;
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
         const rect = previewRef.current?.getBoundingClientRect();
         if (!rect) return;
 
-        const dx = (clientX - dragRef.current.startX) / (rect.width / 2);
-        const dy = (clientY - dragRef.current.startY) / (rect.height / 2);
-        setOffsetX(clamp(dragRef.current.startOx - dx, -1, 1));
-        setOffsetY(clamp(dragRef.current.startOy - dy, -1, 1));
+        const dx = (clientX - drag.startX) / (rect.width / 2);
+        const dy = (clientY - drag.startY) / (rect.height / 2);
+        setOffsetX(clamp(drag.startOx - dx, -1, 1));
+        setOffsetY(clamp(drag.startOy - dy, -1, 1));
     }, []);
 
     const handlePointerUp = useCallback(() => {
