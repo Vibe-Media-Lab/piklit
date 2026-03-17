@@ -523,9 +523,11 @@ Output strictly a valid JSON:
             return `사진 ${i + 1}: [${label}] 슬롯`;
         }).join('\n');
 
+        const formatExample = photoAssets.map((_, i) => `### 사진 ${i + 1}: 제목\n주요 요소: ...\n분위기: ...\n활용 방안: "..."`).join('\n\n');
+
         const prompt = `너는 블로그 사진 분석 전문가야.
 주제: "${mainKeyword}"
-첨부된 ${photoAssets.length}장의 사진을 분석해줘.
+첨부된 ${photoAssets.length}장의 사진을 반드시 전부 분석해줘. 하나도 빠뜨리지 마.
 
 [사진 슬롯 정보]
 ${photoList}
@@ -538,17 +540,9 @@ ${photoList}
 간결하고 실용적으로 한국어로 분석 결과를 작성해줘.
 각 사진별로 2-3문장으로 요약해.
 
-반드시 아래 형식으로 출력해:
+반드시 ${photoAssets.length}장 전부 아래 형식으로 출력해:
 
-### 사진 1: 제목
-주요 요소: ...
-분위기: ...
-활용 방안: "..."
-
-### 사진 2: 제목
-주요 요소: ...
-분위기: ...
-활용 방안: "..."`;
+${formatExample}`;
 
         const parts = [{ text: prompt }];
         photoAssets.forEach(asset => {
