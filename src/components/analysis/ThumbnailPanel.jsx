@@ -251,20 +251,21 @@ const ThumbnailPanel = ({ onLocate } = {}) => {
     };
 
     const handleMultiPointerMove = useCallback((e) => {
-        if (!multiDragRef.current) return;
+        const drag = multiDragRef.current;
+        if (!drag) return;
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
         const rect = previewRef.current?.getBoundingClientRect();
         if (!rect) return;
 
-        const dx = (clientX - multiDragRef.current.startX) / (rect.width / 2);
-        const dy = (clientY - multiDragRef.current.startY) / (rect.height / 2);
-        const idx = multiDragRef.current.idx;
+        const dx = (clientX - drag.startX) / (rect.width / 2);
+        const dy = (clientY - drag.startY) / (rect.height / 2);
+        const idx = drag.idx;
 
         setPhotoZooms(prev => {
             const next = [...prev];
             const cur = next[idx] || { zoom: 1, ox: 0, oy: 0 };
-            next[idx] = { ...cur, ox: clamp(multiDragRef.current.startOx - dx, -1, 1), oy: clamp(multiDragRef.current.startOy - dy, -1, 1) };
+            next[idx] = { ...cur, ox: clamp(drag.startOx - dx, -1, 1), oy: clamp(drag.startOy - dy, -1, 1) };
             return next;
         });
     }, []);

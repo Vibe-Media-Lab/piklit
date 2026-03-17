@@ -215,9 +215,9 @@ export const analyzePost = (title, htmlContent, keywords, targetLength = 1500, c
         if (count >= minRepeat && count <= maxRepeat) {
             checks.mainKeyDensity = true;
         } else if (count < minRepeat) {
-            issues.push({ id: 'key_density', type: 'warning', text: '키워드 반복 부족', metric: `${count}회 → ${minRepeat}~${maxRepeat}회` });
+            issues.push({ id: 'key_density', type: 'warning', text: '키워드 반복 부족', metric: `${count}회 → ${minRepeat}~${maxRepeat}회`, count, minRepeat, maxRepeat });
         } else {
-            issues.push({ id: 'key_density', type: 'warning', text: '키워드 반복 과다', metric: `${count}회 → ${minRepeat}~${maxRepeat}회` });
+            issues.push({ id: 'key_density', type: 'warning', text: '키워드 반복 과다', metric: `${count}회 → ${minRepeat}~${maxRepeat}회`, count, minRepeat, maxRepeat });
         }
 
         // First Paragraph Check — 텍스트가 있는 첫 <p> (이미지만 있는 <p> 스킵)

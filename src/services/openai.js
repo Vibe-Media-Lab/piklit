@@ -2033,7 +2033,7 @@ Output strictly valid HTML only. No JSON wrapping, no explanation.`;
             title_start: '제목을 메인 키워드로 시작하도록 자연스럽게 재배치.',
             title_long: '제목을 10~30자로 축약.',
             title_short: '제목을 10~30자로 확장.',
-            key_density: '본문에 메인 키워드를 자연스럽게 추가 삽입하거나, 과다 시 유의어로 대체.',
+            key_density: null, // 동적 생성 (아래에서 count/min/max 기반)
             keyword_density_low: '본문에 메인 키워드를 자연스럽게 추가 삽입.',
             keyword_density_high: '과도한 키워드 반복을 유의어로 대체.',
             key_first: '첫 문단에 메인 키워드를 자연스럽게 포함.',
@@ -2045,7 +2045,17 @@ Output strictly valid HTML only. No JSON wrapping, no explanation.`;
             length_short: '본문 글자수가 목표에 부족함. 기존 문단 중 내용이 얇은 섹션을 골라 구체적 디테일·경험·팁을 자연스럽게 추가하여 목표 글자수를 채울 것. 새 문단을 억지로 만들지 말고 기존 흐름을 풍성하게 확장.',
         };
         const selectedRules = issues
-            .map((iss, idx) => RULE_MAP[iss.id] ? `${idx + 1}. ${iss.id}: ${RULE_MAP[iss.id]}` : null)
+            .map((iss, idx) => {
+                if (iss.id === 'key_density' && iss.count != null) {
+                    const target = Math.round((iss.minRepeat + iss.maxRepeat) / 2);
+                    if (iss.count < iss.minRepeat) {
+                        return `${idx + 1}. key_density: 메인 키워드 "${mainKeyword}"가 현재 ${iss.count}회 등장. 정확히 ${target}회가 되도록 ${target - iss.count}회만 자연스럽게 추가 삽입. 절대 ${iss.maxRepeat}회를 초과하지 마.`;
+                    } else {
+                        return `${idx + 1}. key_density: 메인 키워드 "${mainKeyword}"가 현재 ${iss.count}회로 과다. 정확히 ${target}회가 되도록 ${iss.count - target}회를 유의어로 대체. 절대 ${iss.minRepeat}회 미만으로 줄이지 마.`;
+                    }
+                }
+                return RULE_MAP[iss.id] ? `${idx + 1}. ${iss.id}: ${RULE_MAP[iss.id]}` : null;
+            })
             .filter(Boolean)
             .join('\n');
 
