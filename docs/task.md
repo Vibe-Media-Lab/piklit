@@ -994,7 +994,29 @@
 - [x] 경쟁 대비 품질 비교 기능 — 제거 (SEO 체크리스트와 중복)
 
 ### 남은 작업
-- [ ] 미푸쉬 커밋 2건 배포
+- [x] 미푸쉬 커밋 배포 — 완료
+
+## 완료된 작업 (2026-03-17 세션 2) — 모바일 QA 9건
+
+### 모바일 QA 1차 (4건)
+- [x] CTA 안내창 모바일 하단 고정 (position: fixed)
+- [x] AI 고지 "..." 재발 방지 — 빈 `<p>` 연속 제거 강화
+- [x] 자연스러움 분석 결과 캐시 유지 (Dashboard 레벨)
+- [x] 로딩 UI 스피너+점 중복 제거 (KeywordStep/OutlineStep)
+
+### 모바일 QA 2차 (5건)
+- [x] 모바일 핀치 줌 방지 — viewport user-scalable=no
+- [x] 본문 `[1]`, `ALT. 1` 검색 각주 자동 제거 — generateContent 후처리
+- [x] 모바일 하단 탭 뱃지 SEO→종합 점수로 변경
+- [x] 자연스러움 분석 캐시를 MainContainer 레벨로 이동 (탭 전환 시 유지)
+- [x] AI 고지 토글 setContent→insertContent/transaction.delete 변경 (모바일 "..." 근본 해결)
+
+### 기타
+- [x] claude-dashboard 플러그인 설치 (상태 표시줄 모니터링)
+
+### 남은 확인 사항
+- [ ] CTA 안내창 모바일 동작 확인
+- [ ] AI 고지 "..." 모바일 재확인
 
 ## 아이디어 보관함 (Icebox)
 
