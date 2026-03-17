@@ -1,20 +1,21 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import './Layout.css';
 import EditorContainer from '../editor/EditorContainer';
 import AnalysisSidebar from '../analysis/AnalysisSidebar';
 import MobileAnalysisBar from '../analysis/MobileAnalysisBar';
 import { useEditor } from '../../context/EditorContext';
+import { analyzeHumanness } from '../../utils/humanness';
 import ThumbnailPanel from '../analysis/ThumbnailPanel';
 import AIAnalysisDashboard from '../analysis/AIAnalysisDashboard';
 
-const MobilePanelContent = ({ activeTab, onLocate }) => {
+const MobilePanelContent = ({ activeTab, onLocate, humanCache }) => {
     switch (activeTab) {
         case 'analysis':
-            return <AIAnalysisDashboard onLocate={onLocate} mode="overview" />;
+            return <AIAnalysisDashboard onLocate={onLocate} mode="overview" humanCache={humanCache} />;
         case 'seo':
-            return <AIAnalysisDashboard onLocate={onLocate} mode="seo" />;
+            return <AIAnalysisDashboard onLocate={onLocate} mode="seo" humanCache={humanCache} />;
         case 'natural':
-            return <AIAnalysisDashboard onLocate={onLocate} mode="natural" />;
+            return <AIAnalysisDashboard onLocate={onLocate} mode="natural" humanCache={humanCache} />;
         case 'thumbnail':
             return <ThumbnailPanel onLocate={onLocate} />;
         default:
@@ -23,11 +24,23 @@ const MobilePanelContent = ({ activeTab, onLocate }) => {
 };
 
 const MainContainer = () => {
-    const { analysis } = useEditor();
+    const { analysis, content, suggestedTone } = useEditor();
     const checks = analysis?.checks || {};
     const score = Object.values(checks).filter(Boolean).length;
     const maxScore = Object.keys(checks).length || 1;
-    const seoScore = Math.round((score / maxScore) * 100);
+    const seoPercentage = Math.round((score / maxScore) * 100);
+    const humanResult = useMemo(() => analyzeHumanness(content, suggestedTone), [content, suggestedTone]);
+    const totalScore = humanResult.isEmpty
+        ? seoPercentage
+        : Math.round(seoPercentage * 0.6 + humanResult.score * 0.4);
+
+    // 자연스러움 AI 제안 캐시 (탭 전환 시 소실 방지 — MainContainer 레벨)
+    const [cachedAiSuggestions, setCachedAiSuggestions] = useState(null);
+    const [cachedAppliedIndices, setCachedAppliedIndices] = useState(new Set());
+    const humanCache = useMemo(() => ({
+        cachedAiSuggestions, setCachedAiSuggestions,
+        cachedAppliedIndices, setCachedAppliedIndices,
+    }), [cachedAiSuggestions, cachedAppliedIndices]);
 
     return (
         <>
@@ -39,8 +52,8 @@ const MainContainer = () => {
                     <AnalysisSidebar />
                 </aside>
             </main>
-            <MobileAnalysisBar seoScore={seoScore}>
-                {(activeTab, onLocate) => <MobilePanelContent activeTab={activeTab} onLocate={onLocate} />}
+            <MobileAnalysisBar seoScore={totalScore}>
+                {(activeTab, onLocate) => <MobilePanelContent activeTab={activeTab} onLocate={onLocate} humanCache={humanCache} />}
             </MobileAnalysisBar>
         </>
     );

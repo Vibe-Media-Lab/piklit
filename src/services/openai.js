@@ -138,7 +138,12 @@ export const AIService = {
                     throw new Error('AI 응답에서 텍스트를 찾을 수 없습니다.');
                 }
 
-                const cleanText = text.replace(/```json|```html|```/g, '').trim();
+                const cleanText = text
+                    .replace(/```json|```html|```/g, '')
+                    .replace(/\s*\[\d+\]\s*/g, ' ')          // [1], [2] 등 검색 각주 제거
+                    .replace(/,?\s*ALT\.\s*\d+[^.]*\./g, '') // ALT. 1 ... 대안 텍스트 제거
+                    .replace(/  +/g, ' ')                      // 이중 공백 정리
+                    .trim();
 
                 // rawText 모드: JSON 파싱 없이 텍스트 그대로 반환
                 if (options.rawText) {

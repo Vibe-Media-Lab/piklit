@@ -69,7 +69,7 @@ const getScoreClass = (pct) => pct >= 80 ? 'good' : pct >= 60 ? 'mid' : 'low';
 const getScoreColor = (pct) => pct >= 80 ? 'var(--color-green, #10B981)' : pct >= 60 ? 'var(--color-yellow, #F59E0B)' : 'var(--color-red, #EF4444)';
 const getBarColor = (pct) => pct >= 80 ? 'var(--color-green, #10B981)' : pct >= 60 ? 'var(--color-yellow, #F59E0B)' : 'var(--color-red, #EF4444)';
 
-const AIAnalysisDashboard = ({ onLocate, mode }) => {
+const AIAnalysisDashboard = ({ onLocate, mode, humanCache }) => {
     const { analysis, content, title, setTitle, setContent, keywords, suggestedTone, recordAiAction, targetLength } = useEditor();
     const { checks, issues } = analysis;
     const score = Object.values(checks).filter(Boolean).length;
@@ -88,9 +88,13 @@ const AIAnalysisDashboard = ({ onLocate, mode }) => {
         ? seoPercentage
         : Math.round(seoPercentage * 0.6 + naturalPercentage * 0.4);
 
-    // 자연스러움 AI 제안 캐시 (탭 전환 시 소실 방지)
-    const [cachedAiSuggestions, setCachedAiSuggestions] = useState(null);
-    const [cachedAppliedIndices, setCachedAppliedIndices] = useState(new Set());
+    // 자연스러움 AI 제안 캐시 (MainContainer에서 전달받거나 로컬 fallback)
+    const [localCachedSuggestions, setLocalCachedSuggestions] = useState(null);
+    const [localCachedApplied, setLocalCachedApplied] = useState(new Set());
+    const cachedAiSuggestions = humanCache?.cachedAiSuggestions ?? localCachedSuggestions;
+    const setCachedAiSuggestions = humanCache?.setCachedAiSuggestions ?? setLocalCachedSuggestions;
+    const cachedAppliedIndices = humanCache?.cachedAppliedIndices ?? localCachedApplied;
+    const setCachedAppliedIndices = humanCache?.setCachedAppliedIndices ?? setLocalCachedApplied;
 
     const [loading, setLoading] = useState(false);
     const [seoFixLoading, setSeoFixLoading] = useState(false);
