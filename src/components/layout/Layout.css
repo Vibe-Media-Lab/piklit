@@ -371,6 +371,11 @@
     background: var(--color-surface-hover);
 }
 
+.topbar-btn:active {
+    transform: scale(0.96);
+    background: var(--color-border);
+}
+
 .topbar-btn-primary {
     background: var(--color-brand);
     color: white;
@@ -381,6 +386,11 @@
 .topbar-btn-primary:hover {
     background: var(--color-brand-dark);
     border-color: var(--color-brand-dark);
+}
+
+.topbar-btn-primary:active {
+    transform: scale(0.96);
+    filter: brightness(0.9);
 }
 
 /* ===== App Content ===== */
