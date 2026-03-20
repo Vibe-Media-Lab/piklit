@@ -205,6 +205,14 @@ export const analyzePost = (title, htmlContent, keywords, targetLength = 1500, c
         issues.push({ id: 'length_short', type: 'info', text: '글자 수 부족', metric: `${totalChars}/${targetLength}자` });
     }
 
+    // 도입부 판별 — 첫 h2 이전의 <p> 중 텍스트 있는 첫 번째 (키워드 체크 + 도입부 길이 공용)
+    const firstH2 = doc.querySelector('h2');
+    const allPs = Array.from(doc.querySelectorAll('p'));
+    const introPs = firstH2
+        ? allPs.filter(p => firstH2.compareDocumentPosition(p) & Node.DOCUMENT_POSITION_PRECEDING)
+        : allPs;
+    const firstPara = introPs.find(p => p.textContent.trim().length > 10);
+
     // 3. Keyword Density — 본문(p) 기준, h2/h3 제외
     if (mainKeyword) {
         const escapedKey = mainKeyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -226,13 +234,7 @@ export const analyzePost = (title, htmlContent, keywords, targetLength = 1500, c
             issues.push({ id: 'key_density', type: 'warning', text: '메인 키워드 반복 과다', metric: `${count}회 → ${minRepeat}~${maxRepeat}회`, count, minRepeat, maxRepeat });
         }
 
-        // First Paragraph Check — 첫 h2 이전의 <p> 중 텍스트 있는 첫 번째 (도입부)
-        const firstH2 = doc.querySelector('h2');
-        const allPs = Array.from(doc.querySelectorAll('p'));
-        const introPs = firstH2
-            ? allPs.filter(p => firstH2.compareDocumentPosition(p) & Node.DOCUMENT_POSITION_PRECEDING)
-            : allPs;
-        const firstPara = introPs.find(p => p.textContent.trim().length > 10);
+        // First Paragraph Check
         if (firstPara && firstPara.textContent.toLowerCase().includes(mainKeyword.toLowerCase())) {
             checks.mainKeyFirstPara = true;
         } else {
