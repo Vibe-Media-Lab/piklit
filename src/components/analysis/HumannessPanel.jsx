@@ -168,22 +168,29 @@ const HumannessPanel = ({ onLocate, suggestOnly = false, cachedAiSuggestions = n
         const toEntry = posMap.find(e => e.textOffset === pos + replaceLength);
 
         if (fromEntry && toEntry) {
-            // 문단 경계 보존: HTML 기반 교체 (plain text 삽입 시 문단 병합 방지)
+            // 문단 경계 보존: setContent로 전체 HTML 교체
             const currentHtml = editor.getHTML();
             const escapedOriginal = original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const replacedHtml = currentHtml.replace(new RegExp(escapedOriginal), revised);
-            if (replacedHtml !== currentHtml) {
-                editor.commands.setContent(replacedHtml);
+            // 원문을 찾아 교체 (첫 번째 매치만)
+            let replaced = false;
+            const replacedHtml = currentHtml.replace(new RegExp(escapedOriginal), () => {
+                if (replaced) return original; // 두 번째부터는 원본 유지
+                replaced = true;
+                return revised;
+            });
+            if (replaced) {
+                // 빈 <p> 정리 후 setContent
+                const cleanHtml = replacedHtml.replace(/<p>\s*<\/p>/g, '');
+                editor.commands.setContent(cleanHtml);
             } else {
-                // fallback: ProseMirror 위치 기반
+                // fallback: ProseMirror 위치 기반 (문단 경계 유지를 위해 <p> 래핑)
                 editor.chain()
-                    .insertContentAt({ from: fromEntry.pmPos, to: toEntry.pmPos }, revised)
+                    .insertContentAt({ from: fromEntry.pmPos, to: toEntry.pmPos }, `<p>${revised}</p>`)
                     .run();
-            }
-            // 적용 후 빈 <p> 노드 정리 ("..." 방지)
-            const updatedHtml = editor.getHTML().replace(/<p>\s*<\/p>/g, '');
-            if (updatedHtml !== editor.getHTML()) {
-                editor.commands.setContent(updatedHtml);
+                const updatedHtml = editor.getHTML().replace(/<p>\s*<\/p>/g, '');
+                if (updatedHtml !== editor.getHTML()) {
+                    editor.commands.setContent(updatedHtml);
+                }
             }
             setAppliedIndices(prev => new Set([...prev, index]));
             // 형광펜 제거 + TIP 팝업 닫기

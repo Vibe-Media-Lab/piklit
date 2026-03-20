@@ -16,7 +16,7 @@ const PAGE_TITLES = {
 };
 
 const TopBar = () => {
-    const { title, content, savePost, posts } = useEditor();
+    const { title, content, savePost, posts, navigationGuardRef, currentPostId, deletePost, revertPost } = useEditor();
     const { logout, isAdmin } = useAuth();
     const { showToast } = useToast();
     const navigate = useNavigate();
@@ -77,7 +77,21 @@ const TopBar = () => {
 
             {/* 모바일 네비게이션 (768px 이하에서 표시) */}
             <nav className="topbar-mobile-nav">
-                <NavLink to="/posts" className={({ isActive }) => `topbar-mobile-nav-item${isActive ? ' active' : ''}`}>
+                <NavLink to="/posts" className={({ isActive }) => `topbar-mobile-nav-item${isActive ? ' active' : ''}`}
+                    onClick={(e) => {
+                        const guard = navigationGuardRef?.current;
+                        if (guard) {
+                            e.preventDefault();
+                            if (window.confirm('작성 중인 내용이 저장되지 않을 수 있습니다.\n나가시겠습니까?')) {
+                                const currentPost = posts.find(p => p.id === currentPostId);
+                                if (currentPost && !currentPost.savedAt) deletePost(currentPost.id);
+                                else if (currentPost?._snapshot) revertPost(currentPost.id);
+                                navigationGuardRef.current = null;
+                                navigate('/posts');
+                            }
+                        }
+                    }}
+                >
                     내 글{posts.length > 0 && <span className="topbar-nav-badge">{posts.length}</span>}
                 </NavLink>
                 <NavLink to="/dashboard" className={({ isActive }) => `topbar-mobile-nav-item${isActive ? ' active' : ''}`}>

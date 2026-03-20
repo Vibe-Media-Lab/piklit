@@ -2052,24 +2052,34 @@ Output strictly valid HTML only. No JSON wrapping, no explanation.`;
     async autoFixSeo(htmlContent, title, mainKeyword, subKeywords = [], targetLength = 1500, categoryId = 'daily') {
         const { analyzePost } = await import('../utils/analysis.js');
         const keywords = { main: mainKeyword, sub: subKeywords };
-        const result = analyzePost(title, htmlContent, keywords, targetLength, categoryId);
-        const issues = result.issues.filter(i =>
-            ['key_density', 'key_first', 'sub_missing', 'intro_short', 'intro_long'].includes(i.id)
-        );
+        const SEO_IDS = ['key_density', 'key_first', 'sub_missing', 'intro_short', 'intro_long'];
+        let currentHtml = htmlContent;
+        let currentTitle = title;
+        let totalFixed = 0;
 
-        if (issues.length === 0) {
-            console.log('[AutoFix] SEO 이슈 없음, 보정 불필요');
-            return { html: htmlContent, title, fixed: false };
+        // 최대 2회 보정 시도 (1회차 후 검증 → 이슈 남으면 2회차)
+        for (let attempt = 1; attempt <= 2; attempt++) {
+            const result = analyzePost(currentTitle, currentHtml, keywords, targetLength, categoryId);
+            const issues = result.issues.filter(i => SEO_IDS.includes(i.id));
+
+            if (issues.length === 0) {
+                console.log(`[AutoFix] ${attempt}회차: SEO 이슈 없음${totalFixed > 0 ? ` (${totalFixed}건 보정 완료)` : ''}`);
+                return { html: currentHtml, title: currentTitle, fixed: totalFixed > 0, fixCount: totalFixed };
+            }
+
+            console.log(`[AutoFix] ${attempt}회차: SEO 이슈 ${issues.length}건 보정 시도:`, issues.map(i => i.id));
+            try {
+                const fixed = await this.fixSeoIssues(currentHtml, currentTitle, mainKeyword, subKeywords, issues);
+                currentHtml = fixed.content || currentHtml;
+                currentTitle = fixed.title || currentTitle;
+                totalFixed += issues.length;
+            } catch (e) {
+                console.warn(`[AutoFix] ${attempt}회차 보정 실패:`, e.message);
+                break;
+            }
         }
 
-        console.log(`[AutoFix] SEO 이슈 ${issues.length}건 자동 보정:`, issues.map(i => i.id));
-        try {
-            const fixed = await this.fixSeoIssues(htmlContent, title, mainKeyword, subKeywords, issues);
-            return { html: fixed.content || htmlContent, title: fixed.title || title, fixed: true, fixCount: issues.length };
-        } catch (e) {
-            console.warn('[AutoFix] 보정 실패, 원본 유지:', e.message);
-            return { html: htmlContent, title, fixed: false };
-        }
+        return { html: currentHtml, title: currentTitle, fixed: totalFixed > 0, fixCount: totalFixed };
     },
 
     async fixSeoIssues(htmlContent, title, mainKeyword, subKeywords, issues, tone = 'friendly') {

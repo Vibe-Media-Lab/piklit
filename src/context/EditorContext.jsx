@@ -112,18 +112,24 @@ export const EditorProvider = ({ children }) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // 초기 로드 시 1회만 실행 — posts는 동기 초기화로 이미 존재
 
-    // 2. Save Posts (localStorage) — base64 이미지 태그 제거하여 용량 초과 방지
+    // 2. Save Posts (localStorage) — 먼저 원본 저장 시도, 용량 초과 시 이미지 제거 후 재시도
     useEffect(() => {
         try {
-            const stripped = posts.map(p => ({
-                ...p,
-                content: p.content
-                    ? p.content.replace(/<img[^>]*src="data:image\/[^"]{1000,}"[^>]*>/g, '<p style="text-align:center;color:#999;font-size:0.8rem;">[이미지 — 에디터에서 확인]</p>')
-                    : p.content,
-            }));
-            localStorage.setItem('naver_blog_posts', JSON.stringify(stripped));
+            localStorage.setItem('naver_blog_posts', JSON.stringify(posts));
         } catch (e) {
-            console.warn('[EditorContext] localStorage 저장 실패:', e.message);
+            // 용량 초과 시 base64 이미지 제거 후 재시도
+            console.warn('[EditorContext] localStorage 용량 초과, 이미지 제거 후 재시도');
+            try {
+                const stripped = posts.map(p => ({
+                    ...p,
+                    content: p.content
+                        ? p.content.replace(/<img[^>]*src="data:image\/[^"]{1000,}"[^>]*>/g, '<p style="text-align:center;color:#999;font-size:0.8rem;">[이미지 — 에디터에서 확인]</p>')
+                        : p.content,
+                }));
+                localStorage.setItem('naver_blog_posts', JSON.stringify(stripped));
+            } catch (e2) {
+                console.warn('[EditorContext] localStorage 저장 최종 실패:', e2.message);
+            }
         }
     }, [posts]);
 
