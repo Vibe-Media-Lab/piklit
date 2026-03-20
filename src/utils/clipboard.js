@@ -9,7 +9,7 @@ export const copyToClipboard = async (title, htmlContent) => {
     // 인라인 스타일 추가
     cleanInfo = cleanInfo
         .replace(/<p>/g, '<p style="margin-bottom: 0.8em; line-height: 1.8;">')
-        .replace(/<h2>/g, '<h2 style="margin-top: 1.5em; margin-bottom: 1em; font-size: 1.5em; color: #333;">')
+        .replace(/<h2>/g, '<p>&nbsp;</p><h2 style="margin-top: 1.5em; margin-bottom: 1em; font-size: 1.5em; color: #333;">')
         .replace(/<h3>/g, '<h3 style="margin-top: 1.2em; margin-bottom: 0.8em; font-size: 1.2em;">');
 
     // 2. 최종 HTML
