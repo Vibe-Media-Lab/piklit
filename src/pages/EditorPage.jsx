@@ -389,6 +389,9 @@ const EditorPage = () => {
         injectedHtml = injectedHtml.replace(/\[([^\]]*사진[^\]]*추가[^\]]*)\]/g, '<blockquote>💡 TIP: $1</blockquote>');
         injectedHtml = injectedHtml.replace(/\[([^\]]*TIP[^\]]*)\]/gi, '<blockquote>💡 $1</blockquote>');
 
+        // 2.5. 마크다운 볼드(**텍스트**) → HTML <b> 변환
+        injectedHtml = injectedHtml.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
+
         // 3. 후처리: 문단 스타일에 맞게 분리 (AI가 규칙 안 따라도 보장)
         injectedHtml = formatParagraphs(injectedHtml, paragraphStyle || 'normal');
 

@@ -527,13 +527,17 @@
 
     /* 마이 탭 — button을 NavLink처럼 보이게 */
     .topbar-mobile-nav button.topbar-mobile-nav-item {
-        background: none;
-        border: none;
-        cursor: pointer;
+        all: unset;
+        padding: var(--spacing-sm) 12px;
         font-family: inherit;
         font-size: var(--font-size-sm);
         font-weight: 500;
         color: var(--color-text-sub);
+        cursor: pointer;
+        position: relative;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
     }
 
     .topbar-actions .topbar-btn span {

@@ -165,7 +165,7 @@ function measureSentenceVariety(doc, maxScore) {
     const suggestions = [];
     if (cv < 0.2) {
         suggestions.push({ type: 'warning', text: '문장 길이가 너무 균일합니다. 짧은 문장과 긴 문장을 섞어주세요.', priority: 8 });
-    } else if (cv < 0.3) {
+    } else if (cv < 0.35) {
         suggestions.push({ type: 'info', text: '문장 길이에 좀 더 변화를 주면 자연스러워집니다.', priority: 4 });
     }
 
@@ -365,7 +365,9 @@ function measureInformalElements(text, maxScore) {
     const score = Math.round(maxScore * ratio);
     const suggestions = [];
     if (per1000 < 0.5) {
-        suggestions.push({ type: 'info', text: '이모지, ~, !! 같은 비격식 요소를 추가하면 사람다운 느낌이 납니다.', priority: 6 });
+        suggestions.push({ type: 'warning', text: '이모지, ~, !! 같은 비격식 요소를 추가하면 사람다운 느낌이 납니다.', priority: 8 });
+    } else if (per1000 < 1.5) {
+        suggestions.push({ type: 'info', text: '이모지나 비격식 표현을 조금 더 넣으면 자연스러워집니다.', priority: 5 });
     }
 
     return { score, label: '이모지/비격식', maxScore, totalInformal, suggestions };

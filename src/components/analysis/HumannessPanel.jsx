@@ -173,9 +173,13 @@ const HumannessPanel = ({ onLocate, suggestOnly = false, cachedAiSuggestions = n
             const escapedOriginal = original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             // 원문을 찾아 교체 (첫 번째 매치만)
             let replaced = false;
-            const replacedHtml = currentHtml.replace(new RegExp(escapedOriginal), () => {
-                if (replaced) return original; // 두 번째부터는 원본 유지
+            const replacedHtml = currentHtml.replace(new RegExp(escapedOriginal), (match) => {
+                if (replaced) return match; // 두 번째부터는 원본 유지
                 replaced = true;
+                // 원문이 </p><p> 경계를 포함하면 수정문에도 경계 보존
+                if (match.includes('</p>') && !revised.includes('</p>')) {
+                    return `</p><p>${revised}`;
+                }
                 return revised;
             });
             if (replaced) {

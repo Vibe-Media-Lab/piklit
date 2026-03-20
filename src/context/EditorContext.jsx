@@ -120,10 +120,13 @@ export const EditorProvider = ({ children }) => {
             // 용량 초과 시 base64 이미지 제거 후 재시도
             console.warn('[EditorContext] localStorage 용량 초과, 이미지 제거 후 재시도');
             try {
+                const placeholder = '<p style="text-align:center;color:#999;font-size:0.8rem;">[이미지 — 에디터에서 확인]</p>';
                 const stripped = posts.map(p => ({
                     ...p,
                     content: p.content
-                        ? p.content.replace(/<img[^>]*src="data:image\/[^"]{1000,}"[^>]*>/g, '<p style="text-align:center;color:#999;font-size:0.8rem;">[이미지 — 에디터에서 확인]</p>')
+                        ? p.content
+                            .replace(/<img[^>]*src="blob:[^"]*"[^>]*>/g, placeholder)
+                            .replace(/<img[^>]*src="data:image\/[^"]{1000,}"[^>]*>/g, placeholder)
                         : p.content,
                 }));
                 localStorage.setItem('naver_blog_posts', JSON.stringify(stripped));
