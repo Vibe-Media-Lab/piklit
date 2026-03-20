@@ -2410,6 +2410,29 @@
     opacity: 1;
 }
 
+.login-btn-disabled {
+    opacity: 0.4 !important;
+    cursor: not-allowed !important;
+    position: relative;
+}
+
+.login-btn-badge {
+    font-size: 0.65rem;
+    background: var(--color-text-sub);
+    color: white;
+    padding: 1px 6px;
+    border-radius: 8px;
+    margin-left: auto;
+}
+
+.login-modal-beta-note {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--color-text-sub);
+    margin-top: 12px;
+    margin-bottom: 0;
+}
+
 /* ═══════════════════════════════════════════════════════
    Responsive
    ═══════════════════════════════════════════════════════ */

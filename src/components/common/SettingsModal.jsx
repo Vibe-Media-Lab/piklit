@@ -44,7 +44,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
             const result = await callBetaActivate(betaCode.trim(), betaName.trim(), betaAffiliation.trim());
             setBetaStatus(result.data);
             setBetaCode('');
-            showToast(result.data.message || '베타 테스터 활성화 완료!', 'success');
+            showToast('활성화 완료! 문제 발견 시 우측 하단 🐛 버튼으로 제보해주세요', 'success');
         } catch (err) {
             showToast(err.message || '베타 코드 활성화 실패', 'error');
         } finally {
@@ -96,6 +96,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
                                 글 생성 21회, AI 이미지 5장을 사용할 수 있습니다.
                             </p>
                         )}
+                        <p className="settings-beta-bug-hint">문제 발견 시 우측 하단 🐛 버튼으로 제보해주세요</p>
                     </div>
                 ) : (
                     <div className="settings-beta-card-inactive">

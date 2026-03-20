@@ -4780,6 +4780,13 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
     margin-bottom: var(--spacing-xs);
 }
 
+.settings-beta-bug-hint {
+    font-size: 0.75rem;
+    color: var(--color-text-sub);
+    margin-top: var(--spacing-sm);
+    margin-bottom: 0;
+}
+
 .settings-beta-card-inactive {
     margin-bottom: 20px;
     padding: var(--spacing-md);

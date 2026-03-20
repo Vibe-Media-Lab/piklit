@@ -56,28 +56,6 @@ const LoginModal = ({ onClose, onLogin, loginLoading, loginProvider }) => {
             </div>
             <div className="login-modal-buttons">
                 <button
-                    className="login-btn login-btn-naver"
-                    onClick={() => onLogin('naver')}
-                    disabled={loginLoading}
-                >
-                    {loginLoading && loginProvider === 'naver'
-                        ? <Loader2 size={16} className="spin" />
-                        : <NaverIcon />
-                    }
-                    <span>네이버로 시작하기</span>
-                </button>
-                <button
-                    className="login-btn login-btn-kakao"
-                    onClick={() => onLogin('kakao')}
-                    disabled={loginLoading}
-                >
-                    {loginLoading && loginProvider === 'kakao'
-                        ? <Loader2 size={16} className="spin" />
-                        : <KakaoIcon />
-                    }
-                    <span>카카오로 시작하기</span>
-                </button>
-                <button
                     className="login-btn login-btn-google"
                     onClick={() => onLogin('google')}
                     disabled={loginLoading}
@@ -88,7 +66,24 @@ const LoginModal = ({ onClose, onLogin, loginLoading, loginProvider }) => {
                     }
                     <span>Google로 시작하기</span>
                 </button>
+                <button
+                    className="login-btn login-btn-naver login-btn-disabled"
+                    disabled
+                >
+                    <NaverIcon />
+                    <span>네이버로 시작하기</span>
+                    <span className="login-btn-badge">준비 중</span>
+                </button>
+                <button
+                    className="login-btn login-btn-kakao login-btn-disabled"
+                    disabled
+                >
+                    <KakaoIcon />
+                    <span>카카오로 시작하기</span>
+                    <span className="login-btn-badge">준비 중</span>
+                </button>
             </div>
+            <p className="login-modal-beta-note">베타 기간 중 Google 로그인만 지원됩니다</p>
         </div>
     </div>
     );
@@ -181,7 +176,7 @@ const HeroSection = ({ handleStart, loginLoading }) => (
                 >
                     {loginLoading
                         ? <><Loader2 size={18} className="spin" /> 로그인 중...</>
-                        : '30초 만에 시작하기 — 첫 달 무료'
+                        : '지금 시작하기 — 첫 달 무료'
                     }
                 </button>
                 <span className="landing-cta-hint">
@@ -477,7 +472,7 @@ const MidCTA = ({ handleStart, loginLoading }) => (
             >
                 {loginLoading
                     ? <><Loader2 size={16} className="spin" /> 로그인 중...</>
-                    : '30초 만에 시작하기 — 첫 달 무료'
+                    : '지금 시작하기 — 첫 달 무료'
                 }
             </button>
         </div>
@@ -699,7 +694,7 @@ const MidCTA2 = ({ handleStart, loginLoading }) => (
             >
                 {loginLoading
                     ? <><Loader2 size={16} className="spin" /> 로그인 중...</>
-                    : '30초 만에 시작하기 — 첫 달 무료'
+                    : '지금 시작하기 — 첫 달 무료'
                 }
             </button>
         </div>
@@ -791,7 +786,7 @@ const BottomCTA = ({ handleStart, loginLoading }) => (
             >
                 {loginLoading
                     ? <><Loader2 size={20} className="spin" /> 로그인 중...</>
-                    : <><Rocket size={20} /> 30초 만에 시작하기 — 첫 달 무료</>
+                    : <><Rocket size={20} /> 지금 시작하기 — 첫 달 무료</>
                 }
             </button>
             <span className="bottom-cta-note">카드 등록 없음 · 간편 소셜 로그인</span>
