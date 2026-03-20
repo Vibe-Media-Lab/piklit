@@ -281,7 +281,7 @@ const EditorPage = () => {
 
 
     // Streaming Logic
-    const streamContentToEditor = async (fullHtml) => {
+    const streamContentToEditor = async (fullHtml, seoOptions = null) => {
         // 0. JSON 잔여 문자열 제거
         let injectedHtml = fullHtml
             .replace(/^\s*\{\s*"html"\s*:\s*"/i, '')
@@ -402,6 +402,25 @@ const EditorPage = () => {
         // eslint-disable-next-line no-misleading-character-class
         injectedHtml = injectedHtml.replace(/<p>\s*([\u{1F300}-\u{1FAD6}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{200D}\u{20E3}\u{E0020}-\u{E007F}\s]{1,6})\s*<\/p>\s*<p>/gu, '<p>$1 ');
 
+        // 5. SEO 자동 보정 — 후처리 완료된 HTML 기준으로 분석 (사이드바와 동일 기준)
+        if (seoOptions?.mainKeyword) {
+            try {
+                const autoFixed = await AIService.autoFixSeo(
+                    injectedHtml, seoOptions.finalTitle, seoOptions.mainKeyword,
+                    seoOptions.subKeywords, seoOptions.targetLength, seoOptions.categoryId
+                );
+                if (autoFixed.fixed) {
+                    injectedHtml = autoFixed.html;
+                    if (autoFixed.title && autoFixed.title !== seoOptions.finalTitle && seoOptions.onTitleUpdate) {
+                        seoOptions.onTitleUpdate(autoFixed.title);
+                    }
+                    console.log(`[AI Generate] SEO 자동 보정 ${autoFixed.fixCount}건 완료`);
+                }
+            } catch (e) {
+                console.warn('[AI Generate] SEO 자동 보정 실패, 원본 유지:', e.message);
+            }
+        }
+
         // base64 이미지가 포함되면 HTML이 매우 커지므로 텍스트 부분만 스트리밍
         // img 태그의 src="data:..." 부분을 제외한 실제 텍스트 길이 기준으로 청크 계산
         const textOnly = injectedHtml.replace(/<img[^>]*>/g, '').replace(/<[^>]*>/g, '');
@@ -509,25 +528,13 @@ const EditorPage = () => {
 
             const htmlContent = result?.html || result?.text;
             if (htmlContent) {
-                // SEO 자동 보정 (키워드 횟수, 도입부 등)
-                let finalHtml = htmlContent;
                 let finalTitle = result?.title || (title?.trim() ? title : mainKeyword);
-                try {
-                    const autoFixed = await AIService.autoFixSeo(
-                        htmlContent, finalTitle, mainKeyword, keywordStrings,
-                        parseInt(selectedLength) || 1500, categoryId
-                    );
-                    if (autoFixed.fixed) {
-                        finalHtml = autoFixed.html;
-                        finalTitle = autoFixed.title;
-                        console.log(`[AI Generate] SEO 자동 보정 ${autoFixed.fixCount}건 완료`);
-                    }
-                } catch (e) {
-                    console.warn('[AI Generate] SEO 자동 보정 실패, 원본 유지:', e.message);
-                }
-
                 if (finalTitle && finalTitle !== title) setTitle(finalTitle);
-                await streamContentToEditor(finalHtml);
+                await streamContentToEditor(htmlContent, {
+                    mainKeyword, subKeywords: keywordStrings, finalTitle,
+                    targetLength: parseInt(selectedLength) || 1500, categoryId,
+                    onTitleUpdate: (t) => setTitle(t),
+                });
                 updateMainKeyword(mainKeyword);
                 const photoCount = Object.values(photoData.metadata).filter(v => v > 0).length;
                 const charCount = finalHtml.replace(/<[^>]*>/g, '').length;
