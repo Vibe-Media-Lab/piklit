@@ -168,9 +168,18 @@ const HumannessPanel = ({ onLocate, suggestOnly = false, cachedAiSuggestions = n
         const toEntry = posMap.find(e => e.textOffset === pos + replaceLength);
 
         if (fromEntry && toEntry) {
-            editor.chain()
-                .insertContentAt({ from: fromEntry.pmPos, to: toEntry.pmPos }, revised)
-                .run();
+            // 문단 경계 보존: HTML 기반 교체 (plain text 삽입 시 문단 병합 방지)
+            const currentHtml = editor.getHTML();
+            const escapedOriginal = original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const replacedHtml = currentHtml.replace(new RegExp(escapedOriginal), revised);
+            if (replacedHtml !== currentHtml) {
+                editor.commands.setContent(replacedHtml);
+            } else {
+                // fallback: ProseMirror 위치 기반
+                editor.chain()
+                    .insertContentAt({ from: fromEntry.pmPos, to: toEntry.pmPos }, revised)
+                    .run();
+            }
             // 적용 후 빈 <p> 노드 정리 ("..." 방지)
             const updatedHtml = editor.getHTML().replace(/<p>\s*<\/p>/g, '');
             if (updatedHtml !== editor.getHTML()) {

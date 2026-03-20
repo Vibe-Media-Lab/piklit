@@ -76,7 +76,8 @@ export const formatParagraphs = (html, paragraphStyle = 'normal') => {
     return html.replace(/<p>([\s\S]*?)<\/p>/gi, (match, inner) => {
         if (inner.includes('<img')) return match;
 
-        const parts = inner.split(/(?<=[.!?…])\s*(?=\S)/).filter(s => s.trim());
+        // 따옴표/괄호 안의 마침표·느낌표에서는 분리하지 않음
+        const parts = inner.split(/(?<=[.!?…]['"\u2019\u201D)]*)\s+(?=\S)/).filter(s => s.trim());
         if (parts.length === 0) return match;
 
         const splitParts = [];
@@ -215,9 +216,9 @@ export const analyzePost = (title, htmlContent, keywords, targetLength = 1500, c
         if (count >= minRepeat && count <= maxRepeat) {
             checks.mainKeyDensity = true;
         } else if (count < minRepeat) {
-            issues.push({ id: 'key_density', type: 'warning', text: '키워드 반복 부족', metric: `${count}회 → ${minRepeat}~${maxRepeat}회`, count, minRepeat, maxRepeat });
+            issues.push({ id: 'key_density', type: 'warning', text: '메인 키워드 반복 부족', metric: `${count}회 → ${minRepeat}~${maxRepeat}회`, count, minRepeat, maxRepeat });
         } else {
-            issues.push({ id: 'key_density', type: 'warning', text: '키워드 반복 과다', metric: `${count}회 → ${minRepeat}~${maxRepeat}회`, count, minRepeat, maxRepeat });
+            issues.push({ id: 'key_density', type: 'warning', text: '메인 키워드 반복 과다', metric: `${count}회 → ${minRepeat}~${maxRepeat}회`, count, minRepeat, maxRepeat });
         }
 
         // First Paragraph Check — 텍스트가 있는 첫 <p> (이미지만 있는 <p> 스킵)

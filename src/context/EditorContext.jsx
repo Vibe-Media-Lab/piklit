@@ -155,6 +155,8 @@ export const EditorProvider = ({ children }) => {
 
     // 3. Auto-save (Debounced 3초) — with SEO snapshot update
     const autoSave = useCallback(() => {
+        // 플레이스홀더 content가 에디터에 로드된 상태에서는 자동저장 건너뛰기 (이미지 데이터 보호)
+        if (contentRef.current?.includes('[이미지 — 에디터에서 확인]') || contentRef.current?.includes('__stripped__')) return;
         setPosts(prevPosts => prevPosts.map(p => {
             if (p.id !== currentPostIdRef.current) return p;
             const result = analyzePost(titleRef.current, contentRef.current, keywordsRef.current, targetLengthRef.current, p.categoryId || 'daily');

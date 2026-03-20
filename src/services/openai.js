@@ -142,6 +142,10 @@ export const AIService = {
                     .replace(/```json|```html|```/g, '')
                     .replace(/\s*\[\d+\]\s*/g, ' ')          // [1], [2] 등 검색 각주 제거
                     .replace(/,?\s*ALT\.\s*\d+[^.]*\./g, '') // ALT. 1 ... 대안 텍스트 제거
+                    .replace(/<blockquote[^>]*>[^]*?<\/blockquote>/gi, (match) => {
+                        // blockquote 내부의 깨진 스타일 속성 정리
+                        return match.replace(/\s*style="[^"]*"/gi, '');
+                    })
                     .replace(/  +/g, ' ')                      // 이중 공백 정리
                     .trim();
 
@@ -1483,13 +1487,13 @@ ${subKeywordStr ? `서브 키워드: ${subKeywordStr}` : ''}${contextHint}
 [규칙]
 - 제목은 반드시 '${mainKeyword}'으로 시작할 것
 - 실제 정보(메뉴, 위치, 특징 등)를 반영할 것
-- 25자 이내로 작성할 것
+- 반드시 15~30자 이내로 작성 (30자 초과 절대 금지)
 - 카테고리와 톤에 맞는 제목 스타일 유지
 
 Output strictly a valid JSON: ["제목1", "제목2", "제목3", "제목4", "제목5"]`;
         return this.generateContent([{ text: prompt }], {
             tools: [{ google_search: {} }],
-            thinkingBudget: 0
+            thinkingBudget: 1024
         }, '제목 추천');
     },
 
@@ -2118,6 +2122,7 @@ ${selectedRules}
 - 위 이슈 외 다른 부분을 수정하면 안 된다. 원문을 최대한 보존해라.
 ${hasTitleIssue ? '' : '- 제목(title)은 절대 변경하지 마. 원본 그대로 반환해라.'}
 - 이미지(<img>) 태그는 절대 변경하지 마.
+- 기존에 포함된 서브 키워드(${subKeywords.join(', ') || '없음'})를 절대 삭제하지 마. 수정 전후 서브 키워드 개수가 줄면 안 됨.
 - 한 문장은 80자 이내. 80자 넘기면 두 문장으로 나눠.
 - AI 패턴 표현 절대 금지: "다양한", "풍부한", "완벽한", "특별한", "놀라운", "인상적인", "독특한", "매력적인", "효과적인", "핵심적인", "필수적인", "최적의", "한층 더", "그야말로", "무엇보다", "안성맞춤" → 구체적 수치·감각 표현으로 대체.
 - "살펴보겠습니다", "알아보겠습니다", "소개해 드리겠습니다", "결론적으로", "종합적으로" 금지.
