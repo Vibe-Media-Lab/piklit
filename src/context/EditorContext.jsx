@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { analyzePost } from '../utils/analysis';
+import { analyzeHumanness } from '../utils/humanness';
 import {
     migratePosts, computeSeoScore,
     loadHistory, saveHistory, updateDailyStats,
@@ -156,6 +157,8 @@ export const EditorProvider = ({ children }) => {
             if (p.id !== currentPostIdRef.current) return p;
             const result = analyzePost(titleRef.current, contentRef.current, keywordsRef.current, targetLengthRef.current, p.categoryId || 'daily');
             const seoScore = result.totalChars < 10 ? 0 : computeSeoScore(result.checks);
+            const humanResult = result.totalChars < 10 ? { isEmpty: true, score: 0 } : analyzeHumanness(contentRef.current, p.tone || 'friendly');
+            const totalScore = humanResult.isEmpty ? seoScore : Math.round(seoScore * 0.6 + humanResult.score * 0.4);
             return {
                 ...p,
                 title: titleRef.current,
@@ -163,6 +166,7 @@ export const EditorProvider = ({ children }) => {
                 keywords: keywordsRef.current,
                 updatedAt: new Date().toISOString(),
                 seoScore,
+                totalScore,
                 charCount: result.totalChars,
                 imageCount: result.imageCount,
                 headingCount: result.headingCount,

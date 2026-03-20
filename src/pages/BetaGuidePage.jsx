@@ -180,12 +180,12 @@ const BetaGuidePage = () => (
                 이름과 소속을 적은 뒤 <strong>"베타 테스터 활성화"</strong>를 누릅니다
             </Step>
             <div style={{ ...s.infoCard, marginBottom: 12 }}>
-                정식 출시 시 베타 테스터 대상 <strong>할인 코드</strong>를 제공할 예정이에요.<br />
+                🎁 정식 출시 시 베타 테스터 대상 <strong>할인 혜택</strong>을 드릴 예정이에요.<br />
                 이름과 소속을 정확히 기입해주세요!
             </div>
             <div style={{ ...s.bugSection, marginBottom: 12 }}>
-                ⚠️ 베타 코드는 <strong>선착순 100명</strong> 한정입니다.<br />
-                코드를 외부에 공유하지 말아주세요!
+                🔒 이 초대 코드는 소수의 분들께만 개별로 전달드리고 있어요.<br />
+                코드가 공개되면 조기 마감될 수 있으니 <strong>외부에 공유하지 말아주세요!</strong>
             </div>
             <MockBetaRegister />
             <Step num="5">
@@ -241,6 +241,9 @@ const BetaGuidePage = () => (
             >
                 피클잇 체험하러 가기
             </a>
+            <p style={{ fontSize: '0.85rem', color: '#787774', marginTop: 14 }}>
+                편하게 써보시고 솔직한 피드백 주시면 큰 힘이 됩니다. 감사해요! 💕
+            </p>
         </div>
 
         <div style={s.footer}>

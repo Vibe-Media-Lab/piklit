@@ -56,7 +56,9 @@ const MenuBar = ({ editor, tone, aiFooterEnabled, onToggleAiFooter }) => {
     const insertCta = (type) => {
         const template = CTA_TEMPLATES[type]?.[tone] || CTA_TEMPLATES[type]?.['friendly'];
         if (template) {
-            editor.chain().focus().insertContent(template).run();
+            // 항상 글 맨 끝에 삽입 (커서 위치 무관)
+            const endPos = editor.state.doc.content.size;
+            editor.chain().focus(endPos).insertContent(template).run();
         }
         setCtaOpen(false);
     };

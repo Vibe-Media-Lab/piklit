@@ -175,15 +175,22 @@ const AIAnalysisDashboard = ({ onLocate, mode, humanCache }) => {
     const handleExtractTags = async () => {
         if (content.length < 50) return showToast("본문 내용을 좀 더 작성해주세요.", "warning");
         setLoading(true);
-        setExtractedTags([]);
+        const isAppend = extractedTags.length > 0;
+        if (!isAppend) setExtractedTags([]);
         recordAiAction('tagExtract');
         try {
             const parser = new DOMParser();
             const doc = parser.parseFromString(content, 'text/html');
             const text = doc.body.textContent || "";
-            const tags = await AIService.extractTags(text);
+            const excludeHint = isAppend ? extractedTags.join(', ') : '';
+            const tags = await AIService.extractTags(text, excludeHint);
             const cleanTags = (Array.isArray(tags) ? tags : []).map(t => t.replace('#', ''));
-            setExtractedTags(cleanTags);
+            if (isAppend) {
+                const newTags = cleanTags.filter(t => !extractedTags.includes(t));
+                setExtractedTags(prev => [...prev, ...newTags]);
+            } else {
+                setExtractedTags(cleanTags);
+            }
             setTagOpen(true);
         } catch (e) {
             showToast("태그 추출 오류: " + e.message, "error");

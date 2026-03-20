@@ -143,9 +143,6 @@ const TopBar = () => {
                         </button>
                         {exportOpen && (
                             <div className="export-dropdown-menu">
-                                <button onClick={() => { exportAsMarkdown(title, content); setExportOpen(false); }}>
-                                    Markdown (.md)
-                                </button>
                                 <button onClick={() => { exportAsHtml(title, content); setExportOpen(false); }}>
                                     HTML (.html)
                                 </button>

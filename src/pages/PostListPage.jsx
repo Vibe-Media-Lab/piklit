@@ -237,7 +237,8 @@ const PostListPage = () => {
                             const plainText = stripHtml(post.content);
                             const charCount = plainText.length;
                             const preview = plainText.slice(0, 80) + (plainText.length > 80 ? '…' : '');
-                            const seoClass = post.seoScore >= 70 ? 'score-high' : post.seoScore >= 40 ? 'score-mid' : 'score-muted';
+                            const displayScore = post.totalScore || post.seoScore;
+                            const scoreClass = displayScore >= 70 ? 'score-high' : displayScore >= 40 ? 'score-mid' : 'score-muted';
                             return (
                                 <div
                                     key={post.id}
@@ -254,9 +255,9 @@ const PostListPage = () => {
                                             <h3 className={`post-card-title ${!post.title ? 'untitled' : ''}`}>
                                                 {post.title || '(제목 없음)'}
                                             </h3>
-                                            {post.seoScore > 0 && (
-                                                <span className={`seo-badge-compact ${seoClass}`}>
-                                                    {post.seoScore}
+                                            {displayScore > 0 && (
+                                                <span className={`seo-badge-compact ${scoreClass}`}>
+                                                    {displayScore}
                                                 </span>
                                             )}
                                         </div>
