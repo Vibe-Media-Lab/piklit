@@ -2045,6 +2045,33 @@ Output strictly valid HTML only. No JSON wrapping, no explanation.`;
         return { html };
     },
 
+    /**
+     * 본문 생성 직후 SEO 자동 보정 (키워드 횟수, 도입부 길이, 서브 키워드)
+     * 사용자에게 보여주기 전에 백그라운드로 실행
+     */
+    async autoFixSeo(htmlContent, title, mainKeyword, subKeywords = [], targetLength = 1500, categoryId = 'daily') {
+        const { analyzePost } = await import('../utils/analysis.js');
+        const keywords = { main: mainKeyword, sub: subKeywords };
+        const result = analyzePost(title, htmlContent, keywords, targetLength, categoryId);
+        const issues = result.issues.filter(i =>
+            ['key_density', 'key_first', 'sub_missing', 'intro_short', 'intro_long'].includes(i.id)
+        );
+
+        if (issues.length === 0) {
+            console.log('[AutoFix] SEO 이슈 없음, 보정 불필요');
+            return { html: htmlContent, title, fixed: false };
+        }
+
+        console.log(`[AutoFix] SEO 이슈 ${issues.length}건 자동 보정:`, issues.map(i => i.id));
+        try {
+            const fixed = await this.fixSeoIssues(htmlContent, title, mainKeyword, subKeywords, issues);
+            return { html: fixed.content || htmlContent, title: fixed.title || title, fixed: true, fixCount: issues.length };
+        } catch (e) {
+            console.warn('[AutoFix] 보정 실패, 원본 유지:', e.message);
+            return { html: htmlContent, title, fixed: false };
+        }
+    },
+
     async fixSeoIssues(htmlContent, title, mainKeyword, subKeywords, issues, tone = 'friendly') {
         const issueDescriptions = issues.map(i => `- ${i.id}: ${i.text} ${i.metric || ''}`).join('\n');
         const issueIds = new Set(issues.map(i => i.id));

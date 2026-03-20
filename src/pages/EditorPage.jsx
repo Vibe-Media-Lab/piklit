@@ -506,16 +506,28 @@ const EditorPage = () => {
 
             const htmlContent = result?.html || result?.text;
             if (htmlContent) {
-                if (result?.title) {
-                    setTitle(result.title);
-                } else if (!title?.trim()) {
-                    // AI가 title을 반환하지 않았고 타이틀이 비어있으면 키워드 기반 기본값
-                    setTitle(mainKeyword);
+                // SEO 자동 보정 (키워드 횟수, 도입부 등)
+                let finalHtml = htmlContent;
+                let finalTitle = result?.title || (title?.trim() ? title : mainKeyword);
+                try {
+                    const autoFixed = await AIService.autoFixSeo(
+                        htmlContent, finalTitle, mainKeyword, keywordStrings,
+                        parseInt(selectedLength) || 1500, categoryId
+                    );
+                    if (autoFixed.fixed) {
+                        finalHtml = autoFixed.html;
+                        finalTitle = autoFixed.title;
+                        console.log(`[AI Generate] SEO 자동 보정 ${autoFixed.fixCount}건 완료`);
+                    }
+                } catch (e) {
+                    console.warn('[AI Generate] SEO 자동 보정 실패, 원본 유지:', e.message);
                 }
-                await streamContentToEditor(htmlContent);
+
+                if (finalTitle && finalTitle !== title) setTitle(finalTitle);
+                await streamContentToEditor(finalHtml);
                 updateMainKeyword(mainKeyword);
                 const photoCount = Object.values(photoData.metadata).filter(v => v > 0).length;
-                const charCount = htmlContent.replace(/<[^>]*>/g, '').length;
+                const charCount = finalHtml.replace(/<[^>]*>/g, '').length;
                 // 축하 카드 표시
                 setCompletionStats({ charCount, keywordCount: keywordStrings.length, photoCount });
                 setShowCompletionCard(true);
