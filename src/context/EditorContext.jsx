@@ -112,13 +112,13 @@ export const EditorProvider = ({ children }) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // 초기 로드 시 1회만 실행 — posts는 동기 초기화로 이미 존재
 
-    // 2. Save Posts (localStorage) — base64 이미지 제거하여 용량 초과 방지
+    // 2. Save Posts (localStorage) — base64 이미지 태그 제거하여 용량 초과 방지
     useEffect(() => {
         try {
             const stripped = posts.map(p => ({
                 ...p,
                 content: p.content
-                    ? p.content.replace(/src="data:image\/[^"]{1000,}"/g, 'src="__stripped__"')
+                    ? p.content.replace(/<img[^>]*src="data:image\/[^"]{1000,}"[^>]*>/g, '<p style="text-align:center;color:#999;font-size:0.8rem;">[이미지 — 에디터에서 확인]</p>')
                     : p.content,
             }));
             localStorage.setItem('naver_blog_posts', JSON.stringify(stripped));
@@ -136,6 +136,8 @@ export const EditorProvider = ({ children }) => {
     const saveToCloud = useCallback((post) => {
         const u = userRef.current;
         if (!u || !post?.id) return;
+        // 손상된 content 클라우드 업로드 방지
+        if (post.content?.includes('[이미지 — 에디터에서 확인]') || post.content?.includes('__stripped__')) return;
         // 같은 글 연속 저장 방지
         if (lastCloudSavedRef.current === `${post.id}_${post.updatedAt}`) return;
 

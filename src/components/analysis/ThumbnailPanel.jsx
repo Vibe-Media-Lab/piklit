@@ -319,8 +319,9 @@ const ThumbnailPanel = ({ onLocate } = {}) => {
     const handleDownload = async () => {
         if (!previewUrl) return;
 
-        // 모바일 + Web Share API 지원 시 공유 시트 사용
-        if (navigator.share && navigator.canShare) {
+        // 모바일에서만 Web Share API 사용 (사진첩 저장)
+        const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        if (isMobileDevice && navigator.share && navigator.canShare) {
             try {
                 const res = await fetch(previewUrl);
                 const blob = await res.blob();
