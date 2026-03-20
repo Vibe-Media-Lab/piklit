@@ -72,7 +72,7 @@ async function callGeminiImageDirect(payload) {
     const apiKey = payload.userApiKey || import.meta.env.VITE_GEMINI_API_KEY;
     if (!apiKey) throw new Error('VITE_GEMINI_API_KEY가 .env에 설정되지 않았습니다.');
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${apiKey}`;
 
     const response = await fetch(url, {
         method: 'POST',
