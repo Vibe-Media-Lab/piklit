@@ -70,6 +70,7 @@ const TopicStep = ({
                                     updatePostMeta(postId, { categoryId: cat.id, tone: getToneForCategory(cat.id) });
                                 }}
                             >
+                                {cat.verified && <span className="wizard-category-verified">추천</span>}
                                 <span className="wizard-category-card-icon">{cat.icon}</span>
                                 <span className="wizard-category-card-label">
                                     {cat.label}

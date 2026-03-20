@@ -1831,6 +1831,21 @@
     text-align: center;
     transition: all 0.2s;
     font-size: var(--font-size-sm);
+    position: relative;
+    overflow: hidden;
+}
+
+.wizard-category-verified {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: var(--color-brand);
+    color: white;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 12px 2px 4px;
+    clip-path: polygon(0 0, 100% 0, 75% 100%, 0 100%);
+    line-height: 1.4;
 }
 
 .wizard-category-card:hover {

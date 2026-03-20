@@ -1,6 +1,6 @@
 export const CATEGORIES = [
     // 상위 9개 (인기순)
-    { id: 'cafe', label: '카페&맛집', icon: '☕', tone: '친근한 이웃형', templateId: 'A', recommendedImages: 10, recommendedCharCount: 2500, recommendedHeadings: 6 },
+    { id: 'cafe', label: '카페&맛집', icon: '☕', tone: '친근한 이웃형', templateId: 'A', recommendedImages: 10, recommendedCharCount: 2500, recommendedHeadings: 6, verified: true },
     { id: 'travel', label: '여행', icon: '✈️', tone: '친근한 이웃형', templateId: 'A', recommendedImages: 15, recommendedCharCount: 3000, recommendedHeadings: 7 },
     { id: 'review', label: '솔직후기', icon: '⭐', tone: '내돈내산 솔직형', templateId: 'D', recommendedImages: 12, recommendedCharCount: 2500, recommendedHeadings: 6 },
     { id: 'recipe', label: '레시피', icon: '🍳', tone: '단계별 가이드형', templateId: 'C', recommendedImages: 10, recommendedCharCount: 2000, recommendedHeadings: 5 },

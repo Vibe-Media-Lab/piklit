@@ -2060,7 +2060,15 @@ Output strictly valid HTML only. No JSON wrapping, no explanation.`;
         // 최대 2회 보정 시도 (1회차 후 검증 → 이슈 남으면 2회차)
         for (let attempt = 1; attempt <= 2; attempt++) {
             const result = analyzePost(currentTitle, currentHtml, keywords, targetLength, categoryId);
-            const issues = result.issues.filter(i => SEO_IDS.includes(i.id));
+            const allIssues = result.issues;
+            const issues = allIssues.filter(i => SEO_IDS.includes(i.id));
+
+            console.log(`[AutoFix] ${attempt}회차 진단:`, {
+                keyword: mainKeyword,
+                totalChars: result.totalChars,
+                allIssueIds: allIssues.map(i => i.id),
+                seoIssues: issues.map(i => `${i.id}: ${i.metric || i.text}`),
+            });
 
             if (issues.length === 0) {
                 console.log(`[AutoFix] ${attempt}회차: SEO 이슈 없음${totalFixed > 0 ? ` (${totalFixed}건 보정 완료)` : ''}`);
