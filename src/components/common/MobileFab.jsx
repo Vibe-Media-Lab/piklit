@@ -10,11 +10,12 @@ const MobileFab = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // 에디터 페이지나 랜딩에서는 숨김
+    // 에디터 페이지나 랜딩, 가이드에서는 숨김
     const isEditor = location.pathname.startsWith('/editor/');
     const isLanding = location.pathname === '/';
+    const isGuide = location.pathname === '/beta-guide';
 
-    if (!isLoggedIn || isEditor || isLanding) return null;
+    if (!isLoggedIn || isEditor || isLanding || isGuide) return null;
 
     const handleCreate = () => {
         const newId = createPost({ mode: 'ai' });

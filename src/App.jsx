@@ -38,6 +38,7 @@ const HistoryPage = React.lazy(safeImport(() => import('./pages/HistoryPage')));
 const AdminBugsPage = React.lazy(safeImport(() => import('./pages/AdminBugsPage')));
 const AdminBetaPage = React.lazy(safeImport(() => import('./pages/AdminBetaPage')));
 const AdminUsersPage = React.lazy(safeImport(() => import('./pages/AdminUsersPage')));
+const BetaGuidePage = React.lazy(safeImport(() => import('./pages/BetaGuidePage')));
 
 // 베타 만료 감지 훅
 const useBetaExpired = () => {
@@ -126,6 +127,7 @@ function AppRoutes() {
         <Suspense fallback={<PageLoading />}>
         <Routes>
             <Route path="/" element={<LandingPage />} />
+            <Route path="/beta-guide" element={<BetaGuidePage />} />
             <Route path="/posts" element={
                 <ProtectedRoute {...protectedProps}>
                     <PostListPage />

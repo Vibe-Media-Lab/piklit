@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from './Toast';
 import { callSubmitBugReport } from '../../services/firebase';
@@ -7,11 +8,12 @@ import { getConsoleLogs } from '../../utils/consoleCapture';
 const BugReportButton = () => {
     const { user } = useAuth();
     const { showToast } = useToast();
+    const location = useLocation();
     const [isOpen, setIsOpen] = useState(false);
     const [description, setDescription] = useState('');
     const [sending, setSending] = useState(false);
 
-    if (!user) return null;
+    if (!user || location.pathname === '/beta-guide') return null;
 
     const handleSubmit = async () => {
         if (!description.trim()) return showToast('문제 설명을 입력해주세요.', 'warning');
