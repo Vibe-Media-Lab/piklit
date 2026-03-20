@@ -90,11 +90,8 @@ const AIAnalysisDashboard = ({ onLocate, mode, humanCache }) => {
 
     // 자연스러움 AI 제안 캐시 (MainContainer에서 전달받거나 로컬 fallback)
     const [localCachedSuggestions, setLocalCachedSuggestions] = useState(null);
-    const [localCachedApplied, setLocalCachedApplied] = useState(new Set());
     const cachedAiSuggestions = humanCache?.cachedAiSuggestions ?? localCachedSuggestions;
     const setCachedAiSuggestions = humanCache?.setCachedAiSuggestions ?? setLocalCachedSuggestions;
-    const cachedAppliedIndices = humanCache?.cachedAppliedIndices ?? localCachedApplied;
-    const setCachedAppliedIndices = humanCache?.setCachedAppliedIndices ?? setLocalCachedApplied;
 
     const [loading, setLoading] = useState(false);
     const [seoFixLoading, setSeoFixLoading] = useState(false);
@@ -429,7 +426,7 @@ const AIAnalysisDashboard = ({ onLocate, mode, humanCache }) => {
             <div className="ai-dashboard v3">
                 <Section title="AI 감지 분석" icon={Sparkles} score={humanResult.isEmpty ? null : naturalPercentage} scoreClass={getScoreClass(naturalPercentage)} defaultOpen={true}>
                     {renderV3HumannessBars()}
-                    <HumannessPanel onLocate={onLocate} suggestOnly cachedAiSuggestions={cachedAiSuggestions} onCacheAiSuggestions={setCachedAiSuggestions} cachedAppliedIndices={cachedAppliedIndices} onCacheAppliedIndices={setCachedAppliedIndices} />
+                    <HumannessPanel onLocate={onLocate} suggestOnly cachedAiSuggestions={cachedAiSuggestions} onCacheAiSuggestions={setCachedAiSuggestions} />
                 </Section>
                 {naturalSuggestions.length > 0 && (
                     <Section title="개선 제안" count={naturalSuggestions.length} defaultOpen={true}>

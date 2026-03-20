@@ -3,6 +3,8 @@ import { getDoc, setDoc } from './_lib/firestore.js';
 
 const MONTHLY_LIMIT = 3;
 const PROMO_DAYS = 30;
+const BETA_DAYS = 7;
+const BETA_DRAFT_LIMIT = 21;
 
 export default async function handler(req, res) {
     // CORS
@@ -44,6 +46,19 @@ export default async function handler(req, res) {
             used = userData.draftCount || 0;
         }
 
+        // 베타 테스터 상태 계산
+        let isBeta = false;
+        let betaUsed = 0;
+        let betaDaysLeft = 0;
+        if (userData.betaActivatedAt) {
+            const betaDiff = (Date.now() - new Date(userData.betaActivatedAt).getTime()) / (1000 * 60 * 60 * 24);
+            if (betaDiff <= BETA_DAYS) {
+                isBeta = true;
+                betaUsed = userData.betaDraftCount || 0;
+                betaDaysLeft = Math.ceil(BETA_DAYS - betaDiff);
+            }
+        }
+
         // 프로모션 상태 계산
         let isPromo = false;
         let promoDaysLeft = 0;
@@ -60,6 +75,10 @@ export default async function handler(req, res) {
             limit: MONTHLY_LIMIT,
             isPromo,
             promoDaysLeft,
+            isBeta,
+            betaUsed,
+            betaLimit: BETA_DRAFT_LIMIT,
+            betaDaysLeft,
         });
     } catch (err) {
         console.error('Usage API error:', err);

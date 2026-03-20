@@ -73,9 +73,29 @@ const SettingsModal = ({ isOpen, onClose }) => {
                                 D-{betaStatus.daysLeft}
                             </span>
                         </div>
-                        <p className="settings-beta-desc">
-                            글 생성 21회, AI 이미지 5장을 사용할 수 있습니다.
-                        </p>
+                        {usage?.isBeta ? (
+                            <>
+                                <div className="settings-beta-usage-row">
+                                    <span>글 생성</span>
+                                    <span style={{ color: usage.betaUsed >= usage.betaLimit ? 'var(--color-error)' : 'var(--color-brand)' }}>
+                                        {usage.betaUsed} / {usage.betaLimit}회
+                                    </span>
+                                </div>
+                                <div className="settings-progress-track">
+                                    <div
+                                        className="settings-progress-bar"
+                                        style={{
+                                            width: `${Math.min(Math.round((usage.betaUsed / usage.betaLimit) * 100), 100)}%`,
+                                            background: usage.betaUsed >= usage.betaLimit ? 'var(--color-error)' : 'var(--color-success)',
+                                        }}
+                                    />
+                                </div>
+                            </>
+                        ) : (
+                            <p className="settings-beta-desc">
+                                글 생성 21회, AI 이미지 5장을 사용할 수 있습니다.
+                            </p>
+                        )}
                     </div>
                 ) : (
                     <div className="settings-beta-card-inactive">

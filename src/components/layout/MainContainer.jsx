@@ -36,11 +36,9 @@ const MainContainer = () => {
 
     // 자연스러움 AI 제안 캐시 (탭 전환 시 소실 방지 — MainContainer 레벨)
     const [cachedAiSuggestions, setCachedAiSuggestions] = useState(null);
-    const [cachedAppliedIndices, setCachedAppliedIndices] = useState(new Set());
     const humanCache = useMemo(() => ({
         cachedAiSuggestions, setCachedAiSuggestions,
-        cachedAppliedIndices, setCachedAppliedIndices,
-    }), [cachedAiSuggestions, cachedAppliedIndices]);
+    }), [cachedAiSuggestions]);
 
     return (
         <>

@@ -41,6 +41,7 @@ export const EditorProvider = ({ children }) => {
     const [targetLength, setTargetLength] = useState(1500);
     const [photoPreviewUrls, setPhotoPreviewUrls] = useState([]);
     const [humanTip, setHumanTip] = useState(null); // { original, revised, reason, index }
+    const [humanAppliedIndices, setHumanAppliedIndices] = useState(new Set());
     const editorRef = React.useRef(null);
     const lastCursorPosRef = React.useRef(null);
 
@@ -455,6 +456,8 @@ export const EditorProvider = ({ children }) => {
         // 휴먼라이징 인라인 TIP
         humanTip,
         setHumanTip,
+        humanAppliedIndices,
+        setHumanAppliedIndices,
 
         // 에디터 이탈 방지 가드
         navigationGuardRef,
@@ -462,7 +465,7 @@ export const EditorProvider = ({ children }) => {
         // 클라우드 동기화 상태
         cloudLoading,
         cloudSyncStatus,
-    }), [posts, currentPostId, createPost, openPostStable, savePost, deletePost, revertPost, keywords, updateMainKeyword, updateSubKeyword, updateSubKeywords, title, content, analysis, suggestedTone, targetLength, closeSession, recordAiAction, updatePostMeta, photoPreviewUrls, humanTip, cloudLoading, cloudSyncStatus]);
+    }), [posts, currentPostId, createPost, openPostStable, savePost, deletePost, revertPost, keywords, updateMainKeyword, updateSubKeyword, updateSubKeywords, title, content, analysis, suggestedTone, targetLength, closeSession, recordAiAction, updatePostMeta, photoPreviewUrls, humanTip, humanAppliedIndices, cloudLoading, cloudSyncStatus]);
 
     return (
         <EditorContext.Provider value={value}>

@@ -235,7 +235,7 @@ export const analyzePost = (title, htmlContent, keywords, targetLength = 1500, c
         if (missingSubs.length === 0) {
             checks.subKeyPresence = true;
         } else {
-            issues.push({ id: 'sub_missing', type: 'info', text: '서브 키워드 누락', metric: `${missingSubs.length}개` });
+            issues.push({ id: 'sub_missing', type: 'info', text: '서브 키워드 누락', metric: `${missingSubs.length}개`, missingSubs });
         }
     } else {
         checks.subKeyPresence = true;

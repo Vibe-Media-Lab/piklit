@@ -184,7 +184,7 @@ const AI_FOOTER_HTML = '<p style="text-align: center; padding: 14px 16px; margin
 const AI_FOOTER_MARKER = 'AI 생성 도구를 사용하여 제작되었습니다';
 
 const TiptapEditor = () => {
-    const { content, setContent, keywords, suggestedTone, editorRef, lastCursorPosRef, humanTip, setHumanTip, recordAiAction, title, analysis, targetLength, posts, currentPostId } = useEditorContext();
+    const { content, setContent, keywords, suggestedTone, editorRef, lastCursorPosRef, humanTip, setHumanTip, humanAppliedIndices, setHumanAppliedIndices, recordAiAction, title, analysis, targetLength, posts, currentPostId } = useEditorContext();
     const { showToast } = useToast();
     const [aiDropdownOpen, setAiDropdownOpen] = useState(false);
     const [aiLoading, setAiLoading] = useState(false);
@@ -519,6 +519,10 @@ const TiptapEditor = () => {
         if (fromEntry && toEntry) {
             editor.chain().insertContentAt({ from: fromEntry.pmPos, to: toEntry.pmPos }, revised).run();
             recordAiAction('humanTipApply');
+            // 적용된 인덱스를 context에 기록 (자연스러움 패널에서 "적용됨" 표시)
+            if (humanTip.index != null) {
+                setHumanAppliedIndices(prev => new Set([...prev, humanTip.index]));
+            }
             showToast('수정안이 적용되었습니다.', 'success');
         } else {
             showToast('원문 위치를 특정할 수 없습니다.', 'warning');
@@ -529,7 +533,7 @@ const TiptapEditor = () => {
             el.classList.remove('humanness-inline-highlight');
         });
         setHumanTip(null);
-    }, [editor, humanTip, showToast, recordAiAction, setHumanTip]);
+    }, [editor, humanTip, showToast, recordAiAction, setHumanTip, setHumanAppliedIndices]);
 
     // TIP 닫기
     const handleCloseTip = useCallback(() => {

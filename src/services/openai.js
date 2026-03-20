@@ -692,14 +692,20 @@ Output strictly a valid JSON:
         return '<p>당 1~3문장(길이 변주).';
     },
 
-    _htmlRules(keyword, paragraphStyle = 'normal') {
+    _htmlRules(keyword, paragraphStyle = 'normal', targetLength = 1500) {
+        const chars = parseInt(targetLength) || 1500;
+        let minRepeat, maxRepeat;
+        if (chars < 1500) { minRepeat = 3; maxRepeat = 5; }
+        else if (chars <= 2500) { minRepeat = 5; maxRepeat = 8; }
+        else { minRepeat = 8; maxRepeat = 12; }
+
         return `[HTML규칙] ${this._paragraphRule(paragraphStyle)} <b>로 강조 (글 전체 3~5개 이내, 핵심 키워드·수치·결론만). <h2>만 사용 (h3 금지). 이미지([[IMAGE:...]])는 별도 <p>. h1 금지.
 [키워드 배치 — 필수!!!] "${keyword}" 메인 키워드를 아래 위치에 반드시 포함:
   ① 첫 <p> (도입부)에 1회
   ② <h2> 소제목 중 최소 1개에 포함
-  ③ 본문 중간에 1~2회
+  ③ 본문 중간에 자연스럽게 분산
   ④ 마지막 문단에 1회
-  → 총 5~6회. 연속 문단에 같은 키워드 반복 금지. 500자마다 최소 1회 자연스럽게 분산.
+  → 총 ${minRepeat}~${maxRepeat}회 (${chars}자 기준). 이 범위를 절대 초과하지 마. 연속 문단에 같은 키워드 반복 금지.
 [문장 규칙 — 필수!!!] 한 문장은 반드시 80자(한글 기준) 이내로 작성. 80자를 넘길 것 같으면 두 문장으로 나눠. 짧고 읽기 쉬운 문장이 핵심. 쉼표로 문장을 늘리지 말고 마침표로 끊어.
 [반복 금지] 동일한 표현·문구·문장 구조를 반복하지 마. 각 문단마다 다른 표현과 시작어를 사용. 같은 내용을 다른 말로 바꿔 쓰는 것도 반복임.
 [AI 패턴 표현 — 절대 금지!!!] 아래 단어·표현을 쓰면 안 돼. 반드시 대체 예시처럼 구체적으로 바꿔 써:
@@ -966,7 +972,7 @@ ${tree}
 
         const toneBoost = this._categoryToneBoost(category, tone);
         const prompt = `너는 네이버 블로그 SEO 전문가야.
-${this._htmlRules(mainKeyword, paragraphStyle)}
+${this._htmlRules(mainKeyword, paragraphStyle, targetLength)}
 주제: ${category} | 키워드: ${mainKeyword} | 글자수: ${targetLength} (최소 ${parseInt(targetLength) || 1500}자 이상 필수!!!)
 톤: ${wannabeStyleRules ? '(아래 스타일 규칙 우선 적용)' : (this._toneMap[tone] || this._toneMap['friendly'])}${toneBoost && !wannabeStyleRules ? `\n[카테고리 맞춤 톤 보정] ${toneBoost}` : ''}
 ${this._subKeywordPrompt(subKeywords)}
@@ -1056,7 +1062,7 @@ Output strictly a valid JSON:
 
         const toneBoost = this._categoryToneBoost('food', tone);
         const prompt = `너는 네이버 블로그 맛집 전문 블로거야.
-${this._htmlRules(keyword, paragraphStyle)}
+${this._htmlRules(keyword, paragraphStyle, targetLength)}
 키워드: ${keyword} | 톤: ${wannabeStyleRules ? '(아래 스타일 규칙 우선 적용)' : (this._toneMap[tone] || this._toneMap['friendly'])}${toneBoost && !wannabeStyleRules ? `\n[카테고리 맞춤 톤 보정] ${toneBoost}` : ''} | 글자수: ${targetLength} (최소 ${parseInt(targetLength) || 1500}자 이상 필수!!!)
 사진: ${slots}
 ${this._subKeywordPrompt(subKeywords)}
@@ -1146,7 +1152,7 @@ Output strictly a valid JSON:
 
         const toneBoost = this._categoryToneBoost('shopping', tone);
         const prompt = `너는 네이버 블로그 쇼핑 리뷰 전문 블로거야.
-${this._htmlRules(keyword, paragraphStyle)}
+${this._htmlRules(keyword, paragraphStyle, targetLength)}
 키워드: ${keyword} | 톤: ${wannabeStyleRules ? '(아래 스타일 규칙 우선 적용)' : (this._toneMap[tone] || this._toneMap['friendly'])}${toneBoost && !wannabeStyleRules ? `\n[카테고리 맞춤 톤 보정] ${toneBoost}` : ''} | 글자수: ${targetLength} (최소 ${parseInt(targetLength) || 1500}자 이상 필수!!!)
 사진: ${slots}
 ${this._subKeywordPrompt(subKeywords)}
@@ -2034,7 +2040,7 @@ Output strictly valid HTML only. No JSON wrapping, no explanation.`;
             keyword_density_low: '본문에 메인 키워드를 자연스럽게 추가 삽입.',
             keyword_density_high: '과도한 키워드 반복을 유의어로 대체.',
             key_first: '첫 문단에 메인 키워드를 자연스럽게 포함.',
-            sub_missing: '서브 키워드를 본문에 자연스럽게 녹여넣기.',
+            sub_missing: null, // 동적 생성 (아래에서 missingSubs 기반)
             structure_missing: '적절한 위치에 <h2> 소제목 추가.',
             heading_keyword: '소제목 중 하나 이상에 메인 키워드 포함.',
             intro_short: '첫 문단을 140~160자로 확장.',
@@ -2043,6 +2049,10 @@ Output strictly valid HTML only. No JSON wrapping, no explanation.`;
         };
         const selectedRules = issues
             .map((iss, idx) => {
+                if (iss.id === 'sub_missing' && iss.missingSubs?.length > 0) {
+                    const list = iss.missingSubs.map((kw, j) => `"${kw}"`).join(', ');
+                    return `${idx + 1}. sub_missing: 다음 서브 키워드가 본문에 없음: ${list}. 각 키워드를 서로 다른 문단에 1회씩 자연스럽게 삽입해. 한 문장에 2개 이상 넣지 마.`;
+                }
                 if (iss.id === 'key_density' && iss.count != null) {
                     const target = Math.round((iss.minRepeat + iss.maxRepeat) / 2);
                     if (iss.count < iss.minRepeat) {
