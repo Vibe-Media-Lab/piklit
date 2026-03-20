@@ -537,7 +537,7 @@ const EditorPage = () => {
                 });
                 updateMainKeyword(mainKeyword);
                 const photoCount = Object.values(photoData.metadata).filter(v => v > 0).length;
-                const charCount = finalHtml.replace(/<[^>]*>/g, '').length;
+                const charCount = htmlContent.replace(/<[^>]*>/g, '').length;
                 // 축하 카드 표시
                 setCompletionStats({ charCount, keywordCount: keywordStrings.length, photoCount });
                 setShowCompletionCard(true);
