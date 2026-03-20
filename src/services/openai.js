@@ -699,33 +699,16 @@ Output strictly a valid JSON:
         else if (chars <= 2500) { minRepeat = 5; maxRepeat = 8; }
         else { minRepeat = 8; maxRepeat = 12; }
 
-        return `[HTML규칙] ${this._paragraphRule(paragraphStyle)} <b>로 강조 (글 전체 3~5개 이내, 핵심 키워드·수치·결론만). <h2>만 사용 (h3 금지). 이미지([[IMAGE:...]])는 별도 <p>. h1 금지.
-[키워드 배치 — 필수!!!] "${keyword}" 메인 키워드를 아래 위치에 반드시 포함:
-  ① 첫 <p> (도입부)에 1회
-  ② <h2> 소제목 중 최소 1개에 포함
-  ③ 본문 중간에 자연스럽게 분산
-  ④ 마지막 문단에 1회
-  → 총 ${minRepeat}~${maxRepeat}회 (${chars}자 기준). 이 범위를 절대 초과하지 마. 연속 문단에 같은 키워드 반복 금지.
-[문장 규칙 — 필수!!!] 한 문장은 반드시 80자(한글 기준) 이내로 작성. 80자를 넘길 것 같으면 두 문장으로 나눠. 짧고 읽기 쉬운 문장이 핵심. 쉼표로 문장을 늘리지 말고 마침표로 끊어.
-[반복 금지] 동일한 표현·문구·문장 구조를 반복하지 마. 각 문단마다 다른 표현과 시작어를 사용. 같은 내용을 다른 말로 바꿔 쓰는 것도 반복임.
-[AI 패턴 표현 — 절대 금지!!!] 아래 단어·표현을 쓰면 안 돼. 반드시 대체 예시처럼 구체적으로 바꿔 써:
-- "다양한" → "5가지 종류의" / "세 곳을 비교해본"
-- "풍부한" → "간장 맛이 진하게 배어든" / "토핑이 수북하게 올라간"
-- "완벽한" → "흠잡을 데 없는" / "기대한 그대로인"
-- "특별한" → "여기서만 맛볼 수 있는" / "직접 로스팅한"
-- "놀라운" → "예상보다 2배 빠른" / "30분 만에 끝나는"
-- "인상적인" → "눈에 확 들어오는" / "한번 보면 기억에 남는"
-- "독특한" → "처음 보는 조합인" / "이런 메뉴는 여기뿐인"
-- "매력적인" → "자꾸 손이 가는" / "한 번 가면 또 가게 되는"
-- "효과적인" → "3일 만에 차이가 보이는" / "바로 체감 가능한"
-- "핵심적인" → "가장 중요한 한 가지" / "이것만 알면 되는"
-- "필수적인" → "빠지면 안 되는" / "이건 꼭 챙겨야 하는"
-- "최적의" → "가성비가 가장 좋은" / "이 조건에 딱 맞는"
-- "한층 더" → "확실히" / "눈에 띄게"
-- "그야말로" → 삭제하거나 구체적 수치·비유로 대체
-- "무엇보다" → "가장 좋았던 건" / "제일 먼저 눈에 들어온 건"
-- "안성맞춤" → "딱 맞는" / "이 상황에 제격인"
-[금지 문형] "살펴보겠습니다", "알아보겠습니다", "소개해 드리겠습니다", "결론적으로", "종합적으로", "이번 포스팅에서는" — 모두 금지. 바로 본론으로 들어갈 것.`;
+        return `[HTML규칙] ${this._paragraphRule(paragraphStyle)} <b>로 강조 (글 전체 3~5개 이내). <h2>만 사용 (h3 금지). 이미지([[IMAGE:...]])는 별도 <p>. h1 금지.
+[문장 규칙] 한 문장 80자 이내. 넘기면 두 문장으로 나눠. 같은 표현·구조 반복 금지.
+[금지 표현] "다양한/풍부한/완벽한/특별한/놀라운/독특한/매력적인/안성맞춤" → 구체적 수치·감각 묘사로 대체. "살펴보겠습니다/알아보겠습니다/소개해 드리겠습니다/결론적으로/이번 포스팅에서는" 금지.
+[⚠️ SEO 필수 — 반드시 지켜!!!]
+  메인 키워드 "${keyword}" 배치:
+  ① 첫 <p> (도입부)에 반드시 1회
+  ② <h2> 소제목 중 최소 1개
+  ③ 본문 중간 분산
+  ④ 마지막 문단 1회
+  → 총 정확히 ${minRepeat}~${maxRepeat}회. ${maxRepeat}회 초과 절대 금지!`;
     },
 
     // 카테고리+톤 조합별 보정 지시문 (맥락에 맞는 표현 차별화)
@@ -839,11 +822,11 @@ Output strictly a valid JSON:
     // 서브 키워드 필수 포함 프롬프트 헬퍼
     _subKeywordPrompt(subKeywords) {
         if (!subKeywords || subKeywords.length === 0) return '';
-        const list = subKeywords.map((kw, i) => `  ${i + 1}. "${kw}"`).join('\n');
-        return `\n[서브 키워드 — 전부 포함, 소제목에 분산 배치]
-아래 서브 키워드를 전부 본문에 포함해. 각 키워드를 서로 다른 소제목 섹션에 분산 배치할 것.
+        const list = subKeywords.map((kw, i) => `  ${i + 1}. "${kw}" → 각 1~2회`).join('\n');
+        return `\n[⚠️ 서브 키워드 — 각 1~2회 필수 포함]
+아래 서브 키워드를 빠짐없이 본문에 포함해. 하나라도 빠지면 SEO 감점됨.
 ${list}
-→ 키워드를 억지로 나열하지 말고, 문장 속에 녹여넣어. 한 문장에 키워드 2개 이상 우겨넣기 금지. <b> 태그 강조는 2~3개만.`;
+배치 규칙: 서로 다른 소제목 섹션에 분산. 한 문장에 2개 이상 금지.`;
     },
 
     // 경쟁 블로그 분석 결과 프롬프트 생성 헬퍼
@@ -971,6 +954,9 @@ ${tree}
         const exampleSlot = categorySlots[0] || 'extra';
 
         const toneBoost = this._categoryToneBoost(category, tone);
+        const chars = parseInt(targetLength) || 1500;
+        const minRepeat = chars < 1500 ? 3 : chars <= 2500 ? 5 : 8;
+        const maxRepeat = chars < 1500 ? 5 : chars <= 2500 ? 8 : 12;
         const prompt = `너는 네이버 블로그 SEO 전문가야.
 ${this._htmlRules(mainKeyword, paragraphStyle, targetLength)}
 주제: ${category} | 키워드: ${mainKeyword} | 글자수: ${targetLength} (최소 ${parseInt(targetLength) || 1500}자 이상 필수!!!)
@@ -990,7 +976,14 @@ ${imageInstructions}
 ${this._introPromptByCategory(category, mainKeyword)}
 2. 본문: h2 사용. 구글 검색으로 '${mainKeyword}' 실제 정보를 찾아 작성. 서브 키워드는 문맥에 맞게 자연스럽게 녹여넣기. [[VIDEO]] 1개 배치.
 [글자수 — 필수!!!] 본문 전체(HTML 태그 제외, 공백 제외)가 반드시 ${parseInt(targetLength) || 1500}자 이상이어야 함. 부족하면 각 섹션을 더 풍성하게 작성할 것.
-${wannabeStyleRules ? `${wannabeStyleRules}\n위 스타일 규칙은 [필수]이다. 모든 문장에서 반드시 준수하라.\n` : ''}Output strictly a valid JSON: {"title": "SEO 최적화된 블로그 제목 (메인 키워드로 시작, 15~30자)", "html": "..."}`;
+${wannabeStyleRules ? `${wannabeStyleRules}\n위 스타일 규칙은 [필수]이다. 모든 문장에서 반드시 준수하라.\n` : ''}
+[⚠️ 최종 검증 — JSON 출력 전 반드시 확인!!!]
+✅ 도입부(첫 <p>)가 150~200자인가?
+✅ 도입부에 "${mainKeyword}" 키워드가 있는가?
+✅ "${mainKeyword}" 총 등장 횟수가 ${minRepeat}~${maxRepeat}회인가?
+✅ 서브 키워드가 전부 포함되었는가?
+→ 하나라도 미충족 시 수정 후 출력할 것.
+Output strictly a valid JSON: {"title": "SEO 최적화된 블로그 제목 (메인 키워드로 시작, 15~30자)", "html": "..."}`;
 
         const parts = [{ text: prompt }];
         if (!photoAnalysis) {
@@ -1061,6 +1054,9 @@ Output strictly a valid JSON:
         const infoCard = `<h2>📍 찾아가는 길</h2><p><b>가게명:</b> ${keyword}</p><p><b>주소:</b> ${placeInfo.address}</p><p><b>영업시간:</b> ${placeInfo.hours}</p><p><b>인기메뉴:</b> ${placeInfo.menu}</p><p><b>주차:</b> ${placeInfo.parking}</p><p><b>예약:</b> ${placeInfo.reservation}</p>`;
 
         const toneBoost = this._categoryToneBoost('food', tone);
+        const chars = parseInt(targetLength) || 1500;
+        const minRepeat = chars < 1500 ? 3 : chars <= 2500 ? 5 : 8;
+        const maxRepeat = chars < 1500 ? 5 : chars <= 2500 ? 8 : 12;
         const prompt = `너는 네이버 블로그 맛집 전문 블로거야.
 ${this._htmlRules(keyword, paragraphStyle, targetLength)}
 키워드: ${keyword} | 톤: ${wannabeStyleRules ? '(아래 스타일 규칙 우선 적용)' : (this._toneMap[tone] || this._toneMap['friendly'])}${toneBoost && !wannabeStyleRules ? `\n[카테고리 맞춤 톤 보정] ${toneBoost}` : ''} | 글자수: ${targetLength} (최소 ${parseInt(targetLength) || 1500}자 이상 필수!!!)
@@ -1084,7 +1080,14 @@ ${this._introPromptByCategory('food', keyword)}
 ${infoCard}
 → 가게 정보는 반드시 글의 맨 마지막에 위치해야 함. 도입부나 본문 중간에 넣지 말 것. 독자가 글을 끝까지 읽고 방문을 결심한 후 확인하는 정보임.
 [글자수 — 필수!!!] 본문 전체(HTML 태그 제외, 공백 제외)가 반드시 ${parseInt(targetLength) || 1500}자 이상이어야 함. 부족하면 각 섹션을 더 풍성하게 작성할 것.
-${wannabeStyleRules ? `${wannabeStyleRules}\n위 스타일 규칙은 [필수]이다. 모든 문장에서 반드시 준수하라.\n` : ''}Output strictly a valid JSON: {"title": "SEO 최적화된 블로그 제목 (메인 키워드로 시작, 15~30자)", "html": "..."}`;
+${wannabeStyleRules ? `${wannabeStyleRules}\n위 스타일 규칙은 [필수]이다. 모든 문장에서 반드시 준수하라.\n` : ''}
+[⚠️ 최종 검증 — JSON 출력 전 반드시 확인!!!]
+✅ 도입부(첫 <p>)가 150~200자인가?
+✅ 도입부에 "${keyword}" 키워드가 있는가?
+✅ "${keyword}" 총 등장 횟수가 ${minRepeat}~${maxRepeat}회인가?
+✅ 서브 키워드가 전부 포함되었는가?
+→ 하나라도 미충족 시 수정 후 출력할 것.
+Output strictly a valid JSON: {"title": "SEO 최적화된 블로그 제목 (메인 키워드로 시작, 15~30자)", "html": "..."}`;
 
         const parts = [{ text: prompt }];
         if (!photoAnalysis) {
@@ -1151,6 +1154,9 @@ Output strictly a valid JSON:
         const infoCard = `<h2>🏷️ ${productInfo.productName || keyword}</h2><p><b>브랜드:</b> ${productInfo.brand}</p><p><b>가격:</b> ${productInfo.price}</p><p><b>주요 스펙:</b> ${productInfo.specs}</p><p><b>구매처:</b> ${productInfo.whereToBuy}</p>`;
 
         const toneBoost = this._categoryToneBoost('shopping', tone);
+        const chars = parseInt(targetLength) || 1500;
+        const minRepeat = chars < 1500 ? 3 : chars <= 2500 ? 5 : 8;
+        const maxRepeat = chars < 1500 ? 5 : chars <= 2500 ? 8 : 12;
         const prompt = `너는 네이버 블로그 쇼핑 리뷰 전문 블로거야.
 ${this._htmlRules(keyword, paragraphStyle, targetLength)}
 키워드: ${keyword} | 톤: ${wannabeStyleRules ? '(아래 스타일 규칙 우선 적용)' : (this._toneMap[tone] || this._toneMap['friendly'])}${toneBoost && !wannabeStyleRules ? `\n[카테고리 맞춤 톤 보정] ${toneBoost}` : ''} | 글자수: ${targetLength} (최소 ${parseInt(targetLength) || 1500}자 이상 필수!!!)
@@ -1175,7 +1181,14 @@ ${infoCard}
 [장단점 섹션 — 필수]
 본문 후반부에 장점과 아쉬운 점을 <h2>✅ 장점</h2>과 <h2>❌ 아쉬운 점</h2> 소제목 아래 <ul><li> 리스트로 각각 3~5개씩 정리.
 [글자수 — 필수!!!] 본문 전체(HTML 태그 제외, 공백 제외)가 반드시 ${parseInt(targetLength) || 1500}자 이상이어야 함. 부족하면 각 섹션을 더 풍성하게 작성할 것.
-${wannabeStyleRules ? `${wannabeStyleRules}\n위 스타일 규칙은 [필수]이다. 모든 문장에서 반드시 준수하라.\n` : ''}Output strictly a valid JSON: {"title": "SEO 최적화된 블로그 제목 (메인 키워드로 시작, 15~30자)", "html": "..."}`;
+${wannabeStyleRules ? `${wannabeStyleRules}\n위 스타일 규칙은 [필수]이다. 모든 문장에서 반드시 준수하라.\n` : ''}
+[⚠️ 최종 검증 — JSON 출력 전 반드시 확인!!!]
+✅ 도입부(첫 <p>)가 150~200자인가?
+✅ 도입부에 "${keyword}" 키워드가 있는가?
+✅ "${keyword}" 총 등장 횟수가 ${minRepeat}~${maxRepeat}회인가?
+✅ 서브 키워드가 전부 포함되었는가?
+→ 하나라도 미충족 시 수정 후 출력할 것.
+Output strictly a valid JSON: {"title": "SEO 최적화된 블로그 제목 (메인 키워드로 시작, 15~30자)", "html": "..."}`;
 
         const parts = [{ text: prompt }];
         if (!photoAnalysis) {
