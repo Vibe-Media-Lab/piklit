@@ -193,6 +193,11 @@ export const analyzePost = (title, htmlContent, keywords, targetLength = 1500, c
     const fullText = doc.body.textContent || "";
     const totalChars = fullText.replace(/\s/g, '').length;
 
+    // 본문 전용 텍스트 (h2/h3 소제목 제외 — 키워드 밀도 카운팅용)
+    const bodyClone = doc.body.cloneNode(true);
+    bodyClone.querySelectorAll('h2, h3').forEach(el => el.remove());
+    const bodyOnlyText = bodyClone.textContent || "";
+
     // 2. Content Length
     if (totalChars >= targetLength) {
         checks.contentLength = true;
@@ -200,18 +205,18 @@ export const analyzePost = (title, htmlContent, keywords, targetLength = 1500, c
         issues.push({ id: 'length_short', type: 'info', text: '글자 수 부족', metric: `${totalChars}/${targetLength}자` });
     }
 
-    // 3. Keyword Density — 글자수 비례 기준
+    // 3. Keyword Density — 본문(p) 기준, h2/h3 제외
     if (mainKeyword) {
         const escapedKey = mainKeyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const regex = new RegExp(escapedKey, 'gi');
-        const matches = fullText.match(regex);
+        const matches = bodyOnlyText.match(regex);
         const count = matches ? matches.length : 0;
 
         // 글자수 비례 적정 반복 횟수
         let minRepeat, maxRepeat;
         if (totalChars < 1500) { minRepeat = 3; maxRepeat = 5; }
-        else if (totalChars < 2500) { minRepeat = 5; maxRepeat = 8; }
-        else { minRepeat = 8; maxRepeat = 12; }
+        else if (totalChars < 2500) { minRepeat = 4; maxRepeat = 7; }
+        else { minRepeat = 6; maxRepeat = 10; }
 
         if (count >= minRepeat && count <= maxRepeat) {
             checks.mainKeyDensity = true;
@@ -221,8 +226,13 @@ export const analyzePost = (title, htmlContent, keywords, targetLength = 1500, c
             issues.push({ id: 'key_density', type: 'warning', text: '메인 키워드 반복 과다', metric: `${count}회 → ${minRepeat}~${maxRepeat}회`, count, minRepeat, maxRepeat });
         }
 
-        // First Paragraph Check — 텍스트가 있는 첫 <p> (이미지만 있는 <p> 스킵)
-        const firstPara = Array.from(doc.querySelectorAll('p')).find(p => p.textContent.trim().length > 10);
+        // First Paragraph Check — 첫 h2 이전의 <p> 중 텍스트 있는 첫 번째 (도입부)
+        const firstH2 = doc.querySelector('h2');
+        const allPs = Array.from(doc.querySelectorAll('p'));
+        const introPs = firstH2
+            ? allPs.filter(p => firstH2.compareDocumentPosition(p) & Node.DOCUMENT_POSITION_PRECEDING)
+            : allPs;
+        const firstPara = introPs.find(p => p.textContent.trim().length > 10);
         if (firstPara && firstPara.textContent.toLowerCase().includes(mainKeyword.toLowerCase())) {
             checks.mainKeyFirstPara = true;
         } else {
@@ -232,7 +242,7 @@ export const analyzePost = (title, htmlContent, keywords, targetLength = 1500, c
 
     // 4. Sub Keywords
     if (subKeywords.length > 0) {
-        const missingSubs = subKeywords.filter(sub => !fullText.toLowerCase().includes(sub.toLowerCase()));
+        const missingSubs = subKeywords.filter(sub => !bodyOnlyText.toLowerCase().includes(sub.toLowerCase()));
         if (missingSubs.length === 0) {
             checks.subKeyPresence = true;
         } else {
@@ -331,9 +341,9 @@ export const analyzePost = (title, htmlContent, keywords, targetLength = 1500, c
         checks.imageAltText = true; // 이미지 없으면 패스
     }
 
-    // 11. Intro Paragraph Length — 카테고리별 권장 글자수
+    // 11. Intro Paragraph Length — 첫 h2 이전 도입부 기준
     const introRange = INTRO_LENGTH_BY_CATEGORY[categoryId] || INTRO_LENGTH_BY_CATEGORY.daily;
-    const firstParagraph = Array.from(doc.querySelectorAll('p')).find(p => p.textContent.trim().length > 10);
+    const firstParagraph = firstPara; // key_first에서 이미 계산한 도입부 재사용
     const introLength = firstParagraph ? (firstParagraph.textContent || '').length : 0;
     if (introLength >= introRange.min && introLength <= introRange.max) {
         checks.introParagraphLength = true;

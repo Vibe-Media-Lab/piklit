@@ -700,8 +700,8 @@ Output strictly a valid JSON:
         const chars = parseInt(targetLength) || 1500;
         let minRepeat, maxRepeat;
         if (chars < 1500) { minRepeat = 3; maxRepeat = 5; }
-        else if (chars <= 2500) { minRepeat = 5; maxRepeat = 8; }
-        else { minRepeat = 8; maxRepeat = 12; }
+        else if (chars < 2500) { minRepeat = 4; maxRepeat = 7; }
+        else { minRepeat = 6; maxRepeat = 10; }
 
         return `[HTML규칙] ${this._paragraphRule(paragraphStyle)} <b>로 강조 (글 전체 3~5개 이내). <h2>만 사용 (h3 금지). 이미지([[IMAGE:...]])는 별도 <p>. h1 금지.
 [문장 규칙] 한 문장 80자 이내. 넘기면 두 문장으로 나눠. 같은 표현·구조 반복 금지.
@@ -709,10 +709,10 @@ Output strictly a valid JSON:
 [⚠️ SEO 필수 — 반드시 지켜!!!]
   메인 키워드 "${keyword}" 배치:
   ① 첫 <p> (도입부)에 반드시 1회
-  ② <h2> 소제목 중 최소 1개
-  ③ 본문 중간 분산
-  ④ 마지막 문단 1회
-  → 총 정확히 ${minRepeat}~${maxRepeat}회. ${maxRepeat}회 초과 절대 금지!`;
+  ② 본문 <p> 중간에 분산 배치
+  ③ 마지막 문단 1회
+  → 본문(<p>) 기준 정확히 ${minRepeat}~${maxRepeat}회. ${maxRepeat}회 초과 절대 금지!
+  ④ <h2> 소제목 중 최소 1개에 키워드 포함 (위 횟수에 미포함, 별도)`;
     },
 
     // 카테고리+톤 조합별 보정 지시문 (맥락에 맞는 표현 차별화)
@@ -959,8 +959,8 @@ ${tree}
 
         const toneBoost = this._categoryToneBoost(category, tone);
         const chars = parseInt(targetLength) || 1500;
-        const minRepeat = chars < 1500 ? 3 : chars <= 2500 ? 5 : 8;
-        const maxRepeat = chars < 1500 ? 5 : chars <= 2500 ? 8 : 12;
+        const minRepeat = chars < 1500 ? 3 : chars < 2500 ? 4 : 6;
+        const maxRepeat = chars < 1500 ? 5 : chars < 2500 ? 7 : 10;
         const prompt = `너는 네이버 블로그 SEO 전문가야.
 ${this._htmlRules(mainKeyword, paragraphStyle, targetLength)}
 주제: ${category} | 키워드: ${mainKeyword} | 글자수: ${targetLength} (최소 ${parseInt(targetLength) || 1500}자 이상 필수!!!)
@@ -1059,8 +1059,8 @@ Output strictly a valid JSON:
 
         const toneBoost = this._categoryToneBoost('food', tone);
         const chars = parseInt(targetLength) || 1500;
-        const minRepeat = chars < 1500 ? 3 : chars <= 2500 ? 5 : 8;
-        const maxRepeat = chars < 1500 ? 5 : chars <= 2500 ? 8 : 12;
+        const minRepeat = chars < 1500 ? 3 : chars < 2500 ? 4 : 6;
+        const maxRepeat = chars < 1500 ? 5 : chars < 2500 ? 7 : 10;
         const prompt = `너는 네이버 블로그 맛집 전문 블로거야.
 ${this._htmlRules(keyword, paragraphStyle, targetLength)}
 키워드: ${keyword} | 톤: ${wannabeStyleRules ? '(아래 스타일 규칙 우선 적용)' : (this._toneMap[tone] || this._toneMap['friendly'])}${toneBoost && !wannabeStyleRules ? `\n[카테고리 맞춤 톤 보정] ${toneBoost}` : ''} | 글자수: ${targetLength} (최소 ${parseInt(targetLength) || 1500}자 이상 필수!!!)
@@ -1159,8 +1159,8 @@ Output strictly a valid JSON:
 
         const toneBoost = this._categoryToneBoost('shopping', tone);
         const chars = parseInt(targetLength) || 1500;
-        const minRepeat = chars < 1500 ? 3 : chars <= 2500 ? 5 : 8;
-        const maxRepeat = chars < 1500 ? 5 : chars <= 2500 ? 8 : 12;
+        const minRepeat = chars < 1500 ? 3 : chars < 2500 ? 4 : 6;
+        const maxRepeat = chars < 1500 ? 5 : chars < 2500 ? 7 : 10;
         const prompt = `너는 네이버 블로그 쇼핑 리뷰 전문 블로거야.
 ${this._htmlRules(keyword, paragraphStyle, targetLength)}
 키워드: ${keyword} | 톤: ${wannabeStyleRules ? '(아래 스타일 규칙 우선 적용)' : (this._toneMap[tone] || this._toneMap['friendly'])}${toneBoost && !wannabeStyleRules ? `\n[카테고리 맞춤 톤 보정] ${toneBoost}` : ''} | 글자수: ${targetLength} (최소 ${parseInt(targetLength) || 1500}자 이상 필수!!!)
@@ -2102,24 +2102,32 @@ Output strictly valid HTML only. No JSON wrapping, no explanation.`;
             intro_long: null, // 동적 생성 (아래에서 metric 기반)
             length_short: '본문 글자수가 목표에 부족함. 기존 문단 중 내용이 얇은 섹션을 골라 구체적 디테일·경험·팁을 자연스럽게 추가하여 목표 글자수를 채울 것. 새 문단을 억지로 만들지 말고 기존 흐름을 풍성하게 확장.',
         };
+        // intro_short/intro_long + key_first 동시 발생 시 통합 규칙 생성
+        const hasIntroIssue = issues.some(i => i.id === 'intro_short' || i.id === 'intro_long');
+        const hasKeyFirst = issues.some(i => i.id === 'key_first');
+        const mergeIntroKeyFirst = hasIntroIssue && hasKeyFirst;
+
         const selectedRules = issues
             .map((iss, idx) => {
+                // 통합 규칙: intro + key_first → 하나로 합침 (intro 쪽에서 생성, key_first는 스킵)
+                if (mergeIntroKeyFirst && iss.id === 'key_first') return null;
                 if ((iss.id === 'intro_short' || iss.id === 'intro_long') && iss.metric) {
                     const rangeMatch = iss.metric.match(/(\d+)~(\d+)자/);
                     const range = rangeMatch ? `${rangeMatch[1]}~${rangeMatch[2]}자` : '150~200자';
                     const action = iss.id === 'intro_short' ? '확장' : '축약';
-                    return `${idx + 1}. ${iss.id}: 첫 문단(도입부)을 ${range}로 ${action}. 현재 글자수가 부족하므로 경험·감성·상황 묘사를 추가하여 반드시 ${range} 범위를 충족할 것.`;
+                    const keywordRule = mergeIntroKeyFirst ? ` 메인 키워드 "${mainKeyword}"를 반드시 1회 자연스럽게 포함할 것.` : '';
+                    return `${idx + 1}. ${iss.id}: 첫 문단(도입부)을 ${range}로 ${action}. 경험·감성·상황 묘사를 추가하여 반드시 ${range} 범위를 충족할 것.${keywordRule}`;
                 }
                 if (iss.id === 'sub_missing' && iss.missingSubs?.length > 0) {
                     const list = iss.missingSubs.map((kw, j) => `"${kw}"`).join(', ');
-                    return `${idx + 1}. sub_missing: 다음 서브 키워드가 본문에 없음: ${list}. 각 키워드를 서로 다른 문단에 1회씩 자연스럽게 삽입해. 한 문장에 2개 이상 넣지 마.`;
+                    return `${idx + 1}. sub_missing: 다음 서브 키워드가 본문(<p>)에 없음: ${list}. 각 키워드를 서로 다른 문단에 1회씩 자연스럽게 삽입해. 한 문장에 2개 이상 넣지 마.`;
                 }
                 if (iss.id === 'key_density' && iss.count != null) {
                     const target = Math.round((iss.minRepeat + iss.maxRepeat) / 2);
                     if (iss.count < iss.minRepeat) {
-                        return `${idx + 1}. key_density: 메인 키워드 "${mainKeyword}"가 현재 ${iss.count}회 등장. 정확히 ${target}회가 되도록 ${target - iss.count}회만 자연스럽게 추가 삽입. 절대 ${iss.maxRepeat}회를 초과하지 마.`;
+                        return `${idx + 1}. key_density: 본문(<p>) 기준 메인 키워드 "${mainKeyword}"가 현재 ${iss.count}회 등장. 정확히 ${target}회가 되도록 ${target - iss.count}회만 자연스럽게 추가 삽입. 절대 ${iss.maxRepeat}회를 초과하지 마. (h2 소제목의 키워드는 미포함)`;
                     } else {
-                        return `${idx + 1}. key_density: 메인 키워드 "${mainKeyword}"가 현재 ${iss.count}회로 과다. 정확히 ${target}회가 되도록 ${iss.count - target}회를 유의어로 대체. 절대 ${iss.minRepeat}회 미만으로 줄이지 마.`;
+                        return `${idx + 1}. key_density: 본문(<p>) 기준 메인 키워드 "${mainKeyword}"가 현재 ${iss.count}회로 과다. 정확히 ${target}회가 되도록 ${iss.count - target}회를 유의어로 대체. 절대 ${iss.minRepeat}회 미만으로 줄이지 마. (h2 소제목의 키워드는 미포함)`;
                     }
                 }
                 return RULE_MAP[iss.id] ? `${idx + 1}. ${iss.id}: ${RULE_MAP[iss.id]}` : null;
