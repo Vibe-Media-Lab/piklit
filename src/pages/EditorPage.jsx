@@ -26,7 +26,7 @@ import { CATEGORIES } from '../data/categories';
 import { callBetaStatus } from '../services/firebase';
 import { useAuth } from '../context/AuthContext';
 import {
-    Search, CheckCircle, Tag, Lock,
+    Search, CheckCircle, Tag, Lock, ClipboardList,
     Loader2, Sparkles, Copy, Check, PartyPopper, BarChart3, ClipboardCopy, Settings2
 } from 'lucide-react';
 import '../styles/components.css';
@@ -51,6 +51,8 @@ const EditorPage = () => {
     const [wizardData, setWizardData] = useState(null);
     const [sponsorMode, setSponsorMode] = useState(false);
     const [sponsorGuide, setSponsorGuide] = useState(null);
+    const [showGuideUpload, setShowGuideUpload] = useState(false);
+    const [autoRunCompliance, setAutoRunCompliance] = useState(false);
 
     // 카테고리 + 주제 (StartWizardPage에서 통합)
     const [selectedCategory, setSelectedCategory] = useState(null);
@@ -610,7 +612,7 @@ const EditorPage = () => {
                 <div className="wizard-page">
                     <div className="wizard-page-inner">
                         {/* STEP 1: 주제 선택 (카테고리 + 주제) */}
-                        {aiStep === 1 && (
+                        {aiStep === 1 && !showGuideUpload && (
                             <TopicStep
                                 isNewPost={isNewPost}
                                 selectedCategory={selectedCategory}
@@ -625,7 +627,11 @@ const EditorPage = () => {
                                         setMainKeyword(topicInput.trim());
                                         updateMainKeyword(topicInput.trim());
                                     }
-                                    setAiStep(sponsorMode ? 1.5 : 2);
+                                    if (sponsorMode && !sponsorGuide) {
+                                        setShowGuideUpload(true);
+                                    } else {
+                                        setAiStep(2);
+                                    }
                                 }}
                                 onSponsorMode={() => setSponsorMode(true)}
                                 sponsorMode={sponsorMode}
@@ -635,11 +641,11 @@ const EditorPage = () => {
                             />
                         )}
 
-                        {/* STEP 1.5: 가이드 업로드 (체험단/협찬 모드) */}
-                        {aiStep === 1.5 && sponsorMode && (
+                        {/* 가이드 업로드 (체험단/협찬 모드) */}
+                        {showGuideUpload && sponsorMode && (
                             <GuideUploadStep
-                                onBack={() => setAiStep(1)}
-                                onNext={() => setAiStep(2)}
+                                onBack={() => { setShowGuideUpload(false); }}
+                                onNext={() => { setShowGuideUpload(false); setAiStep(2); }}
                                 sponsorGuide={sponsorGuide}
                                 setSponsorGuide={setSponsorGuide}
                                 renderStepIndicator={renderStepIndicator}
@@ -816,7 +822,7 @@ const EditorPage = () => {
     return (
         <div>
             <MainContainer />
-            {sponsorGuide && <GuideCompliancePanel sponsorGuide={sponsorGuide} />}
+            {sponsorGuide && <GuideCompliancePanel sponsorGuide={sponsorGuide} autoRun={autoRunCompliance} onAutoRunDone={() => setAutoRunCompliance(false)} />}
 
             {/* 설정 변경하기 바 */}
             {mainKeyword && (
@@ -841,11 +847,17 @@ const EditorPage = () => {
                         <div className="completion-icon"><PartyPopper size={32} /></div>
                         <h3 className="completion-title">글이 완성되었습니다!</h3>
                         <p className="completion-hint">
-                            제목을 작성하고 본문을 검토해보세요.
+                            {sponsorGuide ? '가이드 준수 여부를 체크해보세요.' : '제목을 작성하고 본문을 검토해보세요.'}
                         </p>
-                        <button className="completion-cta" onClick={() => setShowCompletionCard(false)}>
-                            확인
-                        </button>
+                        {sponsorGuide ? (
+                            <button className="completion-cta" onClick={() => { setShowCompletionCard(false); setAutoRunCompliance(true); }}>
+                                <ClipboardList size={16} /> 가이드 준수 체크
+                            </button>
+                        ) : (
+                            <button className="completion-cta" onClick={() => setShowCompletionCard(false)}>
+                                확인
+                            </button>
+                        )}
                     </div>
                 </div>
             )}

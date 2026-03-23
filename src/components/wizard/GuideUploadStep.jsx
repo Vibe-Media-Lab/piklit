@@ -4,13 +4,19 @@ import { AIService } from '../../services/openai';
 import { useEditor } from '../../context/EditorContext';
 import { useToast } from '../common/Toast';
 
+const SPONSOR_TYPES = [
+    { value: 'restaurant', emoji: '🍽️', label: '맛집 체험단' },
+    { value: 'product', emoji: '📦', label: '상품 제공' },
+    { value: 'press', emoji: '📰', label: '기자단' },
+];
+
 const GuideUploadStep = ({ onBack, onNext, sponsorGuide, setSponsorGuide, renderStepIndicator }) => {
     const { recordAiAction } = useEditor();
     const { showToast } = useToast();
     const [guideText, setGuideText] = useState('');
     const [guideImages, setGuideImages] = useState([]);
     const [isParsing, setIsParsing] = useState(false);
-    const [isEditing, setIsEditing] = useState(false);
+    const [sponsorType, setSponsorType] = useState('');
     const fileInputRef = useRef(null);
 
     const handleImageUpload = (e) => {
@@ -33,7 +39,7 @@ const GuideUploadStep = ({ onBack, onNext, sponsorGuide, setSponsorGuide, render
         setIsParsing(true);
         recordAiAction('parseSponsorGuide');
         try {
-            const result = await AIService.parseSponsorGuide(guideText, guideImages);
+            const result = await AIService.parseSponsorGuide(guideText, guideImages, sponsorType);
             setSponsorGuide(result);
             showToast('가이드 분석 완료!', 'success');
         } catch (err) {
@@ -41,10 +47,6 @@ const GuideUploadStep = ({ onBack, onNext, sponsorGuide, setSponsorGuide, render
         } finally {
             setIsParsing(false);
         }
-    };
-
-    const updateField = (field, value) => {
-        setSponsorGuide(prev => ({ ...prev, [field]: value }));
     };
 
     const hasInput = guideText.trim() || guideImages.length > 0;
@@ -60,6 +62,22 @@ const GuideUploadStep = ({ onBack, onNext, sponsorGuide, setSponsorGuide, render
                 <p className="wizard-step-desc">
                     업체에서 받은 체험단/협찬 가이드를 업로드하세요. AI가 필수 요소를 자동으로 추출합니다.
                 </p>
+
+                {/* 유형 선택 */}
+                <div className="wizard-form-group">
+                    <label className="wizard-label">체험단 유형 (선택)</label>
+                    <div className="guide-type-btns">
+                        {SPONSOR_TYPES.map(t => (
+                            <button
+                                key={t.value}
+                                className={`guide-type-btn${sponsorType === t.value ? ' active' : ''}`}
+                                onClick={() => setSponsorType(prev => prev === t.value ? '' : t.value)}
+                            >
+                                {t.emoji} {t.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
 
                 {/* 이미지 업로드 */}
                 <div className="wizard-form-group">
@@ -124,6 +142,8 @@ const GuideUploadStep = ({ onBack, onNext, sponsorGuide, setSponsorGuide, render
         );
     }
 
+    const typeLabel = SPONSOR_TYPES.find(t => t.value === sponsorGuide.sponsorType);
+
     // 파싱 후: 결과 확인/수정 화면
     return (
         <div className="wizard-card-wrap">
@@ -132,12 +152,38 @@ const GuideUploadStep = ({ onBack, onNext, sponsorGuide, setSponsorGuide, render
                 <Check size={20} /> 가이드 분석 결과
             </h2>
             <p className="wizard-step-desc">
-                추출된 요소를 확인하고 필요하면 수정하세요. {sponsorGuide.brandName && `(${sponsorGuide.brandName})`}
+                추출된 요소를 확인하고 필요하면 수정하세요.
+                {sponsorGuide.brandName && ` (${sponsorGuide.brandName})`}
+                {typeLabel && ` — ${typeLabel.emoji} ${typeLabel.label}`}
             </p>
 
             <div className="guide-parsed-cards">
-                {/* 필수 키워드 */}
-                {sponsorGuide.requiredKeywords?.length > 0 && (
+                {/* 제목 키워드 */}
+                {sponsorGuide.titleKeywords?.length > 0 && (
+                    <div className="guide-card">
+                        <div className="guide-card-label">제목 필수 키워드</div>
+                        <div className="guide-card-chips">
+                            {sponsorGuide.titleKeywords.map((kw, i) => (
+                                <span key={i} className="guide-chip">{kw}</span>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* 본문 키워드 */}
+                {sponsorGuide.bodyKeywords?.length > 0 && (
+                    <div className="guide-card">
+                        <div className="guide-card-label">본문 필수 키워드 (각 {sponsorGuide.bodyKeywordMinCount || 3}회 이상)</div>
+                        <div className="guide-card-chips">
+                            {sponsorGuide.bodyKeywords.map((kw, i) => (
+                                <span key={i} className="guide-chip">{kw}</span>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* 하위호환: 기존 requiredKeywords */}
+                {!sponsorGuide.bodyKeywords?.length && sponsorGuide.requiredKeywords?.length > 0 && (
                     <div className="guide-card">
                         <div className="guide-card-label">필수 키워드</div>
                         <div className="guide-card-chips">
@@ -145,6 +191,14 @@ const GuideUploadStep = ({ onBack, onNext, sponsorGuide, setSponsorGuide, render
                                 <span key={i} className="guide-chip">{kw}</span>
                             ))}
                         </div>
+                    </div>
+                )}
+
+                {/* 업체 소개 문구 */}
+                {sponsorGuide.brandDescription && (
+                    <div className="guide-card">
+                        <div className="guide-card-label">업체/제품 소개</div>
+                        <div className="guide-phrase">"{sponsorGuide.brandDescription}"</div>
                     </div>
                 )}
 
@@ -183,6 +237,36 @@ const GuideUploadStep = ({ onBack, onNext, sponsorGuide, setSponsorGuide, render
                     <div className="guide-card">
                         <div className="guide-card-label">필수 링크</div>
                         <div className="guide-phrase">{sponsorGuide.linkAnchorText || sponsorGuide.linkUrl}</div>
+                    </div>
+                )}
+
+                {/* 제공 내역 */}
+                {sponsorGuide.providedItem && (
+                    <div className="guide-card">
+                        <div className="guide-card-label">제공 내역</div>
+                        <div className="guide-phrase">{sponsorGuide.providedItem}</div>
+                    </div>
+                )}
+
+                {/* 사진/동영상/지도 요건 */}
+                {(sponsorGuide.minPhotos || sponsorGuide.videoRequired || sponsorGuide.mapRequired) && (
+                    <div className="guide-card">
+                        <div className="guide-card-label">미디어 요건</div>
+                        {sponsorGuide.minPhotos && <div className="guide-phrase">📷 사진 최소 {sponsorGuide.minPhotos}장</div>}
+                        {sponsorGuide.videoRequired && (
+                            <div className="guide-phrase">🎬 동영상 필수{sponsorGuide.videoMinSeconds ? ` (${sponsorGuide.videoMinSeconds}초 이상)` : ''}</div>
+                        )}
+                        {sponsorGuide.mapRequired && <div className="guide-phrase">📍 지도/위치 정보 필수</div>}
+                    </div>
+                )}
+
+                {/* 미션 상세 */}
+                {sponsorGuide.missionDetails?.length > 0 && (
+                    <div className="guide-card">
+                        <div className="guide-card-label">미션 상세</div>
+                        {sponsorGuide.missionDetails.map((m, i) => (
+                            <div key={i} className="guide-phrase">• {m}</div>
+                        ))}
                     </div>
                 )}
 

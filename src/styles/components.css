@@ -5683,6 +5683,31 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
     border-color: var(--color-brand);
     color: var(--color-brand);
 }
+.guide-type-btns {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.guide-type-btn {
+    padding: 8px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg);
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-sub);
+    transition: all 0.2s;
+}
+.guide-type-btn:hover {
+    border-color: var(--color-brand);
+    color: var(--color-brand);
+}
+.guide-type-btn.active {
+    border-color: var(--color-brand);
+    background: var(--color-brand-bg, rgba(255, 107, 53, 0.08));
+    color: var(--color-brand);
+    font-weight: 600;
+}
 .guide-textarea {
     resize: vertical;
     min-height: 120px;
@@ -5790,11 +5815,25 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
     margin-bottom: 12px;
 }
 .guide-compliance-score {
-    margin-left: auto;
     padding: 2px 10px;
     border-radius: 12px;
     font-size: var(--font-size-xs);
     font-weight: 600;
+    margin-left: auto;
+}
+.guide-compliance-badge {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+}
+.guide-compliance-badge.pass {
+    background: var(--color-success-bg);
+    color: var(--color-success);
+}
+.guide-compliance-badge.fail {
+    background: var(--color-error-bg);
+    color: var(--color-error);
 }
 .guide-compliance-score.pass {
     background: var(--color-success-bg);
@@ -5868,4 +5907,25 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
     flex-shrink: 0;
     margin-top: 2px;
     color: var(--color-score-mid);
+}
+.guide-check-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 6px;
+}
+.guide-detail-chip {
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: var(--font-size-xs);
+    background: var(--color-surface-hover);
+    color: var(--color-text-sub);
+}
+.guide-detail-chip.pass {
+    background: var(--color-success-bg);
+    color: var(--color-success);
+}
+.guide-detail-chip.fail {
+    background: var(--color-error-bg);
+    color: var(--color-error);
 }

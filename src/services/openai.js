@@ -942,12 +942,30 @@ ${tree}
 
     _sponsorGuidePrompt(sponsorGuide) {
         if (!sponsorGuide) return '';
+        const minCount = sponsorGuide.bodyKeywordMinCount || 3;
         let p = '\n[⚠️ 협찬/체험단 가이드 — 반드시 준수!!!]';
         p += '\n이 글은 업체로부터 제품/서비스를 제공받고 작성하는 체험단/협찬 글이야.';
         p += '\n아래 가이드 조건을 100% 준수해야 해. 하나라도 빠지면 체험단 미션 실패야.';
-        if (sponsorGuide.requiredKeywords?.length > 0) {
+        // 제목 키워드
+        if (sponsorGuide.titleKeywords?.length > 0) {
+            p += '\n\n[제목 필수 키워드 — 블로그 제목에 반드시 포함]';
+            sponsorGuide.titleKeywords.forEach((kw, i) => { p += `\n  ${i+1}. "${kw}"`; });
+        }
+        // 본문 키워드
+        if (sponsorGuide.bodyKeywords?.length > 0) {
+            p += `\n\n[본문 필수 키워드 — 각 키워드를 최소 ${minCount}회 자연스럽게 배치]`;
+            sponsorGuide.bodyKeywords.forEach((kw, i) => { p += `\n  ${i+1}. "${kw}" → 최소 ${minCount}회`; });
+        }
+        // 하위호환: 기존 requiredKeywords 필드도 지원
+        if (!sponsorGuide.bodyKeywords?.length && sponsorGuide.requiredKeywords?.length > 0) {
             p += '\n\n[필수 키워드 — 반드시 본문에 포함]';
-            sponsorGuide.requiredKeywords.forEach((kw, i) => { p += `\n  ${i+1}. "${kw}" → 최소 2회 자연스럽게 배치`; });
+            sponsorGuide.requiredKeywords.forEach((kw, i) => { p += `\n  ${i+1}. "${kw}" → 최소 ${minCount}회 자연스럽게 배치`; });
+        }
+        // 업체/제품 소개 문구
+        if (sponsorGuide.brandDescription) {
+            p += '\n\n[업체/제품 소개 — 본문 도입부에 자연스럽게 포함]';
+            p += `\n  "${sponsorGuide.brandDescription}"`;
+            p += '\n  → 그대로 넣지 말고, 체험 서술에 녹여서 자연스럽게 작성.';
         }
         if (sponsorGuide.requiredPhrases?.length > 0) {
             p += '\n\n[필수 문구 — 원문 그대로 삽입 (한 글자도 변경 금지)]';
@@ -967,7 +985,30 @@ ${tree}
             const anchor = sponsorGuide.linkAnchorText || sponsorGuide.linkUrl;
             p += '\n\n[필수 링크 삽입]';
             p += `\n  <a href="${sponsorGuide.linkUrl}">${anchor}</a>`;
-            p += '\n  → 본문 중간 또는 마무리 부분에 자연스럽게 배치.';
+            if (sponsorGuide.sponsorType === 'product') {
+                p += '\n  → 상품 구매 링크로 본문 마무리 부분에 배치.';
+            } else {
+                p += '\n  → 본문 중간 또는 마무리 부분에 자연스럽게 배치.';
+            }
+        }
+        // 지도/위치 (맛집)
+        if (sponsorGuide.mapRequired) {
+            p += '\n\n[지도/위치 정보 — 필수 삽입]';
+            p += '\n  → 매장 위치, 주소, 연락처 정보를 글 하단에 포함.';
+            p += '\n  → 네이버 지도 링크 삽입 권장.';
+        }
+        // 사진/동영상 요건
+        if (sponsorGuide.minPhotos) {
+            p += `\n\n[사진 최소 ${sponsorGuide.minPhotos}장 필수]`;
+        }
+        if (sponsorGuide.videoRequired) {
+            p += `\n\n[동영상 필수${sponsorGuide.videoMinSeconds ? ` — 최소 ${sponsorGuide.videoMinSeconds}초` : ''}]`;
+            p += '\n  → 본문 중간에 [[VIDEO]] 태그로 동영상 위치 표시.';
+        }
+        // 미션 상세
+        if (sponsorGuide.missionDetails?.length > 0) {
+            p += '\n\n[미션 상세 — 반드시 반영]';
+            sponsorGuide.missionDetails.forEach((m, i) => { p += `\n  ${i+1}. ${m}`; });
         }
         if (sponsorGuide.hashTags?.length > 0) {
             p += '\n\n[필수 해시태그 — 글 마지막에 추가]';
@@ -986,10 +1027,10 @@ ${tree}
 
     async generateFullDraft(category, mainKeyword, tone, imageMetadata = {}, photoAssets = [], subKeywords = [], targetLength = '1200~1800자', photoAnalysis = null, competitorData = null, outline = null, wannabeStyleRules = '', paragraphStyle = 'normal', verifiedDetails = '', sponsorGuide = null) {
         if (category === 'cafe' || category === 'food' || category === '맛집' || category === '카페&맛집') {
-            return this.generateRestaurantDraft(mainKeyword, tone, imageMetadata, photoAssets, subKeywords, targetLength, photoAnalysis, competitorData, outline, wannabeStyleRules, paragraphStyle, verifiedDetails);
+            return this.generateRestaurantDraft(mainKeyword, tone, imageMetadata, photoAssets, subKeywords, targetLength, photoAnalysis, competitorData, outline, wannabeStyleRules, paragraphStyle, verifiedDetails, sponsorGuide);
         }
         if (category === 'shopping' || category === '쇼핑') {
-            return this.generateShoppingDraft(mainKeyword, tone, imageMetadata, photoAssets, subKeywords, targetLength, photoAnalysis, competitorData, outline, wannabeStyleRules, paragraphStyle, verifiedDetails);
+            return this.generateShoppingDraft(mainKeyword, tone, imageMetadata, photoAssets, subKeywords, targetLength, photoAnalysis, competitorData, outline, wannabeStyleRules, paragraphStyle, verifiedDetails, sponsorGuide);
         }
 
         // 카테고리별 슬롯 확인
@@ -2259,37 +2300,52 @@ Output strictly a valid JSON:
     /**
      * 협찬/체험단 가이드 파싱 — 이미지/텍스트에서 필수 요소 JSON 추출
      */
-    async parseSponsorGuide(guideText = '', guideImages = []) {
+    async parseSponsorGuide(guideText = '', guideImages = [], sponsorTypeHint = '') {
+        const typeHint = sponsorTypeHint ? `\n[유형 힌트] 사용자가 "${sponsorTypeHint}" 유형으로 선택함. 판별 참고용.` : '';
         const prompt = `너는 네이버 블로그 체험단/협찬 가이드 분석 전문가야.
 
 업체에서 블로거에게 보낸 "가이드"(체험단 미션, 협찬 조건)를 분석해서 필수 요소를 추출해줘.
+${typeHint}
 
 [분석 대상]
 ${guideText ? `텍스트 가이드:\n${guideText}` : '첨부된 이미지를 분석해.'}
 
 [추출 규칙]
-1. requiredKeywords: "필수 키워드", "필수 삽입", "반드시 포함" 등으로 명시된 키워드 목록. 없으면 빈 배열.
-2. requiredPhrases: 그대로 복붙해야 하는 문구 (업체 소개, 슬로건). 없으면 빈 배열.
-3. forbiddenWords: "금지 표현", "사용하지 마세요" 등으로 명시된 단어/표현. 없으면 빈 배열.
-4. adDisclosure: 광고 표시 문구. 없으면 null.
-5. adDisclosurePosition: 광고 표시 위치 ("top" 또는 "bottom"). 명시 안 되면 "bottom".
-6. linkUrl: 삽입해야 할 URL/링크. 없으면 null.
-7. linkAnchorText: 링크에 걸 텍스트. 없으면 null.
-8. photoRequirements: 사진 관련 요건. 없으면 null.
-9. minLength: 최소 글자수 요건. 없으면 null.
-10. deadline: 포스팅 마감일. 없으면 null.
-11. hashTags: 필수 해시태그. 없으면 빈 배열.
-12. otherRequirements: 기타 요건. 없으면 빈 배열.
-13. brandName: 업체/브랜드명. 없으면 null.
-14. productName: 제품/서비스명. 없으면 null.
-15. category: 추정 카테고리 (food/cafe/shopping/beauty/travel/etc). 없으면 null.
+1. sponsorType: 가이드 유형 판별. "restaurant"(맛집/카페 체험단), "product"(상품 제공), "press"(기자단). 판별 불가 시 "product".
+2. titleKeywords: "제목 필수 키워드", "제목에 반드시 포함" 등 제목에 들어가야 할 키워드. 없으면 빈 배열.
+3. bodyKeywords: "본문 필수 키워드", "본문에 반드시 포함" 등 본문에 들어가야 할 키워드. 없으면 빈 배열.
+4. bodyKeywordMinCount: 본문 키워드 최소 삽입 횟수. 명시 안 되면 3.
+5. requiredPhrases: 그대로 복붙해야 하는 문구 (업체 소개, 슬로건). 없으면 빈 배열.
+6. brandDescription: 업체/제품 소개 문구 (본문에 포함해야 할 설명). 없으면 null.
+7. forbiddenWords: "금지 표현", "사용하지 마세요" 등으로 명시된 단어/표현. 없으면 빈 배열.
+8. adDisclosure: 광고 표시 문구. 없으면 null.
+9. adDisclosurePosition: 광고 표시 위치 ("top" 또는 "bottom"). 명시 안 되면 "bottom".
+10. linkUrl: 삽입해야 할 URL/링크. 없으면 null.
+11. linkAnchorText: 링크에 걸 텍스트. 없으면 null.
+12. providedItem: 제공 내역 (상품명, 수량 등). 없으면 null.
+13. minPhotos: 최소 사진 수. 명시 안 되면 null.
+14. videoRequired: 동영상 필수 여부. 명시 안 되면 false.
+15. videoMinSeconds: 동영상 최소 길이(초). 명시 안 되면 null.
+16. mapRequired: 지도/위치 삽입 필수 여부. 맛집인데 명시 안 되면 true, 그 외 false.
+17. photoRequirements: 사진 관련 기타 요건 (텍스트). 없으면 null.
+18. missionDetails: 구체적 미션 항목들 (연출 사진 요구, 특정 컷 필수, 특정 메뉴 촬영 등). 없으면 빈 배열.
+19. minLength: 최소 글자수 요건. 없으면 null.
+20. deadline: 포스팅 마감일. 없으면 null.
+21. hashTags: 필수 해시태그. 없으면 빈 배열.
+22. otherRequirements: 기타 요건. 없으면 빈 배열.
+23. brandName: 업체/브랜드명. 없으면 null.
+24. productName: 제품/서비스명. 없으면 null.
+25. category: 추정 카테고리 (food/cafe/shopping/beauty/travel/etc). 없으면 null.
 
 [주의]
 - 가이드에 명시적으로 있는 것만 추출. 추측하지 마.
+- "제목 키워드"와 "본문 키워드"가 구분 없이 적혀 있으면 둘 다에 넣어.
 - requiredPhrases는 원문 그대로 추출 (한 글자도 바꾸지 마).
+- brandDescription은 가이드에 "업체 소개", "매장 소개", "제품 설명" 등으로 제공된 문구를 그대로 추출.
+- missionDetails는 "필수 촬영 컷", "반드시 포함할 사진", "연출 요청" 등의 구체적 항목.
 - 가이드가 이미지인 경우 불확실한 부분은 "확인 필요: ..." 형태로 표시.
 
-Output strictly a valid JSON: {"requiredKeywords":[],"requiredPhrases":[],"forbiddenWords":[],"adDisclosure":null,"adDisclosurePosition":"bottom","linkUrl":null,"linkAnchorText":null,"photoRequirements":null,"minLength":null,"deadline":null,"hashTags":[],"otherRequirements":[],"brandName":null,"productName":null,"category":null}`;
+Output strictly a valid JSON: {"sponsorType":"product","titleKeywords":[],"bodyKeywords":[],"bodyKeywordMinCount":3,"requiredPhrases":[],"brandDescription":null,"forbiddenWords":[],"adDisclosure":null,"adDisclosurePosition":"bottom","linkUrl":null,"linkAnchorText":null,"providedItem":null,"minPhotos":null,"videoRequired":false,"videoMinSeconds":null,"mapRequired":false,"photoRequirements":null,"missionDetails":[],"minLength":null,"deadline":null,"hashTags":[],"otherRequirements":[],"brandName":null,"productName":null,"category":null}`;
 
         const parts = [{ text: prompt }];
         guideImages.forEach(img => {
@@ -2314,14 +2370,19 @@ ${htmlContent.substring(0, 6000)}
 ${JSON.stringify(sponsorGuide, null, 2)}
 
 [검사 항목]
-1. requiredKeywords: 각 키워드가 본문에 최소 1회 등장하는지. 등장 횟수도 세줘.
-2. requiredPhrases: 각 문구가 원문 그대로 삽입되었는지.
-3. forbiddenWords: 금지 표현이 본문에 등장하지 않는지.
-4. adDisclosure: 광고 표시 문구가 지정 위치(top/bottom)에 있는지.
-5. linkUrl: 필수 링크가 삽입되었는지.
-6. hashTags: 필수 해시태그가 포함되었는지.
-7. minLength: 최소 글자수를 충족하는지 (HTML 태그 제외 기준).
-8. otherRequirements: 기타 요건 충족 여부.
+1. titleKeywords: 제목에 필수 키워드가 포함되었는지. (titleKeywords 필드 기준)
+2. bodyKeywords: 본문에 필수 키워드가 최소 횟수(bodyKeywordMinCount) 이상 등장하는지. 각 키워드별 등장 횟수 세줘.
+3. requiredKeywords: (하위호환) bodyKeywords가 없을 때 requiredKeywords 기준으로 검사. 각 키워드 본문 1회 이상.
+4. requiredPhrases: 각 문구가 원문 그대로 삽입되었는지.
+5. brandDescription: 업체/제품 소개 문구가 본문에 자연스럽게 포함되었는지.
+6. forbiddenWords: 금지 표현이 본문에 등장하지 않는지.
+7. adDisclosure: 광고 표시 문구가 지정 위치(top/bottom)에 있는지.
+8. linkUrl: 필수 링크가 삽입되었는지.
+9. mapRequired: 지도/위치 정보가 포함되었는지 (mapRequired가 true일 때만).
+10. hashTags: 필수 해시태그가 포함되었는지.
+11. minLength: 최소 글자수를 충족하는지 (HTML 태그 제외 기준).
+12. missionDetails: 미션 상세 항목들이 반영되었는지.
+13. otherRequirements: 기타 요건 충족 여부.
 
 [판정 규칙]
 - pass: true/false
