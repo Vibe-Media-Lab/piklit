@@ -761,7 +761,36 @@
 - [x] history.css: font-size 0.78rem/0.8rem → var(--font-size-2xs) 토큰 정규화 ← 2026-03-17 완료
 - [x] Layout.css: 480px 미디어쿼리 블록 추가 (소형 모바일 대응) ← 2026-03-17 완료
 
-#### Phase 3 (Firebase 필요)
+## 완료된 작업 (2026-03-23) — QA 정리 + 프롬프트 튜닝 + 디스코드 알림
+
+### 코드 품질 정리 (QA 에이전트 보고서 기반)
+- [x] 린트 에러 9건 정리 (미사용 변수/import) + eslintignore 노이즈 64건 제거
+- [x] 디자인QA 즉시수정 10건 — CSS 토큰 치환 5건 + 반응형 추가 3건 + ErrorBoundary CSS 분리 + #FFDFCC 토큰 추가
+- [x] LandingPage 고아 클래스 5개 CSS 정의 + imggen-history-grid 반응형
+- [x] BetaGuidePage 인라인 78개 → CSS 분리 + 디자인 토큰 적용
+
+### 프롬프트 & 분석 개선
+- [x] 자연스러움 분석 톤별 이모지/비격식 가중치 조정 (professional 10→5, guide 20→8)
+- [x] 도입부 프롬프트 글자수 반복 강조 4회→2회 축소 (기계적 채우기 방지)
+
+### 기능 추가
+- [x] 신규 회원가입 시 디스코드 알림 추가 (usage.js)
+
+### 개발 환경
+- [x] /team 스킬에 검수 에이전트 추가
+- [x] /insight 스킬 — history.jsonl + git log 기반 정확한 수치로 개선
+
+### 확인 사항
+- [x] Firestore 글 클라우드 저장 코드 동작 확인 (api/posts.js + postSync.js + EditorContext.jsx)
+- [x] 가입자 29명, 베타 등록 7명 확인
+
+### 다음 세션 목표
+- [ ] 베타 피드백 수집 + 프롬프트 튜닝 (데이터 기반)
+- [ ] 간격/폰트 하드코딩 토큰화 (점진적, 파일별)
+- [ ] Phase 2 기능: 협찬/체험단 모드 프롬프트 설계
+- [ ] Phase 3 준비: BYOK + 구독 결제 기획
+
+#### Phase 3 (Firestore 확장)
 - [ ] 발행 후 성과 추적 (검색 순위, 조회수 대시보드)
 - [ ] 네이버 플레이스 연동 (가게 정보 자동 삽입)
 - [ ] 경쟁 매장 블로그 모니터링

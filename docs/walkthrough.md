@@ -1,30 +1,38 @@
-# 피클잇 (Piklit) - 세션 워크스루 (2026-03-20 세션 3)
+# 피클잇 (Piklit) - 세션 워크스루 (2026-03-23)
 
 ## 프로젝트 개요
 네이버 블로그 SEO 최적화 AI 작성기 (React 19 + Vite 7 + TipTap + Google Gemini 2.5 Flash API)
 
 ## 이번 세션 요약
-베타 D-1 QA 9건 수정 + 키워드 SEO 근본 수정 (이사회 결의 7건) + autoFixSeo 후처리 순서 변경 + 블로그 복사 여백 + 추천 뱃지
+QA 에이전트팀 보고서 기반 코드 품질 정리 (린트 에러 9건 + 디자인QA 10건 + BetaGuidePage CSS 분리) + 자연스러움 분석 가중치 조정 + 도입부 프롬프트 튜닝 + 신규 가입 디스코드 알림 추가
 
 ## 수정 파일
 
 | 파일 | 변경 사항 |
 |------|----------|
-| `api/gemini-image.js` | 이미지 생성 모델 gemini-2.5-flash-image로 변경 |
-| `src/services/firebase.js` | 로컬 이미지 생성 모델 동일 변경 |
-| `src/services/openai.js` | 키워드 임계값 4-7/6-10 하향, 프롬프트 h2 별도 카운트, fixSeoIssues intro+key_first 통합, autoFixSeo 진단 로그 |
-| `src/utils/analysis.js` | h2/h3 제외 본문 카운팅, 임계값 하향, 도입부 첫 h2 이전 한정, 서브키워드 본문 전용, firstPara 스코프 수정 |
-| `src/pages/EditorPage.jsx` | 마크다운→볼드 변환, autoFixSeo 후처리 이후 실행, finalHtml 참조 수정 |
-| `src/utils/humanness.js` | 개선 제안 중간 점수에도 생성 |
-| `src/context/EditorContext.jsx` | blob URL 이미지 localStorage 제거 대상 추가 |
-| `src/components/layout/Layout.css` | 모바일 '마이' 탭 스타일 수정 |
-| `src/components/analysis/HumannessPanel.jsx` | 수정 적용 시 문단 경계 보존 |
-| `src/utils/clipboard.js` | 블로그 복사 시 h2 앞 빈 줄 추가 |
-| `src/data/categories.js` | 카페&맛집 verified 플래그 |
-| `src/components/wizard/TopicStep.jsx` | 추천 뱃지 UI |
-| `src/styles/components.css` | 추천 뱃지 삼각형 스타일 |
+| `eslint.config.js` | claude-dashboard, pm-skills eslint 제외 (노이즈 64건 해소) |
+| `src/components/analysis/HumannessPanel.jsx` | 미사용 useRef, humanTip 제거 |
+| `src/components/editor/TiptapEditor.jsx` | 미사용 humanAppliedIndices 제거 |
+| `src/components/layout/TopBar.jsx` | 미사용 exportAsMarkdown 제거 |
+| `src/components/wizard/KeywordStep.jsx` | 미사용 topic 변수 제거 |
+| `src/context/EditorContext.jsx` | catch(e) → catch 변환 |
+| `src/services/openai.js` | 미사용 issueIds 제거, j 파라미터 제거, 도입부 글자수 반복 강조 4→2회 축소 |
+| `src/services/postSync.js` | 미사용 deletePostImages import 제거 |
+| `src/styles/components.css` | #92400E → var(--color-score-mid-text), #e0e0e0/#eee 폴백 제거, .metrics-grid/.stats-grid 480px 반응형 |
+| `src/styles/landing.css` | #f5f5f5 → var(--color-surface-hover), 고아 클래스 5개 CSS 정의 추가 |
+| `src/styles/WannabeStyle.css` | .wannabe-slot-grid 768px/480px 반응형 추가 |
+| `src/styles/ImageGeneratorPanel.css` | .imggen-history-grid 480px 반응형 추가 |
+| `src/styles/variables.css` | --color-brand-border: #FFDFCC 토큰 추가 |
+| `src/styles/ErrorBoundary.css` | 신규 — ErrorBoundary 인라인 스타일 분리 |
+| `src/components/common/ErrorBoundary.jsx` | 인라인 스타일 → className 전환 |
+| `src/pages/BetaGuidePage.jsx` | 인라인 78개 → className 전환, const s 객체 제거 |
+| `src/styles/BetaGuidePage.css` | 신규 — BetaGuidePage 전체 CSS + 디자인 토큰 적용 |
+| `src/utils/humanness.js` | 톤별 이모지/비격식 가중치 조정 (professional 10→5, guide 20→8 등) |
+| `api/usage.js` | 신규 가입 시 디스코드 웹훅 알림 추가 |
+| `.claude/commands/team.md` | 검수 에이전트 추가, 탭 수 3→4, 번호 수정 |
+| `.claude/skills/insight/SKILL.md` | history.jsonl + git log 기반 정확한 수치 수집으로 개선 |
 
 ## 현재 릴리즈 상태
-- 빌드: 정상 (1.52s)
-- 마지막 커밋: dd2dddd
+- 빌드: 정상 (1.50s)
+- 마지막 커밋: 5b90642
 - 미푸쉬: 0건 (모두 배포 완료)
