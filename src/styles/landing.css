@@ -1069,6 +1069,10 @@
     color: var(--color-brand);
 }
 
+/* Feature mockup variants (개별 커스터마이징 훅) */
+.feat-mockup-photo {}
+.feat-mockup-keyword {}
+
 /* Generate (editor) mockup */
 .feat-mockup-generate {
     padding: 0;
@@ -1436,6 +1440,11 @@
     border-radius: 16px;
     padding: 20px;
 }
+
+/* Step mockup variants (개별 커스터마이징 훅) */
+.step-mockup-upload {}
+.step-mockup-ai {}
+.step-mockup-publish {}
 
 /* Upload mockup */
 .sm-dropzone {

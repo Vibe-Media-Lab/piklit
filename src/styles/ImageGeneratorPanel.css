@@ -250,4 +250,8 @@
   .imggen-enhance-btn {
     width: 100%;
   }
+
+  .imggen-history-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
