@@ -940,7 +940,51 @@ ${tree}
 → 각 섹션에 맞는 내용을 채우되, 첫 문단에서 바로 핵심 경험을 던져.`;
     },
 
-    async generateFullDraft(category, mainKeyword, tone, imageMetadata = {}, photoAssets = [], subKeywords = [], targetLength = '1200~1800자', photoAnalysis = null, competitorData = null, outline = null, wannabeStyleRules = '', paragraphStyle = 'normal', verifiedDetails = '') {
+    _sponsorGuidePrompt(sponsorGuide) {
+        if (!sponsorGuide) return '';
+        let p = '\n[⚠️ 협찬/체험단 가이드 — 반드시 준수!!!]';
+        p += '\n이 글은 업체로부터 제품/서비스를 제공받고 작성하는 체험단/협찬 글이야.';
+        p += '\n아래 가이드 조건을 100% 준수해야 해. 하나라도 빠지면 체험단 미션 실패야.';
+        if (sponsorGuide.requiredKeywords?.length > 0) {
+            p += '\n\n[필수 키워드 — 반드시 본문에 포함]';
+            sponsorGuide.requiredKeywords.forEach((kw, i) => { p += `\n  ${i+1}. "${kw}" → 최소 2회 자연스럽게 배치`; });
+        }
+        if (sponsorGuide.requiredPhrases?.length > 0) {
+            p += '\n\n[필수 문구 — 원문 그대로 삽입 (한 글자도 변경 금지)]';
+            sponsorGuide.requiredPhrases.forEach((phrase, i) => { p += `\n  ${i+1}. "${phrase}"`; });
+        }
+        if (sponsorGuide.forbiddenWords?.length > 0) {
+            p += '\n\n[금지 표현 — 절대 사용 금지]';
+            p += `\n  ${sponsorGuide.forbiddenWords.map(w => `"${w}"`).join(', ')}`;
+        }
+        if (sponsorGuide.adDisclosure) {
+            const pos = sponsorGuide.adDisclosurePosition === 'top' ? '글 맨 처음' : '글 맨 마지막';
+            p += `\n\n[광고 표시 — ${pos}에 삽입]`;
+            p += `\n  "${sponsorGuide.adDisclosure}"`;
+            p += '\n  → 반드시 별도 <p>로 작성. 본문과 섞지 마.';
+        }
+        if (sponsorGuide.linkUrl) {
+            const anchor = sponsorGuide.linkAnchorText || sponsorGuide.linkUrl;
+            p += '\n\n[필수 링크 삽입]';
+            p += `\n  <a href="${sponsorGuide.linkUrl}">${anchor}</a>`;
+            p += '\n  → 본문 중간 또는 마무리 부분에 자연스럽게 배치.';
+        }
+        if (sponsorGuide.hashTags?.length > 0) {
+            p += '\n\n[필수 해시태그 — 글 마지막에 추가]';
+            p += `\n  ${sponsorGuide.hashTags.join(' ')}`;
+        }
+        if (sponsorGuide.otherRequirements?.length > 0) {
+            p += '\n\n[기타 요건]';
+            sponsorGuide.otherRequirements.forEach((req, i) => { p += `\n  ${i+1}. ${req}`; });
+        }
+        p += '\n\n[톤 주의] 협찬/체험단 글이지만 "광고 느낌"이 나면 안 돼.';
+        p += '\n  - "강력 추천합니다!", "무조건 사세요!" 같은 과도한 권유 금지';
+        p += '\n  - 1인칭 실제 체험 서술 유지. "써보니까", "먹어보니까" 톤 유지';
+        p += '\n  - 장점 위주이되, 사소한 아쉬운 점 1개 정도 넣어 신뢰감 확보';
+        return p;
+    },
+
+    async generateFullDraft(category, mainKeyword, tone, imageMetadata = {}, photoAssets = [], subKeywords = [], targetLength = '1200~1800자', photoAnalysis = null, competitorData = null, outline = null, wannabeStyleRules = '', paragraphStyle = 'normal', verifiedDetails = '', sponsorGuide = null) {
         if (category === 'cafe' || category === 'food' || category === '맛집' || category === '카페&맛집') {
             return this.generateRestaurantDraft(mainKeyword, tone, imageMetadata, photoAssets, subKeywords, targetLength, photoAnalysis, competitorData, outline, wannabeStyleRules, paragraphStyle, verifiedDetails);
         }
@@ -969,6 +1013,7 @@ ${this._subKeywordPrompt(subKeywords)}
 ${this._photoPrompt(photoAnalysis, photoAssets, category, verifiedDetails)}
 ${this._competitorPrompt(competitorData)}
 ${this._outlinePrompt(outline)}
+${this._sponsorGuidePrompt(sponsorGuide)}
 
 [이미지 배치 — 필수!!!]
 다음 이미지 태그를 반드시 HTML 본문 안에 각각 별도 <p> 태그로 삽입해:
@@ -1032,7 +1077,7 @@ Output strictly a valid JSON:
         return result;
     },
 
-    async generateRestaurantDraft(keyword, tone = 'friendly', imageMetadata = {}, photoAssets = [], subKeywords = [], targetLength = '1200~1800자', photoAnalysis = null, competitorData = null, outline = null, wannabeStyleRules = '', paragraphStyle = 'normal', verifiedDetails = '') {
+    async generateRestaurantDraft(keyword, tone = 'friendly', imageMetadata = {}, photoAssets = [], subKeywords = [], targetLength = '1200~1800자', photoAnalysis = null, competitorData = null, outline = null, wannabeStyleRules = '', paragraphStyle = 'normal', verifiedDetails = '', sponsorGuide = null) {
         const { entrance = 0, parking = 0, menu = 0, interior = 0, food = 0, extra = 0 } = imageMetadata;
 
         const slots = [['entrance',entrance],['parking',parking],['menu',menu],['interior',interior],['food',food],['extra',extra]]
@@ -1069,6 +1114,7 @@ ${this._subKeywordPrompt(subKeywords)}
 ${this._photoPrompt(photoAnalysis, photoAssets, 'food', verifiedDetails)}
 ${this._competitorPrompt(competitorData)}
 ${this._outlinePrompt(outline)}
+${this._sponsorGuidePrompt(sponsorGuide)}
 누락 사진은 <blockquote>💡 TIP: 사진 추가 권장!</blockquote>
 
 [이미지 배치 — 필수!!!]
@@ -1133,7 +1179,7 @@ Output strictly a valid JSON:
         return result;
     },
 
-    async generateShoppingDraft(keyword, tone = 'friendly', imageMetadata = {}, photoAssets = [], subKeywords = [], targetLength = '1200~1800자', photoAnalysis = null, competitorData = null, outline = null, wannabeStyleRules = '', paragraphStyle = 'normal', verifiedDetails = '') {
+    async generateShoppingDraft(keyword, tone = 'friendly', imageMetadata = {}, photoAssets = [], subKeywords = [], targetLength = '1200~1800자', photoAnalysis = null, competitorData = null, outline = null, wannabeStyleRules = '', paragraphStyle = 'normal', verifiedDetails = '', sponsorGuide = null) {
         const { unboxing = 0, product = 0, detail = 0, usage = 0, compare = 0, extra = 0 } = imageMetadata;
 
         const slots = [['unboxing',unboxing],['product',product],['detail',detail],['usage',usage],['compare',compare],['extra',extra]]
@@ -1169,6 +1215,7 @@ ${this._subKeywordPrompt(subKeywords)}
 ${this._photoPrompt(photoAnalysis, photoAssets, 'shopping', verifiedDetails)}
 ${this._competitorPrompt(competitorData)}
 ${this._outlinePrompt(outline)}
+${this._sponsorGuidePrompt(sponsorGuide)}
 
 [이미지 배치 — 필수!!!]
 다음 이미지 태그를 반드시 HTML 본문 안에 각각 별도 <p> 태그로 삽입해:
@@ -2207,6 +2254,83 @@ Output strictly a valid JSON:
             content: fixedContent,
             fixes: result?.fixes || [],
         };
+    },
+
+    /**
+     * 협찬/체험단 가이드 파싱 — 이미지/텍스트에서 필수 요소 JSON 추출
+     */
+    async parseSponsorGuide(guideText = '', guideImages = []) {
+        const prompt = `너는 네이버 블로그 체험단/협찬 가이드 분석 전문가야.
+
+업체에서 블로거에게 보낸 "가이드"(체험단 미션, 협찬 조건)를 분석해서 필수 요소를 추출해줘.
+
+[분석 대상]
+${guideText ? `텍스트 가이드:\n${guideText}` : '첨부된 이미지를 분석해.'}
+
+[추출 규칙]
+1. requiredKeywords: "필수 키워드", "필수 삽입", "반드시 포함" 등으로 명시된 키워드 목록. 없으면 빈 배열.
+2. requiredPhrases: 그대로 복붙해야 하는 문구 (업체 소개, 슬로건). 없으면 빈 배열.
+3. forbiddenWords: "금지 표현", "사용하지 마세요" 등으로 명시된 단어/표현. 없으면 빈 배열.
+4. adDisclosure: 광고 표시 문구. 없으면 null.
+5. adDisclosurePosition: 광고 표시 위치 ("top" 또는 "bottom"). 명시 안 되면 "bottom".
+6. linkUrl: 삽입해야 할 URL/링크. 없으면 null.
+7. linkAnchorText: 링크에 걸 텍스트. 없으면 null.
+8. photoRequirements: 사진 관련 요건. 없으면 null.
+9. minLength: 최소 글자수 요건. 없으면 null.
+10. deadline: 포스팅 마감일. 없으면 null.
+11. hashTags: 필수 해시태그. 없으면 빈 배열.
+12. otherRequirements: 기타 요건. 없으면 빈 배열.
+13. brandName: 업체/브랜드명. 없으면 null.
+14. productName: 제품/서비스명. 없으면 null.
+15. category: 추정 카테고리 (food/cafe/shopping/beauty/travel/etc). 없으면 null.
+
+[주의]
+- 가이드에 명시적으로 있는 것만 추출. 추측하지 마.
+- requiredPhrases는 원문 그대로 추출 (한 글자도 바꾸지 마).
+- 가이드가 이미지인 경우 불확실한 부분은 "확인 필요: ..." 형태로 표시.
+
+Output strictly a valid JSON: {"requiredKeywords":[],"requiredPhrases":[],"forbiddenWords":[],"adDisclosure":null,"adDisclosurePosition":"bottom","linkUrl":null,"linkAnchorText":null,"photoRequirements":null,"minLength":null,"deadline":null,"hashTags":[],"otherRequirements":[],"brandName":null,"productName":null,"category":null}`;
+
+        const parts = [{ text: prompt }];
+        guideImages.forEach(img => {
+            parts.push({ inline_data: { mime_type: img.mimeType, data: img.base64 } });
+        });
+
+        return this.generateContent(parts, { thinkingBudget: 1024 }, '가이드 파싱');
+    },
+
+    /**
+     * 협찬/체험단 가이드 준수 체크 — 완성된 글이 가이드를 준수하는지 항목별 판정
+     */
+    async checkGuideCompliance(htmlContent, sponsorGuide) {
+        const prompt = `너는 네이버 블로그 체험단/협찬 가이드 준수 검수 전문가야.
+
+아래 "작성된 글"이 "가이드 요건"을 충족하는지 항목별로 검사해줘.
+
+[작성된 글]
+${htmlContent.substring(0, 6000)}
+
+[가이드 요건]
+${JSON.stringify(sponsorGuide, null, 2)}
+
+[검사 항목]
+1. requiredKeywords: 각 키워드가 본문에 최소 1회 등장하는지. 등장 횟수도 세줘.
+2. requiredPhrases: 각 문구가 원문 그대로 삽입되었는지.
+3. forbiddenWords: 금지 표현이 본문에 등장하지 않는지.
+4. adDisclosure: 광고 표시 문구가 지정 위치(top/bottom)에 있는지.
+5. linkUrl: 필수 링크가 삽입되었는지.
+6. hashTags: 필수 해시태그가 포함되었는지.
+7. minLength: 최소 글자수를 충족하는지 (HTML 태그 제외 기준).
+8. otherRequirements: 기타 요건 충족 여부.
+
+[판정 규칙]
+- pass: true/false
+- 미충족 항목에는 구체적인 수정 방법을 suggestion에 적어줘.
+
+Output strictly a valid JSON:
+{"overallPass":false,"score":"0/0","checks":[{"item":"requiredKeywords","label":"필수 키워드","pass":false,"details":[],"suggestion":""}]}`;
+
+        return this.generateContent([{ text: prompt }], { thinkingBudget: 1024 }, '가이드 준수 체크');
     }
 };
 
