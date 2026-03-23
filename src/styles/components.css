@@ -5616,3 +5616,256 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
     color: var(--color-text-sub);
     font-variant-numeric: tabular-nums;
 }
+
+/* ═══ 체험단/협찬 가이드 ═══ */
+
+.wizard-sponsor-mode-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    background: var(--color-brand-light);
+    border: 2px dashed var(--color-brand);
+    border-radius: var(--radius-xl);
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s;
+}
+.wizard-sponsor-mode-btn:hover {
+    background: #FFF0E6;
+    border-style: solid;
+}
+.wizard-sponsor-mode-btn strong {
+    display: block;
+    font-size: var(--font-size-sm);
+    color: var(--color-brand);
+}
+.wizard-sponsor-mode-btn small {
+    display: block;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-sub);
+    margin-top: 2px;
+}
+.wizard-sponsor-mode-btn svg {
+    color: var(--color-brand);
+    flex-shrink: 0;
+}
+.wizard-sponsor-mode-active {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    margin-bottom: 12px;
+    background: var(--color-brand-light);
+    border-radius: var(--radius-lg);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    color: var(--color-brand);
+}
+
+/* 가이드 업로드 */
+.guide-upload-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface-hover);
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-sub);
+    transition: all 0.2s;
+}
+.guide-upload-btn:hover {
+    border-color: var(--color-brand);
+    color: var(--color-brand);
+}
+.guide-textarea {
+    resize: vertical;
+    min-height: 120px;
+    font-family: inherit;
+}
+.guide-image-previews {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+.guide-image-thumb {
+    position: relative;
+    width: 64px;
+    height: 64px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+}
+.guide-image-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.guide-image-remove {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.6);
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 파싱 결과 카드 */
+.guide-parsed-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+.guide-card {
+    padding: 12px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface-hover);
+}
+.guide-card-warn {
+    border-color: var(--color-error);
+    background: var(--color-error-bg);
+}
+.guide-card-label {
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    color: var(--color-text-sub);
+    margin-bottom: 6px;
+}
+.guide-card-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.guide-chip {
+    padding: 3px 10px;
+    border-radius: 12px;
+    background: white;
+    border: 1px solid var(--color-border);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-main);
+}
+.guide-chip-warn {
+    background: var(--color-error-bg);
+    border-color: var(--color-error);
+    color: var(--color-error);
+}
+.guide-phrase {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-main);
+    line-height: 1.6;
+    margin-top: 4px;
+}
+
+/* 가이드 준수 체크 패널 */
+.guide-compliance-panel {
+    max-width: 900px;
+    margin: 16px auto;
+    padding: 16px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    background: var(--color-bg);
+}
+.guide-compliance-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+    color: var(--color-text-main);
+    margin-bottom: 12px;
+}
+.guide-compliance-score {
+    margin-left: auto;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+}
+.guide-compliance-score.pass {
+    background: var(--color-success-bg);
+    color: var(--color-success);
+}
+.guide-compliance-score.fail {
+    background: var(--color-error-bg);
+    color: var(--color-error);
+}
+.guide-compliance-btn {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: var(--radius-lg);
+    background: var(--color-brand);
+    color: white;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    cursor: pointer;
+}
+.guide-compliance-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.guide-compliance-recheck {
+    margin-top: 12px;
+    background: white;
+    color: var(--color-brand);
+    border: 1px solid var(--color-brand);
+}
+.guide-compliance-results {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.guide-check-item {
+    padding: 10px 12px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+}
+.guide-check-item.pass {
+    background: var(--color-success-bg);
+    border-color: var(--color-success);
+}
+.guide-check-item.fail {
+    background: var(--color-error-bg);
+    border-color: var(--color-error);
+}
+.guide-check-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+}
+.guide-check-item.pass .guide-check-status { color: var(--color-success); }
+.guide-check-item.fail .guide-check-status { color: var(--color-error); }
+.guide-check-label { color: var(--color-text-main); }
+.guide-check-suggestion {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--color-border);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-sub);
+    line-height: 1.5;
+}
+.guide-check-suggestion svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: var(--color-score-mid);
+}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FolderOpen, Edit3, ArrowRight, ChevronDown } from 'lucide-react';
+import { FolderOpen, Edit3, ArrowRight, ChevronDown, ClipboardList, Camera } from 'lucide-react';
 import { useEditor } from '../../context/EditorContext';
 import { CATEGORIES, PRIMARY_CATEGORY_COUNT, getToneForCategory } from '../../data/categories';
 
@@ -33,9 +33,11 @@ const TopicStep = ({
     setMainKeyword,
     setToneState,
     onNext,
+    onSponsorMode,
     canProceed,
     postId,
     renderStepIndicator,
+    sponsorMode = false,
 }) => {
     const { updateMainKeyword, updatePostMeta } = useEditor();
     const [showAllCategories, setShowAllCategories] = useState(false);
@@ -52,6 +54,23 @@ const TopicStep = ({
             <p className="wizard-step-desc">
                 카테고리를 선택하고 주제를 입력하세요. 다음 단계에서 키워드를 분석합니다.
             </p>
+
+            {/* 체험단/협찬 모드 진입 */}
+            {isNewPost && onSponsorMode && !sponsorMode && (
+                <button className="wizard-sponsor-mode-btn" onClick={onSponsorMode}>
+                    <ClipboardList size={18} />
+                    <span>
+                        <strong>체험단/협찬 글 작성</strong>
+                        <small>가이드 업로드 → 가이드 맞춤 글 생성</small>
+                    </span>
+                </button>
+            )}
+            {sponsorMode && (
+                <div className="wizard-sponsor-mode-active">
+                    <ClipboardList size={16} />
+                    <span>체험단/협찬 모드</span>
+                </div>
+            )}
 
             {/* 카테고리 그리드 */}
             {isNewPost && (

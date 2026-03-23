@@ -18,6 +18,8 @@ import KeywordStep, { recommendLength, getKw } from '../components/wizard/Keywor
 import ToneStep from '../components/wizard/ToneStep';
 import PhotoStep from '../components/wizard/PhotoStep';
 import OutlineStep from '../components/wizard/OutlineStep';
+import GuideUploadStep from '../components/wizard/GuideUploadStep';
+import GuideCompliancePanel from '../components/analysis/GuideCompliancePanel';
 import { fileToBase64, fileToDataUrl } from '../utils/image';
 import { copyToClipboard } from '../utils/clipboard';
 import { CATEGORIES } from '../data/categories';
@@ -47,6 +49,8 @@ const EditorPage = () => {
     const [isGenerating, setIsGenerating] = useState(false);
     const [generationStep, setGenerationStep] = useState(0); // 0~4 단계별 로딩
     const [wizardData, setWizardData] = useState(null);
+    const [sponsorMode, setSponsorMode] = useState(false);
+    const [sponsorGuide, setSponsorGuide] = useState(null);
 
     // 카테고리 + 주제 (StartWizardPage에서 통합)
     const [selectedCategory, setSelectedCategory] = useState(null);
@@ -521,7 +525,8 @@ const EditorPage = () => {
                 outlineItems.length > 0 ? outlineItems : null,
                 buildStyleRules(selectedWannabeStyle) + buildStyleRules(selectedMyStyle),
                 paragraphStyle || 'normal',
-                verifiedDetails
+                verifiedDetails,
+                sponsorGuide
             );
 
             console.log('[AI Generate] API 응답:', result);
@@ -620,10 +625,23 @@ const EditorPage = () => {
                                         setMainKeyword(topicInput.trim());
                                         updateMainKeyword(topicInput.trim());
                                     }
-                                    setAiStep(2);
+                                    setAiStep(sponsorMode ? 1.5 : 2);
                                 }}
+                                onSponsorMode={() => setSponsorMode(true)}
+                                sponsorMode={sponsorMode}
                                 canProceed={canProceedToStep1}
                                 postId={id}
+                                renderStepIndicator={renderStepIndicator}
+                            />
+                        )}
+
+                        {/* STEP 1.5: 가이드 업로드 (체험단/협찬 모드) */}
+                        {aiStep === 1.5 && sponsorMode && (
+                            <GuideUploadStep
+                                onBack={() => setAiStep(1)}
+                                onNext={() => setAiStep(2)}
+                                sponsorGuide={sponsorGuide}
+                                setSponsorGuide={setSponsorGuide}
                                 renderStepIndicator={renderStepIndicator}
                             />
                         )}
@@ -798,6 +816,7 @@ const EditorPage = () => {
     return (
         <div>
             <MainContainer />
+            {sponsorGuide && <GuideCompliancePanel sponsorGuide={sponsorGuide} />}
 
             {/* 설정 변경하기 바 */}
             {mainKeyword && (
