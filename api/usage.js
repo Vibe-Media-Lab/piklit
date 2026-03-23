@@ -1,5 +1,5 @@
 import { verifyFirebaseToken } from './_lib/auth.js';
-import { getDoc, setDoc } from './_lib/firestore.js';
+import { getDoc, setDoc, listDocs } from './_lib/firestore.js';
 
 const MONTHLY_LIMIT = 3;
 const PROMO_DAYS = 30;
@@ -27,7 +27,7 @@ export default async function handler(req, res) {
 
         let userData = await getDoc('users', uid);
 
-        // 첫 방문: createdAt 기록
+        // 첫 방문: createdAt 기록 + 디스코드 알림
         if (!userData) {
             const newUser = {
                 draftCount: 0,
@@ -36,6 +36,8 @@ export default async function handler(req, res) {
             };
             await setDoc('users', uid, newUser);
             userData = newUser;
+            // 신규 가입 디스코드 알림 (비동기, 실패해도 무시)
+            sendSignupAlert(uid, req).catch(() => {});
         } else if (!userData.createdAt) {
             await setDoc('users', uid, { createdAt: now.toISOString() });
             userData.createdAt = now.toISOString();
@@ -83,5 +85,38 @@ export default async function handler(req, res) {
     } catch (err) {
         console.error('Usage API error:', err);
         return res.status(500).json({ error: err.message });
+    }
+}
+
+async function sendSignupAlert(uid, req) {
+    const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+    if (!webhookUrl) return;
+
+    // 총 가입자 수 집계
+    let totalUsers = '?';
+    try {
+        const allUsers = await listDocs('users');
+        totalUsers = allUsers.length;
+    } catch { /* ignore */ }
+
+    const time = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
+
+    try {
+        await fetch(webhookUrl.trim(), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                embeds: [{
+                    title: '👋 새 회원 가입',
+                    color: 0x3B82F6,
+                    fields: [
+                        { name: '가입 시간', value: time },
+                        { name: '누적 가입', value: `${totalUsers}명`, inline: true },
+                    ],
+                }],
+            }),
+        });
+    } catch (e) {
+        console.error('Discord signup webhook error:', e.message);
     }
 }
