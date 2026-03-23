@@ -3528,7 +3528,7 @@
     font-size: 12px;
     background: var(--color-brand-light, #FFF7ED);
     color: var(--color-brand, #FF6B35);
-    border: 1px solid #FFDFCC;
+    border: 1px solid var(--color-brand-border);
     cursor: pointer;
     transition: all 0.2s;
 }
