@@ -186,7 +186,7 @@ const AI_FOOTER_HTML = '<p style="text-align: center; padding: 14px 16px; margin
 const AI_FOOTER_MARKER = 'AI 생성 도구를 사용하여 제작되었습니다';
 
 const TiptapEditor = () => {
-    const { content, setContent, keywords, suggestedTone, editorRef, lastCursorPosRef, humanTip, setHumanTip, humanAppliedIndices, setHumanAppliedIndices, recordAiAction, title, analysis, targetLength, posts, currentPostId } = useEditorContext();
+    const { content, setContent, keywords, suggestedTone, editorRef, lastCursorPosRef, humanTip, setHumanTip, setHumanAppliedIndices, recordAiAction, title, analysis, targetLength, posts, currentPostId } = useEditorContext();
     const { showToast } = useToast();
     const [aiDropdownOpen, setAiDropdownOpen] = useState(false);
     const [aiLoading, setAiLoading] = useState(false);

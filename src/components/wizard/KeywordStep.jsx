@@ -129,7 +129,6 @@ const KeywordStep = ({
 
     const handleCheckDifficulty = () => {
         setIsCheckingDifficulty(true);
-        const topic = wizardData?.initialMainKeyword || mainKeyword;
         const addDifficulty = (kwObj) => {
             const word = kwObj.keyword || kwObj;
             const wordCount = word.trim().split(/\s+/).length;

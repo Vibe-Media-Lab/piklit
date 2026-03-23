@@ -2092,7 +2092,6 @@ Output strictly valid HTML only. No JSON wrapping, no explanation.`;
 
     async fixSeoIssues(htmlContent, title, mainKeyword, subKeywords, issues, tone = 'friendly') {
         const issueDescriptions = issues.map(i => `- ${i.id}: ${i.text} ${i.metric || ''}`).join('\n');
-        const issueIds = new Set(issues.map(i => i.id));
 
         // 요청된 이슈에 해당하는 규칙만 선별
         const RULE_MAP = {
@@ -2127,7 +2126,7 @@ Output strictly valid HTML only. No JSON wrapping, no explanation.`;
                     return `${idx + 1}. ${iss.id}: 첫 문단(도입부)을 ${range}로 ${action}. 경험·감성·상황 묘사를 추가하여 반드시 ${range} 범위를 충족할 것.${keywordRule}`;
                 }
                 if (iss.id === 'sub_missing' && iss.missingSubs?.length > 0) {
-                    const list = iss.missingSubs.map((kw, j) => `"${kw}"`).join(', ');
+                    const list = iss.missingSubs.map((kw) => `"${kw}"`).join(', ');
                     return `${idx + 1}. sub_missing: 다음 서브 키워드가 본문(<p>)에 없음: ${list}. 각 키워드를 서로 다른 문단에 1회씩 자연스럽게 삽입해. 한 문장에 2개 이상 넣지 마.`;
                 }
                 if (iss.id === 'key_density' && iss.count != null) {

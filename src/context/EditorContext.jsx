@@ -116,7 +116,7 @@ export const EditorProvider = ({ children }) => {
     useEffect(() => {
         try {
             localStorage.setItem('naver_blog_posts', JSON.stringify(posts));
-        } catch (e) {
+        } catch {
             // 용량 초과 시 base64 이미지 제거 후 재시도
             console.warn('[EditorContext] localStorage 용량 초과, 이미지 제거 후 재시도');
             try {

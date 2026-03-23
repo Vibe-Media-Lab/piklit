@@ -4,7 +4,7 @@
  * - 마이그레이션: localStorage → Firestore
  */
 import { callSavePost, callLoadPosts, callDeletePost } from './firebase';
-import { extractAndUploadImages, deletePostImages } from './cloudStorage';
+import { extractAndUploadImages } from './cloudStorage';
 
 /**
  * 클라우드에 글 저장

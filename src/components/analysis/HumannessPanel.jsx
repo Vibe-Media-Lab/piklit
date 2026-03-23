@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useEditor } from '../../context/EditorContext';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '../common/Toast';
@@ -23,7 +23,7 @@ const GRADE_LABELS = {
 };
 
 const HumannessPanel = ({ onLocate, suggestOnly = false, cachedAiSuggestions = null, onCacheAiSuggestions }) => {
-    const { content, suggestedTone, keywords, recordAiAction, editorRef, humanTip, setHumanTip, humanAppliedIndices, setHumanAppliedIndices } = useEditor();
+    const { content, suggestedTone, keywords, recordAiAction, editorRef, setHumanTip, humanAppliedIndices, setHumanAppliedIndices } = useEditor();
     const { showToast } = useToast();
     const [isOpen, setIsOpen] = useState(true);
     const [aiLoading, setAiLoading] = useState(false);

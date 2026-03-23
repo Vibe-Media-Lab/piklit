@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useLocation, useParams, NavLink, useNavigate } from 'react-router-dom';
 import { useEditor } from '../../context/EditorContext';
 import { useAuth } from '../../context/AuthContext';
-import { copyToClipboard, exportAsMarkdown, exportAsHtml, exportAsText } from '../../utils/clipboard';
+import { copyToClipboard, exportAsHtml, exportAsText } from '../../utils/clipboard';
 import { Save, Copy, Download, Check, ChevronDown } from 'lucide-react';
 import SettingsModal from '../common/SettingsModal';
 import { useToast } from '../common/Toast';
