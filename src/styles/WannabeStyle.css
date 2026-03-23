@@ -16,7 +16,7 @@
 
 .wannabe-modal {
     background: white;
-    border-radius: 16px;
+    border-radius: var(--radius-2xl);
     width: 100%;
     max-width: 520px;
     max-height: 85vh;
@@ -130,18 +130,18 @@
     display: flex;
     align-items: center;
     gap: 4px;
-    font-size: 0.78rem;
+    font-size: var(--font-size-xs);
     font-weight: 600;
     color: var(--color-text-main);
 }
 
 .wannabe-slot-icon {
-    font-size: 0.7rem;
+    font-size: var(--font-size-xs);
     color: var(--color-brand, #FF6B35);
 }
 
 .wannabe-slot-required {
-    font-size: 0.6rem;
+    font-size: var(--font-size-xs);
     color: var(--color-brand, #FF6B35);
     font-weight: 700;
 }
@@ -149,7 +149,7 @@
 /* ─── Slot count badge ────────────────────────────── */
 .wannabe-slot-count {
     margin-left: auto;
-    font-size: 0.65rem;
+    font-size: var(--font-size-xs);
     font-weight: 500;
     color: var(--color-text-sub);
 }
@@ -168,7 +168,7 @@
     justify-content: center;
     gap: 4px;
     color: var(--color-text-sub);
-    font-size: 0.7rem;
+    font-size: var(--font-size-xs);
     transition: all 0.2s ease;
 }
 
@@ -222,7 +222,7 @@
     right: 4px;
     background: rgba(0, 0, 0, 0.6);
     color: white;
-    font-size: 0.7rem;
+    font-size: var(--font-size-xs);
     padding: 1px 6px;
     border-radius: 10px;
     pointer-events: none;
@@ -262,7 +262,7 @@
     padding: 2px 4px;
     background: rgba(0, 0, 0, 0.5);
     color: white;
-    font-size: 0.65rem;
+    font-size: var(--font-size-xs);
     text-align: center;
     font-weight: 600;
 }
@@ -275,7 +275,7 @@
 }
 
 .wannabe-extras-label {
-    font-size: 0.78rem;
+    font-size: var(--font-size-xs);
     font-weight: 600;
     color: var(--color-text-sub);
 }
@@ -345,7 +345,7 @@
 }
 
 .wannabe-summary-badge {
-    font-size: 0.7rem;
+    font-size: var(--font-size-xs);
     font-weight: 700;
     color: var(--color-brand);
     text-transform: uppercase;
@@ -369,7 +369,7 @@
 }
 
 .wannabe-samples-label {
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     font-weight: 600;
     color: var(--color-text-sub);
 }
@@ -480,7 +480,7 @@
 }
 
 .wannabe-limit-notice {
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     color: var(--color-brand);
     font-weight: 500;
     margin: 0;
@@ -546,7 +546,7 @@
 .wannabe-preset-card {
     padding: 14px 16px;
     border: 2px solid var(--color-border);
-    border-radius: 12px;
+    border-radius: var(--radius-xl);
     cursor: pointer;
     transition: border-color 0.2s, box-shadow 0.2s;
     background: white;
@@ -595,7 +595,7 @@
 }
 
 .wannabe-preset-card-summary {
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     color: var(--color-text-sub);
     margin: 0;
     line-height: 1.5;
@@ -648,7 +648,7 @@
 }
 
 .paragraph-style-desc {
-    font-size: 0.7rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub);
 }
 
@@ -667,7 +667,7 @@
 }
 
 .wannabe-divider-label {
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     font-weight: 600;
     color: var(--color-text-sub);
     text-transform: uppercase;
@@ -694,7 +694,7 @@
 }
 
 .wannabe-optional-badge {
-    font-size: 0.65rem;
+    font-size: var(--font-size-xs);
     font-weight: 700;
     color: var(--color-text-sub);
     background: white;
@@ -725,7 +725,7 @@
 }
 
 .wannabe-usage-badge {
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     font-weight: 600;
     color: var(--color-brand);
     background: white;

@@ -56,7 +56,7 @@
     gap: 6px;
     white-space: nowrap;
     font-weight: 500;
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
 }
 .photo-progress-bar {
     flex: 1;
@@ -190,7 +190,7 @@
     right: 4px;
     background: rgba(0, 0, 0, 0.6);
     color: white;
-    font-size: 0.7rem;
+    font-size: var(--font-size-xs);
     padding: 1px 6px;
     border-radius: 10px;
 }
@@ -203,7 +203,7 @@
     padding: 2px 4px;
     background: rgba(0, 0, 0, 0.5);
     color: white;
-    font-size: 0.65rem;
+    font-size: var(--font-size-xs);
     text-align: center;
     font-weight: 600;
 }
@@ -251,14 +251,14 @@
 }
 
 .slot-label {
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
     font-weight: 600;
     color: var(--color-text, #37352F);
     margin-bottom: 4px;
 }
 
 .slot-desc {
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub, #787774);
 }
 
@@ -284,7 +284,7 @@
     right: 8px;
     background: rgba(0, 0, 0, 0.6);
     color: white;
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     padding: 2px 8px;
     border-radius: 12px;
 }
@@ -327,7 +327,7 @@
     color: white;
     border: none;
     border-radius: 12px;
-    font-size: 0.7rem;
+    font-size: var(--font-size-xs);
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
@@ -398,7 +398,7 @@
 
 .ai-modal-label {
     display: block;
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     font-weight: 600;
     color: var(--color-text-sub, #787774);
     margin-bottom: 6px;
@@ -413,7 +413,7 @@
     border: 1px solid var(--color-border, #E3E2E0);
     border-radius: 8px;
     padding: 10px 12px;
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     resize: vertical;
     font-family: inherit;
     transition: border-color 0.2s;
@@ -450,12 +450,12 @@
     background: var(--color-brand-light);
 }
 .ai-style-chip-label {
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     font-weight: 600;
     color: var(--color-text, #37352F);
 }
 .ai-style-chip-desc {
-    font-size: 0.65rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub, #787774);
     margin-top: 2px;
 }
@@ -469,7 +469,7 @@
     color: white;
     border: none;
     border-radius: 10px;
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
@@ -489,7 +489,7 @@
     background: var(--color-error-bg, #FEF2F2);
     color: var(--color-error, #EB5757);
     border-radius: 8px;
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     border: 1px solid var(--color-error, #EB5757);
 }
 
@@ -516,7 +516,7 @@
     background: white;
     border: 1px solid var(--color-border, #E3E2E0);
     border-radius: 8px;
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     cursor: pointer;
     transition: all 0.2s;
 }
@@ -530,7 +530,7 @@
     color: white;
     border: none;
     border-radius: 8px;
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
@@ -546,7 +546,7 @@
     background: white;
     border: 1px solid var(--color-border, #E3E2E0);
     border-radius: 8px;
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     cursor: pointer;
     transition: all 0.2s;
 }
@@ -558,7 +558,7 @@
 
 /* ── AI Modal: Slot Label ── */
 .ai-modal-slot-label {
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     color: var(--color-text-sub, #787774);
 }
 
@@ -572,7 +572,7 @@
     border: 1px solid var(--color-border, #E3E2E0);
     border-radius: 8px;
     padding: 10px 12px;
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     font-family: inherit;
 }
 .ai-modal-enhance-btn {
@@ -581,7 +581,7 @@
     color: white;
     border: none;
     border-radius: 8px;
-    font-size: 0.78rem;
+    font-size: var(--font-size-xs);
     font-weight: 600;
     cursor: pointer;
     white-space: nowrap;
@@ -600,7 +600,7 @@
 
 /* ── AI Modal: Readonly Textarea ── */
 .ai-modal-textarea-readonly {
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     color: var(--color-text-sub, #787774);
     background: var(--color-surface-hover, #F7F6F3);
 }
@@ -613,7 +613,7 @@
 .ai-modal-crop-test-label {
     display: inline-block;
     padding: 8px 16px;
-    font-size: 0.78rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub, #787774);
     cursor: pointer;
     border: 1px dashed var(--color-border, #E3E2E0);
