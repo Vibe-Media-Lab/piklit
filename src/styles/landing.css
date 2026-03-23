@@ -319,7 +319,7 @@
     background: var(--color-surface-hover);
     border: 1px solid var(--color-border);
     border-radius: 14px;
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     font-weight: 500;
     color: var(--color-brand);
 }
@@ -443,7 +443,7 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     font-weight: 600;
     color: var(--color-brand);
     background: var(--color-brand-light);
@@ -453,7 +453,7 @@
 }
 
 .demo-bottom-label {
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub);
     text-align: center;
     margin-top: auto;
@@ -538,7 +538,7 @@
     background: var(--color-surface-hover);
     border: 1px solid var(--color-border);
     border-radius: 14px;
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     font-weight: 600;
     color: var(--color-text-main);
 }
@@ -636,13 +636,13 @@
     background: var(--color-brand);
     color: white;
     border-radius: 14px;
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     font-weight: 700;
     animation: seoFadeIn 9s ease-in-out infinite;
 }
 
 .demo-complete-check {
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     color: var(--color-success);
     font-weight: 600;
     animation: seoFadeIn 9s ease-in-out infinite;
@@ -750,7 +750,7 @@
 }
 
 .sample-cat {
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     font-weight: 600;
     color: var(--color-brand);
     background: var(--color-brand-light);
@@ -786,7 +786,7 @@
 }
 
 .sample-score {
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     font-weight: 700;
     color: white;
     background: var(--color-brand);
@@ -795,7 +795,7 @@
 }
 
 .sample-tag {
-    font-size: 0.7rem;
+    font-size: var(--font-size-xs);
     font-weight: 600;
     color: var(--color-text-sub);
     background: var(--color-surface-hover);
@@ -1014,7 +1014,7 @@
     background: white;
     border: 1px solid var(--color-border);
     border-radius: 12px;
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-main);
     font-weight: 500;
 }
@@ -1032,7 +1032,7 @@
 }
 
 .fm-kw-label {
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     font-weight: 600;
     color: var(--color-text-main);
     min-width: 80px;
@@ -1057,7 +1057,7 @@
 .fm-kw-badge {
     padding: 2px 8px;
     border-radius: 8px;
-    font-size: 0.65rem;
+    font-size: var(--font-size-xs);
     font-weight: 700;
     background: var(--color-border);
     color: var(--color-text-sub);
@@ -1135,7 +1135,7 @@
 .fm-bubble-menu span {
     padding: 6px 12px;
     color: white;
-    font-size: 0.7rem;
+    font-size: var(--font-size-xs);
     font-weight: 500;
 }
 
@@ -1174,7 +1174,7 @@
 }
 
 .fm-gauge-suffix {
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     font-weight: 600;
     color: var(--color-text-sub);
     display: block;
@@ -1193,7 +1193,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     font-weight: 500;
     color: var(--color-text-main);
 }
@@ -1218,7 +1218,7 @@
     background: var(--color-border);
     border-radius: 6px;
     overflow: hidden;
-    font-size: 0.7rem;
+    font-size: var(--font-size-xs);
     font-weight: 600;
 }
 
@@ -1278,7 +1278,7 @@
 }
 
 .fm-wannabe-label {
-    font-size: 0.65rem;
+    font-size: var(--font-size-xs);
     font-weight: 700;
     color: var(--color-brand);
     background: var(--color-brand-light);
@@ -1290,7 +1290,7 @@
 }
 
 .fm-wannabe-value {
-    font-size: 0.72rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-main);
     font-weight: 500;
 }
@@ -1301,7 +1301,7 @@
     color: white;
     border-radius: 8px;
     padding: 8px;
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     font-weight: 600;
 }
 
@@ -1456,7 +1456,7 @@
     border: 2px dashed var(--color-border);
     border-radius: 8px;
     color: var(--color-text-sub);
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     margin-bottom: 12px;
 }
 
@@ -1487,7 +1487,7 @@
 .sm-chip {
     padding: 4px 12px;
     border-radius: 16px;
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     font-weight: 500;
     background: var(--color-surface-hover);
     border: 1px solid var(--color-border);
@@ -1516,7 +1516,7 @@
     gap: 4px;
     padding: 6px 12px;
     border-radius: 16px;
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     font-weight: 600;
     background: var(--color-surface-hover);
     border: 1px solid var(--color-border);
@@ -1562,7 +1562,7 @@
 }
 
 .sm-result-title {
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     font-weight: 700;
     color: var(--color-text-main);
     margin-bottom: 8px;
@@ -1578,12 +1578,12 @@
     background: var(--color-brand-light);
     color: var(--color-brand);
     border-radius: 10px;
-    font-size: 0.7rem;
+    font-size: var(--font-size-xs);
     font-weight: 700;
 }
 
 .sm-word-count {
-    font-size: 0.7rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub);
     display: flex;
     align-items: center;
@@ -1600,7 +1600,7 @@
     color: white;
     border: none;
     border-radius: 8px;
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     font-weight: 600;
     cursor: default;
 }
@@ -1687,7 +1687,7 @@
     background: var(--color-brand-light);
     color: var(--color-brand);
     border-radius: 12px;
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     font-weight: 600;
     margin-bottom: var(--spacing-sm);
 }
@@ -1711,7 +1711,7 @@
     margin-top: var(--spacing-sm);
     padding-top: var(--spacing-sm);
     border-top: 1px solid var(--color-border);
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     color: var(--color-brand);
     font-style: italic;
     font-weight: 500;
@@ -1810,14 +1810,14 @@
 }
 
 .review-role {
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub);
 }
 
 .review-badge {
     padding: 3px 10px;
     border-radius: 10px;
-    font-size: 0.7rem;
+    font-size: var(--font-size-xs);
     font-weight: 700;
     flex-shrink: 0;
 }
@@ -1853,7 +1853,7 @@
     background: var(--color-brand-light);
     color: var(--color-brand);
     border-radius: 16px;
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     font-weight: 700;
     width: fit-content;
 }
@@ -1991,7 +1991,7 @@
     background: var(--color-brand);
     color: white;
     border-radius: 12px;
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     font-weight: 700;
 }
 
@@ -2269,7 +2269,7 @@
 }
 
 .landing-footer-links a {
-    font-size: 0.78rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub);
     text-decoration: none;
 }
@@ -2284,7 +2284,7 @@
 }
 
 .landing-footer-copy {
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub);
     opacity: 0.6;
 }
@@ -2426,7 +2426,7 @@
 }
 
 .login-btn-badge {
-    font-size: 0.65rem;
+    font-size: var(--font-size-xs);
     background: var(--color-text-sub);
     color: white;
     padding: 1px 6px;
@@ -2436,7 +2436,7 @@
 
 .login-modal-beta-note {
     text-align: center;
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub);
     margin-top: 12px;
     margin-bottom: 0;
@@ -2586,7 +2586,7 @@
         padding: 12px 16px;
         border: none;
         background: none;
-        font-size: 0.95rem;
+        font-size: var(--font-size-sm);
         color: var(--color-text-main);
         text-align: left;
         cursor: pointer;
@@ -2641,7 +2641,7 @@
 
     .sm-pipe-step {
         padding: 4px 8px;
-        font-size: 0.7rem;
+        font-size: var(--font-size-xs);
     }
 
     .persona-grid,
@@ -2658,7 +2658,7 @@
     .comparison-table th,
     .comparison-table td {
         padding: 10px 12px;
-        font-size: 0.8rem;
+        font-size: var(--font-size-2xs);
     }
 
     .landing-pain,

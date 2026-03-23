@@ -8,7 +8,7 @@
 .input-label {
     display: block;
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
     margin-bottom: var(--spacing-sm);
     color: var(--color-text-sub);
     text-transform: uppercase;
@@ -16,7 +16,7 @@
 }
 
 .input-hint {
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     color: var(--color-text-sub);
     margin-top: var(--spacing-xs);
 }
@@ -66,7 +66,7 @@
 .title-ai-btn {
     padding: 5px 10px;
     min-width: 120px;
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     font-weight: 500;
     background: var(--color-surface-hover);
     border: 1px solid var(--color-border);
@@ -93,7 +93,7 @@
 }
 
 .title-counter {
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     color: var(--color-text-sub);
     white-space: nowrap;
 }
@@ -116,14 +116,14 @@
 }
 
 .title-tip {
-    font-size: 0.78rem;
+    font-size: var(--font-size-xs);
     color: var(--color-warning);
     margin: 0 0 8px;
     line-height: 1.4;
 }
 
 .title-error {
-    font-size: 0.78rem;
+    font-size: var(--font-size-xs);
     color: var(--color-error);
     margin-bottom: 6px;
     display: flex;
@@ -144,7 +144,7 @@
 }
 
 .title-rec-label {
-    font-size: 0.78rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub);
 }
 
@@ -152,7 +152,7 @@
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     color: var(--color-accent);
     display: flex;
     align-items: center;
@@ -172,7 +172,7 @@
     background: var(--color-surface-hover);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
-    font-size: 0.88rem;
+    font-size: var(--font-size-sm);
     cursor: pointer;
     color: var(--color-text-main);
     transition: all 0.15s;
@@ -219,7 +219,7 @@
     color: var(--color-text-sub);
     font-weight: 500;
     transition: all 0.2s;
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
 }
 
 .add-block-btn:hover {
@@ -426,7 +426,7 @@
 
 .wizard-btn-text {
     color: var(--color-text-sub);
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
     margin-bottom: 20px;
     display: inline-block;
 }
@@ -534,7 +534,7 @@
 }
 
 .wizard-summary-card .summary-label {
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub, #787774);
     margin-bottom: 6px;
     text-transform: uppercase;
@@ -542,7 +542,7 @@
 }
 
 .wizard-summary-card .summary-value {
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
     font-weight: 600;
     color: var(--color-text-main);
     overflow: hidden;
@@ -575,7 +575,7 @@
     align-items: center;
     justify-content: center;
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: var(--font-size-sm);
     flex-shrink: 0;
     transition: all 0.2s;
 }
@@ -597,7 +597,7 @@
 }
 
 .wizard-step-label {
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     font-weight: 500;
     white-space: nowrap;
 }
@@ -648,7 +648,7 @@
     }
 
     .wizard-step-mobile-label {
-        font-size: 0.85rem;
+        font-size: var(--font-size-sm);
         font-weight: 600;
         color: var(--color-brand);
     }
@@ -768,7 +768,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     color: var(--color-text-sub, #787774);
     transition: all 0.3s;
 }
@@ -843,7 +843,7 @@
 }
 
 .metric-label {
-    font-size: 0.7rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub, #888);
 }
 
@@ -863,7 +863,7 @@
 }
 
 .metric-info-bar {
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub);
     background: var(--color-surface-hover, #F7F6F3);
     padding: 8px 12px;
@@ -900,7 +900,7 @@
     background: none;
     border: none;
     text-align: left;
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
     cursor: pointer;
     color: var(--color-text-main, #333);
     transition: background 0.15s;
@@ -949,7 +949,7 @@
 }
 
 .stat-label {
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     color: var(--color-text-sub, #888);
     margin-top: 4px;
 }
@@ -969,7 +969,7 @@
 
 .keyword-bar-label {
     flex: 0 0 100px;
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     color: var(--color-text-main, #333);
     text-align: right;
     overflow: hidden;
@@ -995,7 +995,7 @@
 
 .keyword-bar-count {
     flex: 0 0 28px;
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     font-weight: 600;
     color: var(--color-text-sub, #888);
 }
@@ -1036,13 +1036,13 @@
 }
 
 .activity-bar-label {
-    font-size: 0.7rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub, #999);
     margin-top: 6px;
 }
 
 .activity-bar-count {
-    font-size: 0.7rem;
+    font-size: var(--font-size-xs);
     font-weight: 600;
     color: var(--color-accent, #FF6B35);
     margin-top: 2px;
@@ -1057,7 +1057,7 @@
 }
 
 .stats-dashboard h4 {
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
     margin-bottom: 12px;
     color: var(--color-text-sub);
 }
@@ -1112,13 +1112,13 @@
 }
 
 .competitor-stat-label {
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     opacity: 0.85;
 }
 
 .competitor-header-note {
     margin: 14px 0 0 0;
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     opacity: 0.9;
     text-align: center;
     display: flex;
@@ -1146,13 +1146,13 @@
 
 .competitor-insufficient strong {
     display: block;
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
     margin-bottom: 4px;
 }
 
 .competitor-insufficient p {
     margin: 0;
-    font-size: 0.82rem;
+    font-size: var(--font-size-2xs);
     line-height: 1.5;
     color: #A16207;
 }
@@ -1172,7 +1172,7 @@
     gap: 8px;
     margin-bottom: 16px;
     color: var(--color-brand, #FF6B35);
-    font-size: 0.95rem;
+    font-size: var(--font-size-sm);
 }
 
 .photo-analysis-body {
@@ -1193,7 +1193,7 @@
     align-items: center;
     gap: 10px;
     margin: 0 0 10px 0;
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
     font-weight: 600;
     color: var(--color-text, #37352F);
 }
@@ -1207,7 +1207,7 @@
     border-radius: 50%;
     background: var(--color-brand, #FF6B35);
     color: white;
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     font-weight: 700;
     flex-shrink: 0;
 }
@@ -1220,7 +1220,7 @@
 }
 
 .photo-analysis-item {
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     color: var(--color-text-sub, #787774);
     line-height: 1.6;
     margin: 0;
@@ -1359,12 +1359,12 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 0.95rem;
+    font-size: var(--font-size-sm);
     color: var(--color-text-main);
 }
 
 .outline-header .outline-count {
-    font-size: 0.78rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub);
     background: var(--color-surface-hover);
     padding: 4px 10px;
@@ -1454,7 +1454,7 @@
     border-radius: var(--radius-sm);
     border: 1px solid var(--color-border);
     font-weight: 700;
-    font-size: 0.7rem;
+    font-size: var(--font-size-xs);
     cursor: pointer;
     flex-shrink: 0;
     width: 34px;
@@ -1480,7 +1480,7 @@
     padding: 7px 12px;
     border: 1px solid var(--color-brand);
     border-radius: var(--radius-md);
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
     color: var(--color-text-main);
     background: white;
     min-width: 0;
@@ -1510,7 +1510,7 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    font-size: 0.72rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub);
     transition: all 0.15s;
 }
@@ -1635,7 +1635,7 @@
     background: var(--color-bg);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     color: var(--color-text-sub);
 }
 
@@ -1658,7 +1658,7 @@
     background: var(--color-bg);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     color: var(--color-text-sub);
 }
 
@@ -1708,7 +1708,7 @@
     display: flex;
     gap: 16px;
     color: var(--color-text-sub);
-    font-size: 0.875rem;
+    font-size: var(--font-size-sm);
     margin-bottom: 28px;
     padding: 10px 14px;
     background: var(--color-surface-hover);
@@ -1735,7 +1735,7 @@
     background: var(--color-surface-hover, #F7F6F3);
     border: 1px solid var(--color-border);
     border-radius: 20px;
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     color: var(--color-text-main);
 }
 
@@ -1746,7 +1746,7 @@
 /* 힌트 텍스트 (CTA 버튼 아래) */
 .wizard-hint-text {
     text-align: center;
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     color: var(--color-text-sub);
     margin-top: 10px;
 }
@@ -1890,7 +1890,7 @@
     color: var(--color-error);
     font-weight: normal;
     margin-left: 8px;
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
 }
 
 /* Wizard Selected Keywords */
@@ -1931,7 +1931,7 @@
 }
 
 .wizard-keyword-chip .chip-remove {
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     opacity: 0.5;
 }
 
@@ -1983,7 +1983,7 @@
 /* DifficultyBadge */
 .difficulty-badge {
     margin-left: 4px;
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
 }
 
 /* Wizard Advanced Section (접이식 고급 옵션) */
@@ -2256,7 +2256,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 0.95rem;
+    font-size: var(--font-size-sm);
     font-weight: 600;
     color: var(--color-text-main);
 }
@@ -2348,11 +2348,11 @@
 
 .wizard-tone-label {
     font-weight: bold;
-    font-size: 0.95rem;
+    font-size: var(--font-size-sm);
 }
 
 .wizard-tone-desc {
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     color: var(--color-text-sub);
     margin-top: 4px;
 }
@@ -2364,7 +2364,7 @@
 }
 
 .wizard-tone-sample-label {
-    font-size: 0.7rem;
+    font-size: var(--font-size-xs);
     font-weight: 600;
     color: var(--color-brand);
     letter-spacing: 0.5px;
@@ -2372,7 +2372,7 @@
 }
 
 .wizard-tone-sample-text {
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     line-height: 1.6;
     color: var(--color-text-main);
     margin: 0;
@@ -2388,7 +2388,7 @@
         grid-template-columns: 1fr;
     }
     .wizard-tone-sample-text {
-        font-size: 0.8rem;
+        font-size: var(--font-size-2xs);
     }
 }
 
@@ -2833,7 +2833,7 @@
     background: none;
     cursor: pointer;
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
     color: var(--color-text-main);
     transition: background 0.15s;
 }
@@ -2877,13 +2877,13 @@
 }
 
 .dashboard-gauge-label {
-    font-size: 0.7rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub);
 }
 
 /* ── Dashboard Sections ── */
 .dashboard-section-title {
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
     margin-bottom: 12px;
 }
 
@@ -2896,7 +2896,7 @@
     background: #d4edda;
     color: #155724;
     border-radius: var(--radius-md);
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
 }
 
 .dashboard-issues {
@@ -2908,7 +2908,7 @@
 .dashboard-issue {
     padding: 8px 0;
     border-bottom: 1px solid var(--color-border);
-    font-size: 0.82rem;
+    font-size: var(--font-size-2xs);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -2926,7 +2926,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.7rem;
+    font-size: var(--font-size-xs);
     font-weight: 700;
 }
 
@@ -2941,7 +2941,7 @@
 
 .dashboard-issue-metric {
     flex-shrink: 0;
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub);
     text-align: right;
     white-space: nowrap;
@@ -2965,7 +2965,7 @@
 /* AI 수정 가능 뱃지 */
 .dashboard-issue-ai-badge {
     flex-shrink: 0;
-    font-size: 0.65rem;
+    font-size: var(--font-size-xs);
     font-weight: 700;
     color: var(--color-brand, #FF6B35);
     border: 1px solid var(--color-brand, #FF6B35);
@@ -2984,7 +2984,7 @@
     border: none;
     border-radius: var(--radius-md, 8px);
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     font-weight: 600;
     transition: opacity 0.2s;
 }
@@ -3011,7 +3011,7 @@
     border: none;
     border-radius: var(--radius-md);
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     transition: opacity 0.2s;
 }
 
@@ -3037,7 +3037,7 @@
 
 .dashboard-tag-header .dashboard-section-title {
     margin: 0;
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
 }
 
 .dashboard-copy-btn {
@@ -3045,7 +3045,7 @@
     border: 1px solid var(--color-border);
     border-radius: var(--radius-sm);
     padding: 2px 8px;
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     cursor: pointer;
     color: var(--color-text-sub);
     transition: all 0.2s;
@@ -3058,7 +3058,7 @@
 }
 
 .dashboard-tag-hint {
-    font-size: 0.7rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub);
     margin: 0 0 6px 0;
 }
@@ -3074,7 +3074,7 @@
     background: var(--color-brand-light, #FFF3ED);
     color: var(--color-brand);
     border-radius: 12px;
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
@@ -3605,7 +3605,7 @@
 }
 
 .recommend-banner-text {
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
     font-weight: 500;
     color: var(--color-text-main);
     white-space: nowrap;
@@ -3646,7 +3646,7 @@
     align-items: center;
     gap: 8px;
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: var(--font-size-sm);
     color: var(--color-brand);
 }
 
@@ -3685,19 +3685,19 @@
 
 .recommend-dropzone-title {
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: var(--font-size-sm);
     color: var(--color-text-main);
     margin: 0 0 6px;
 }
 
 .recommend-dropzone-desc {
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     color: var(--color-text-sub);
     margin: 0 0 8px;
 }
 
 .recommend-dropzone-hint {
-    font-size: 0.78rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub);
     opacity: 0.7;
     margin: 0;
@@ -3710,7 +3710,7 @@
     gap: 12px;
     margin: 16px 0;
     color: var(--color-text-sub);
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
 }
 
 .recommend-divider::before,
@@ -3732,7 +3732,7 @@
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
     color: var(--color-text-main);
     cursor: pointer;
     transition: all 0.2s;
@@ -3749,7 +3749,7 @@
 }
 
 .recommend-history-hint {
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     color: var(--color-text-sub);
 }
 
@@ -3759,7 +3759,7 @@
     background: rgba(235, 87, 87, 0.08);
     border-radius: var(--radius-sm);
     color: var(--color-error);
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
 }
 
 /* 로딩 */
@@ -3774,7 +3774,7 @@
 
 .recommend-loading p {
     margin: 0;
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
     color: var(--color-text-sub);
 }
 
@@ -3792,7 +3792,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 0.8rem !important;
+    font-size: var(--font-size-2xs) !important;
     color: var(--color-text-sub) !important;
     opacity: 0.7;
 }
@@ -3810,7 +3810,7 @@
     background: var(--color-brand-light);
     border-radius: var(--radius-md);
     margin-bottom: 16px;
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     color: var(--color-text-main);
     line-height: 1.5;
 }
@@ -3856,13 +3856,13 @@
     border-radius: 50%;
     background: var(--color-brand);
     color: white;
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     font-weight: 700;
     flex-shrink: 0;
 }
 
 .recommend-card-category {
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     font-weight: 500;
     color: var(--color-text-sub);
     background: var(--color-surface-hover);
@@ -3871,7 +3871,7 @@
 }
 
 .recommend-card-diff {
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     padding: 2px 6px;
     border-radius: 4px;
     font-weight: 500;
@@ -3902,7 +3902,7 @@
 }
 
 .recommend-card-reason {
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     color: var(--color-text-sub);
     margin: 0 0 10px;
     line-height: 1.5;
@@ -3916,7 +3916,7 @@
 }
 
 .recommend-card-keyword {
-    font-size: 0.78rem;
+    font-size: var(--font-size-xs);
     color: var(--color-brand);
     background: var(--color-brand-light);
     padding: 3px 8px;
@@ -3934,7 +3934,7 @@
     color: white;
     border: none;
     border-radius: var(--radius-md);
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     font-weight: 600;
     cursor: pointer;
     transition: background 0.2s;
@@ -3959,7 +3959,7 @@
     background: none;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     color: var(--color-text-sub);
     cursor: pointer;
     transition: all 0.2s;
@@ -3981,13 +3981,13 @@
     }
 
     .recommend-card-topic {
-        font-size: 0.95rem;
+        font-size: var(--font-size-sm);
     }
 
     /* Step 2: 키워드 칩 축소 */
     .wizard-keyword-chip {
         padding: 6px 12px;
-        font-size: 0.8rem;
+        font-size: var(--font-size-2xs);
     }
 
     .wizard-section-card {
@@ -4184,7 +4184,7 @@
     }
 
     .mobile-analysis-tab-label {
-        font-size: 0.7rem;
+        font-size: var(--font-size-xs);
         font-weight: 600;
         letter-spacing: -0.02em;
     }
@@ -4215,7 +4215,7 @@
 
     .mobile-locate-minibar-text {
         flex: 1;
-        font-size: 0.78rem;
+        font-size: var(--font-size-xs);
         color: var(--color-text-main);
         font-weight: 500;
         white-space: nowrap;
@@ -4232,7 +4232,7 @@
         border-radius: 4px;
         background: white;
         color: var(--color-brand-text, #FF6B35);
-        font-size: 0.72rem;
+        font-size: var(--font-size-xs);
         font-weight: 600;
         cursor: pointer;
         white-space: nowrap;
@@ -4247,7 +4247,7 @@
         border: none;
         background: none;
         color: var(--color-text-sub);
-        font-size: 0.82rem;
+        font-size: var(--font-size-2xs);
         cursor: pointer;
         padding: 4px;
         min-width: 28px;
@@ -4312,7 +4312,7 @@
 
 .beta-expired-header p {
     margin: 0;
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     color: var(--color-text-sub);
 }
 
@@ -4340,7 +4340,7 @@
 }
 
 .beta-expired-stat-label {
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub);
 }
 
@@ -4375,23 +4375,23 @@
 }
 
 .beta-expired-plan strong {
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
     color: var(--color-text-main);
 }
 
 .beta-expired-price {
-    font-size: 0.95rem;
+    font-size: var(--font-size-sm);
     font-weight: 700;
     color: var(--plan-color);
 }
 
 .beta-expired-plan-desc {
-    font-size: 0.78rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-main);
 }
 
 .beta-expired-plan-sub {
-    font-size: 0.72rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub);
 }
 
@@ -4401,7 +4401,7 @@
     right: -6px;
     background: #FF6B35;
     color: white;
-    font-size: 0.65rem;
+    font-size: var(--font-size-xs);
     font-weight: 700;
     padding: 2px 8px;
     border-radius: 10px;
@@ -4409,7 +4409,7 @@
 
 .beta-expired-footer {
     text-align: center;
-    font-size: 0.78rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub);
     margin: 0;
 }
@@ -4517,7 +4517,7 @@
     padding: 14px 18px;
     border-radius: 12px;
     max-width: 300px;
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     line-height: 1.5;
     z-index: 200;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
@@ -4549,7 +4549,7 @@
     color: white;
     border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 6px;
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     font-weight: 600;
     cursor: pointer;
     transition: background 0.2s;
@@ -4567,7 +4567,7 @@
     padding: 8px 16px;
     background: var(--color-surface-hover);
     border-bottom: 1px solid var(--color-border);
-    font-size: 0.82rem;
+    font-size: var(--font-size-2xs);
 }
 .editor-wizard-return-meta {
     color: var(--color-text-sub);
@@ -4584,7 +4584,7 @@
     background: white;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     color: var(--color-text-main);
     cursor: pointer;
     white-space: nowrap;
@@ -4678,7 +4678,7 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
 }
 
 .bug-report-desc {
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     color: var(--color-text-sub);
     margin-bottom: 16px;
 }
@@ -4689,7 +4689,7 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
     resize: vertical;
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
     box-sizing: border-box;
 }
 
@@ -4698,7 +4698,7 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
     padding: 10px;
     background: var(--color-surface-hover);
     border-radius: var(--radius-md);
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub);
 }
 
@@ -4775,18 +4775,18 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
 
 .settings-beta-label {
     font-weight: 700;
-    font-size: 0.95rem;
+    font-size: var(--font-size-sm);
     color: var(--color-brand);
 }
 
 .settings-beta-days {
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     font-weight: 600;
     color: var(--color-brand);
 }
 
 .settings-beta-desc {
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     color: var(--color-text-sub);
     margin-top: var(--spacing-sm);
     margin-bottom: 0;
@@ -4795,14 +4795,14 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
 .settings-beta-usage-row {
     display: flex;
     justify-content: space-between;
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     color: var(--color-text-sub);
     margin-top: var(--spacing-sm);
     margin-bottom: var(--spacing-xs);
 }
 
 .settings-beta-bug-hint {
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub);
     margin-top: var(--spacing-sm);
     margin-bottom: 0;
@@ -4820,11 +4820,11 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
     display: block;
     margin-bottom: var(--spacing-sm);
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
 }
 
 .settings-beta-expired {
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     color: var(--color-error);
     margin-bottom: var(--spacing-sm);
 }
@@ -4881,7 +4881,7 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     color: var(--color-text-sub);
     cursor: pointer;
 }
@@ -4895,7 +4895,7 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
     background: none;
     border: none;
     color: var(--color-brand);
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     cursor: pointer;
     padding: 0;
     margin-left: 4px;
@@ -4907,7 +4907,7 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
     padding: 10px 12px;
     background: var(--color-bg-secondary, #F7F6F3);
     border-radius: var(--radius-sm);
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub);
     line-height: 1.6;
 }
@@ -4917,7 +4917,7 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
 }
 
 .settings-beta-hint {
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub);
     margin-top: var(--spacing-sm);
     margin-bottom: 0;
@@ -4938,16 +4938,16 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
 
 .settings-usage-title {
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
 }
 
 .settings-usage-loading {
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     color: var(--color-text-sub);
 }
 
 .settings-usage-count {
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     font-weight: 600;
 }
 
@@ -4965,14 +4965,14 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
 }
 
 .settings-usage-promo-text {
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     color: var(--color-success);
     margin-top: var(--spacing-sm);
     margin-bottom: 0;
 }
 
 .settings-usage-exhausted-text {
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     color: var(--color-error);
     margin-top: var(--spacing-sm);
     margin-bottom: 0;
@@ -4984,7 +4984,7 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
     background: var(--color-success-bg, #F0FDF4);
     border-radius: var(--radius-md);
     border: 1px solid var(--color-success-border, #C6F6D5);
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     color: var(--color-success);
     font-weight: 600;
 }
@@ -5002,7 +5002,7 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
 }
 
 .settings-api-hint {
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     color: var(--color-text-sub);
     margin-top: var(--spacing-sm);
 }
@@ -5028,7 +5028,7 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
 }
 .settings-logout-btn:hover {
     color: var(--color-error);
@@ -5079,7 +5079,7 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
     color: white;
     border: none;
     border-radius: 8px;
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     font-weight: 600;
     cursor: pointer;
     transition: background 0.2s;
@@ -5096,7 +5096,7 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
     background: white;
     border: 1px solid var(--color-border);
     border-radius: 8px;
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     cursor: pointer;
     transition: background 0.2s;
 }
@@ -5106,7 +5106,7 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
 }
 
 .cropper-results-label {
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     font-weight: 600;
     color: var(--color-text-sub);
     margin-bottom: 8px;
@@ -5162,7 +5162,7 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
     border: none;
     border-radius: 4px;
     padding: 3px 10px;
-    font-size: 0.7rem;
+    font-size: var(--font-size-xs);
     font-weight: 600;
     cursor: pointer;
     white-space: nowrap;
@@ -5176,7 +5176,7 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
     color: white;
     border: none;
     border-radius: 8px;
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     font-weight: 600;
     cursor: pointer;
 }
@@ -5214,7 +5214,7 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
 .admin-bugs-status-summary {
     display: flex;
     gap: 8px;
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
 }
 
 .admin-bugs-status-count {
@@ -5265,29 +5265,29 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
 }
 
 .admin-bugs-badge {
-    font-size: 0.7rem;
+    font-size: var(--font-size-xs);
     font-weight: 600;
     padding: 2px 8px;
     border-radius: 10px;
 }
 
 .admin-bugs-email {
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     color: var(--color-text-sub);
 }
 
 .admin-bugs-date {
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     color: #B0AFA8;
 }
 
 .admin-bugs-preview {
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
     color: var(--color-primary);
 }
 
 .admin-bugs-toggle {
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     color: var(--color-text-sub);
 }
 
@@ -5301,7 +5301,7 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
 }
 
 .admin-bugs-label {
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     font-weight: 600;
     color: var(--color-text-sub);
     text-transform: uppercase;
@@ -5309,13 +5309,13 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
 
 .admin-bugs-value {
     margin: 2px 0;
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     color: var(--color-primary);
 }
 
 .admin-bugs-description {
     margin: 4px 0;
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
     white-space: pre-wrap;
 }
 
@@ -5327,7 +5327,7 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
 }
 
 .admin-bugs-screenshot-toggle {
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     color: var(--color-brand);
     background: none;
     border: none;
@@ -5347,7 +5347,7 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
     color: #D4D4D4;
     padding: 12px;
     border-radius: var(--radius-md);
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     max-height: 200px;
     overflow: auto;
     white-space: pre-wrap;
@@ -5363,7 +5363,7 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
 
 .admin-bugs-status-btn {
     padding: 6px 14px;
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     font-weight: 600;
     border-radius: var(--radius-md);
     cursor: pointer;
@@ -5382,7 +5382,7 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
 }
 
 .admin-beta-filter {
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     font-weight: 600;
     cursor: pointer;
     padding: 4px 10px;
@@ -5422,7 +5422,7 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
 }
 
 .admin-beta-progress-label {
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     color: var(--color-text-sub);
     white-space: nowrap;
 }
@@ -5434,7 +5434,7 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
 .admin-beta-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
 }
 
 .admin-beta-table th {
@@ -5464,7 +5464,7 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
 }
 
 .admin-beta-date {
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     color: var(--color-text-sub);
 }
 
@@ -5476,7 +5476,7 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
     display: inline-block;
     padding: 2px 8px;
     border-radius: 10px;
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     font-weight: 600;
 }
 
@@ -5492,7 +5492,7 @@ body:has(.app-sidebar.collapsed) .bug-report-fab {
 
 .admin-beta-delete-btn {
     padding: 4px 10px;
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-sm);
     background: white;
