@@ -6,10 +6,10 @@
 // 톤별 가중치 프리셋 (총 100점)
 const TONE_WEIGHTS = {
     friendly: { sentenceVariety: 15, personalExpr: 20, aiPattern: 20, paraVariety: 10, colloquial: 20, informal: 15 },
-    professional: { sentenceVariety: 20, personalExpr: 15, aiPattern: 25, paraVariety: 15, colloquial: 15, informal: 10 },
-    honest: { sentenceVariety: 15, personalExpr: 25, aiPattern: 20, paraVariety: 10, colloquial: 20, informal: 10 },
-    emotional: { sentenceVariety: 20, personalExpr: 20, aiPattern: 25, paraVariety: 15, colloquial: 10, informal: 10 },
-    guide: { sentenceVariety: 15, personalExpr: 10, aiPattern: 25, paraVariety: 10, colloquial: 20, informal: 20 },
+    professional: { sentenceVariety: 22, personalExpr: 18, aiPattern: 25, paraVariety: 15, colloquial: 15, informal: 5 },
+    honest: { sentenceVariety: 15, personalExpr: 25, aiPattern: 22, paraVariety: 12, colloquial: 20, informal: 6 },
+    emotional: { sentenceVariety: 20, personalExpr: 22, aiPattern: 25, paraVariety: 15, colloquial: 12, informal: 6 },
+    guide: { sentenceVariety: 18, personalExpr: 12, aiPattern: 25, paraVariety: 15, colloquial: 22, informal: 8 },
 };
 
 // AI 단골 표현 패턴
