@@ -43,7 +43,7 @@
     background: none;
     border: 1px solid var(--color-border);
     border-radius: 6px;
-    font-size: 0.78rem;
+    font-size: var(--font-size-xs);
     font-weight: 600;
     color: var(--color-brand, #FF6B35);
     cursor: pointer;
@@ -86,14 +86,14 @@
 }
 
 .rewrite-score-label {
-    font-size: 0.78rem;
+    font-size: var(--font-size-xs);
     font-weight: 600;
     color: var(--color-text-sub, #787774);
     margin-right: 4px;
 }
 
 .rewrite-score-before {
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     color: var(--color-text-sub, #787774);
     text-decoration: line-through;
 }
@@ -105,12 +105,12 @@
 }
 
 .rewrite-score-arrow {
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     color: var(--color-text-sub, #787774);
 }
 
 .rewrite-score-diff {
-    font-size: 0.78rem;
+    font-size: var(--font-size-xs);
     font-weight: 600;
     padding: 2px 8px;
     border-radius: 10px;
@@ -141,7 +141,7 @@
     background: none;
     border: 1px solid var(--color-border);
     border-radius: 6px;
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     font-weight: 600;
     color: var(--color-text-sub, #787774);
     cursor: pointer;
@@ -211,7 +211,7 @@
     border-radius: 4px;
     border: none;
     font-weight: 500;
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
     color: var(--color-text-sub);
     background: transparent;
     transition: all 0.1s;
@@ -253,7 +253,7 @@
     margin: 0;
 }
 .ai-footer-label {
-    font-size: 0.78rem;
+    font-size: var(--font-size-xs);
     font-weight: 500;
     color: var(--color-text-sub);
     white-space: nowrap;
@@ -349,7 +349,7 @@
     border: none;
     background: none;
     color: var(--color-text-main);
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
     padding: 4px 8px;
     border-radius: 3px;
 }
@@ -380,7 +380,7 @@
     border: none;
     background: none;
     color: var(--color-accent);
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     font-weight: 600;
     padding: 4px 8px;
     border-radius: 3px;
@@ -427,7 +427,7 @@
     background: none;
     padding: 8px 12px;
     text-align: left;
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     color: var(--color-text-main);
     border-radius: 4px;
     cursor: pointer;
@@ -488,13 +488,13 @@
 
 .template-dropdown button strong {
     display: block;
-    font-size: 0.88rem;
+    font-size: var(--font-size-sm);
     color: var(--color-text-main);
 }
 
 .template-dropdown button small {
     display: block;
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-hint);
     margin-top: 1px;
 }
@@ -549,13 +549,13 @@
 
 .cta-dropdown button strong {
     display: block;
-    font-size: 0.88rem;
+    font-size: var(--font-size-sm);
     color: var(--color-text-main);
 }
 
 .cta-dropdown button small {
     display: block;
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-hint);
     margin-top: 1px;
 }
@@ -577,7 +577,7 @@
     background: var(--color-panel-bg);
     border: none;
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     font-weight: 600;
     color: var(--color-text-main);
 }
@@ -603,7 +603,7 @@
 }
 
 .naver-preview-label {
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-hint);
     margin-bottom: 8px;
     font-weight: 600;
@@ -627,13 +627,13 @@
 }
 
 .naver-preview-url {
-    font-size: 0.78rem;
+    font-size: var(--font-size-xs);
     color: #009A61;
     margin-bottom: 6px;
 }
 
 .naver-preview-desc {
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     color: var(--color-text-sub);
     line-height: 1.5;
     display: -webkit-box;
@@ -651,14 +651,14 @@
 }
 
 .intro-analysis-header {
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     font-weight: 600;
     color: var(--color-text-sub);
     margin-bottom: 8px;
 }
 
 .intro-analysis-text {
-    font-size: 0.88rem;
+    font-size: var(--font-size-sm);
     color: var(--color-text-main);
     margin: 0 0 10px 0;
     line-height: 1.6;
@@ -671,7 +671,7 @@
 }
 
 .intro-badge {
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     padding: 3px 8px;
     border-radius: 10px;
     font-weight: 500;
@@ -700,7 +700,7 @@
     color: white;
     border: none;
     border-radius: 8px;
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
     font-weight: 600;
     cursor: pointer;
     margin-bottom: 14px;
@@ -736,14 +736,14 @@
 }
 
 .intro-alt-strategy {
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     color: var(--color-brand-text);
     font-weight: 600;
     margin-bottom: 6px;
 }
 
 .intro-alt-text {
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
     color: var(--color-text-main);
     line-height: 1.6;
     margin: 0 0 10px 0;
@@ -762,7 +762,7 @@
     color: white;
     border: none;
     border-radius: 6px;
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     font-weight: 600;
     cursor: pointer;
     transition: background 0.2s;
@@ -805,7 +805,7 @@
 
 .tiptap-content-area .info-card-table td {
     padding: 8px 4px;
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
     color: var(--color-text-main);
     vertical-align: top;
 }
@@ -824,7 +824,7 @@
     border-radius: 8px;
     padding: 14px 18px;
     margin: 16px 0;
-    font-size: 0.92rem;
+    font-size: var(--font-size-sm);
     color: var(--color-score-mid-text);
     line-height: 1.6;
 }
@@ -848,7 +848,7 @@
     background: var(--color-panel-bg);
     border: none;
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
     font-weight: 600;
     color: var(--color-text-main);
 }
@@ -884,13 +884,13 @@
 }
 
 .metric-bar-label {
-    font-size: 0.78rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub);
     white-space: nowrap;
 }
 
 .metric-bar-score {
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     font-weight: 600;
 }
 
@@ -914,7 +914,7 @@
 }
 
 .readability-suggestions-title {
-    font-size: 0.82rem;
+    font-size: var(--font-size-2xs);
     font-weight: 600;
     color: var(--color-text-sub);
     margin-bottom: 10px;
@@ -928,7 +928,7 @@
     border-bottom: 1px solid var(--color-border);
     border-radius: 0;
     margin-bottom: 0;
-    font-size: 0.82rem;
+    font-size: var(--font-size-2xs);
     line-height: 1.4;
     background: none;
     color: var(--color-text-main);
@@ -953,7 +953,7 @@
     width: 18px;
     height: 18px;
     border-radius: 50%;
-    font-size: 0.7rem;
+    font-size: var(--font-size-xs);
     font-weight: 700;
     flex-shrink: 0;
     margin-top: 1px;
@@ -982,7 +982,7 @@
 
 .readability-suggestion-locate {
     margin-left: auto;
-    font-size: 0.72rem;
+    font-size: var(--font-size-xs);
     font-weight: 600;
     opacity: 0;
     flex-shrink: 0;
@@ -1003,7 +1003,7 @@
     border-radius: 8px;
     color: var(--color-score-high);
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
 }
 
 /* 가독성 위치 하이라이트 — 지속형 (clearLocateHighlight로 제거) */
@@ -1052,7 +1052,7 @@
     background: var(--color-panel-bg);
     border: none;
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
     font-weight: 600;
     color: var(--color-text-main);
 }
@@ -1080,7 +1080,7 @@
 }
 
 .humanness-suggestions-title {
-    font-size: 0.82rem;
+    font-size: var(--font-size-2xs);
     font-weight: 600;
     color: var(--color-text-sub);
     margin-bottom: 10px;
@@ -1094,7 +1094,7 @@
     border-bottom: 1px solid var(--color-border);
     border-radius: 0;
     margin-bottom: 0;
-    font-size: 0.82rem;
+    font-size: var(--font-size-2xs);
     line-height: 1.4;
     color: var(--color-text-main);
 }
@@ -1118,7 +1118,7 @@
     width: 18px;
     height: 18px;
     border-radius: 50%;
-    font-size: 0.7rem;
+    font-size: var(--font-size-xs);
     font-weight: 700;
     flex-shrink: 0;
     margin-top: 1px;
@@ -1141,7 +1141,7 @@
     border-radius: 8px;
     color: var(--color-score-high);
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
 }
 
 /* AI 휴먼라이징 버튼 */
@@ -1154,7 +1154,7 @@
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     font-weight: 600;
     transition: opacity 0.2s;
 }
@@ -1181,7 +1181,7 @@
     padding: 10px 12px;
     background: var(--color-brand-light, #FFF3ED);
     border-radius: 8px;
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     color: var(--color-brand-dark, #E55A2B);
     font-weight: 500;
     line-height: 1.5;
@@ -1198,7 +1198,7 @@
 }
 
 .humanness-ai-original {
-    font-size: 0.84rem;
+    font-size: var(--font-size-sm);
     color: var(--color-text-hint);
     text-decoration: line-through;
     line-height: 1.5;
@@ -1224,7 +1224,7 @@
 }
 
 .humanness-ai-revised {
-    font-size: 0.84rem;
+    font-size: var(--font-size-sm);
     color: var(--color-text-main);
     font-weight: 500;
     line-height: 1.5;
@@ -1241,7 +1241,7 @@
 }
 
 .humanness-ai-reason {
-    font-size: 0.72rem;
+    font-size: var(--font-size-xs);
     color: white;
     background: var(--color-brand, #FF6B35);
     padding: 2px 8px;
@@ -1255,7 +1255,7 @@
     color: white;
     border: none;
     border-radius: 6px;
-    font-size: 0.78rem;
+    font-size: var(--font-size-xs);
     font-weight: 600;
     cursor: pointer;
     flex-shrink: 0;
@@ -1324,7 +1324,7 @@
 }
 
 .humanness-tip-label {
-    font-size: 0.78rem;
+    font-size: var(--font-size-xs);
     font-weight: 600;
     color: var(--color-brand, #FF6B35);
 }
@@ -1345,20 +1345,20 @@
 }
 
 .humanness-tip-original {
-    font-size: 0.82rem;
+    font-size: var(--font-size-2xs);
     color: var(--color-text-hint);
     text-decoration: line-through;
     line-height: 1.5;
 }
 
 .humanness-tip-arrow {
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     color: var(--color-brand, #FF6B35);
     text-align: center;
 }
 
 .humanness-tip-revised {
-    font-size: 0.84rem;
+    font-size: var(--font-size-sm);
     color: var(--color-text-main);
     font-weight: 500;
     line-height: 1.5;
@@ -1368,7 +1368,7 @@
 }
 
 .humanness-tip-reason {
-    font-size: 0.72rem;
+    font-size: var(--font-size-xs);
     color: white;
     background: var(--color-brand, #FF6B35);
     padding: 2px 8px;
@@ -1384,7 +1384,7 @@
     color: white;
     border: none;
     border-radius: 8px;
-    font-size: 0.84rem;
+    font-size: var(--font-size-sm);
     font-weight: 600;
     cursor: pointer;
     display: flex;
@@ -1464,7 +1464,7 @@
 }
 
 .mobile-ai-rewrite-list button span {
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub);
 }
 
@@ -1484,7 +1484,7 @@
 
     /* 모바일 본문 사이즈 축소 + H2/H3 계층 */
     .tiptap-content-area {
-        font-size: 0.9rem;
+        font-size: var(--font-size-sm);
     }
 
     .tiptap-content-area h2 {
@@ -1519,7 +1519,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 0.85rem;
+        font-size: var(--font-size-sm);
         padding: 4px 6px;
     }
 
@@ -1579,7 +1579,7 @@
 /* ===== 소형 모바일 (480px) ===== */
 @media (max-width: 480px) {
     .tiptap-content-area {
-        font-size: 0.85rem;
+        font-size: var(--font-size-sm);
         padding: 0 4px;
     }
 
@@ -1591,14 +1591,14 @@
     .toolbar-btn {
         min-width: 36px;
         min-height: 36px;
-        font-size: 0.8rem;
+        font-size: var(--font-size-2xs);
         padding: 2px 4px;
     }
 
     .rewrite-score-card {
         margin: 0 4px 8px;
         padding: 8px;
-        font-size: 0.8rem;
+        font-size: var(--font-size-2xs);
     }
 
     .humanness-tip-card {
