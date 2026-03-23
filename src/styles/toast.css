@@ -1,11 +1,11 @@
 .toast-container {
     position: fixed;
-    top: 16px;
-    right: 16px;
+    top: var(--spacing-md);
+    right: var(--spacing-md);
     z-index: 9999;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--spacing-sm);
     pointer-events: none;
 }
 
@@ -15,7 +15,7 @@
     gap: 10px;
     padding: 12px 20px;
     border-radius: 10px;
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
     font-weight: 500;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
     cursor: pointer;
@@ -27,7 +27,7 @@
 
 .toast-icon {
     flex-shrink: 0;
-    font-size: 1rem;
+    font-size: var(--font-size-base);
 }
 
 .toast-message {
@@ -75,25 +75,25 @@
     .toast-container {
         top: auto;
         bottom: 72px;
-        right: 8px;
-        left: 8px;
+        right: var(--spacing-sm);
+        left: var(--spacing-sm);
     }
     .toast {
         max-width: 100%;
-        font-size: 0.85rem;
-        padding: 10px 16px;
+        font-size: var(--font-size-2xs);
+        padding: 10px var(--spacing-md);
     }
 }
 
 @media (max-width: 480px) {
     .toast-container {
         bottom: 64px;
-        right: 4px;
-        left: 4px;
+        right: var(--spacing-xs);
+        left: var(--spacing-xs);
     }
     .toast {
         font-size: 0.82rem;
-        padding: 8px 12px;
-        border-radius: 8px;
+        padding: var(--spacing-sm) 12px;
+        border-radius: var(--radius-lg);
     }
 }
