@@ -15,7 +15,7 @@
     aspect-ratio: 1 / 1;
     border-radius: 6px;
     overflow: hidden;
-    background: #f5f5f5;
+    background: var(--color-surface-hover);
     margin-bottom: 12px;
     position: relative;
 }
@@ -40,7 +40,7 @@
 }
 
 .thumbnail-preview-empty {
-    font-size: 0.82rem;
+    font-size: var(--font-size-2xs);
     color: #999;
     text-align: center;
     padding: 20px;
@@ -88,7 +88,7 @@
 }
 
 .thumbnail-zoom-row label {
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub);
     min-width: 28px;
     flex-shrink: 0;
@@ -101,7 +101,7 @@
 }
 
 .thumbnail-zoom-value {
-    font-size: 0.73rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub);
     min-width: 32px;
     text-align: right;
@@ -121,7 +121,7 @@
     border: 1px solid var(--color-border);
     border-radius: 20px;
     background: white;
-    font-size: 0.72rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub);
     cursor: pointer;
     transition: all 0.15s;
@@ -159,7 +159,7 @@
 }
 
 .thumbnail-band-row label {
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub);
     min-width: 36px;
     flex-shrink: 0;
@@ -170,7 +170,7 @@
     padding: 5px 8px;
     border: 1px solid var(--color-border);
     border-radius: 6px;
-    font-size: 0.82rem;
+    font-size: var(--font-size-2xs);
     background: white;
     color: var(--color-text-main);
 }
@@ -198,7 +198,7 @@
     padding: 8px 44px 8px 10px;
     border: 1px solid var(--color-border);
     border-radius: 6px;
-    font-size: 0.82rem;
+    font-size: var(--font-size-2xs);
     box-sizing: border-box;
 }
 
@@ -212,7 +212,7 @@
     right: 10px;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 0.68rem;
+    font-size: var(--font-size-xs);
     color: #bbb;
     pointer-events: none;
     font-variant-numeric: tabular-nums;
@@ -230,7 +230,7 @@
     border-radius: 6px;
     background: var(--color-brand, #FF6B35);
     color: white;
-    font-size: 0.8rem;
+    font-size: var(--font-size-2xs);
     font-weight: 600;
     cursor: pointer;
     transition: opacity 0.15s;
@@ -275,7 +275,7 @@
     border-radius: 6px;
     background: white;
     cursor: pointer;
-    font-size: 0.88rem;
+    font-size: var(--font-size-sm);
     color: var(--color-text-main);
     line-height: 1.4;
 }
@@ -285,7 +285,7 @@
 }
 
 .thumbnail-font-arrow {
-    font-size: 0.65rem;
+    font-size: var(--font-size-xs);
     color: #999;
     margin-left: 6px;
 }
@@ -343,7 +343,7 @@
 }
 
 .thumbnail-color-picker span {
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub);
     font-family: monospace;
 }
@@ -353,7 +353,7 @@
     border: 1px solid var(--color-border);
     border-radius: 4px;
     background: white;
-    font-size: 0.68rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub);
     cursor: pointer;
     white-space: nowrap;
@@ -377,7 +377,7 @@
 }
 
 .thumbnail-size-col label {
-    font-size: 0.72rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub);
     min-width: 28px;
     flex-shrink: 0;
@@ -390,7 +390,7 @@
 }
 
 .thumbnail-slider-value {
-    font-size: 0.68rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub);
     min-width: 32px;
     text-align: right;
@@ -410,7 +410,7 @@
     flex: 1;
     padding: 8px 0;
     border-radius: 6px;
-    font-size: 0.82rem;
+    font-size: var(--font-size-2xs);
     cursor: pointer;
     transition: opacity 0.2s;
 }
@@ -474,7 +474,7 @@
 
 .thumbnail-seg {
     display: flex;
-    background: #F0F0EE;
+    background: var(--color-surface-hover);
     border-radius: 6px;
     padding: 2px;
 }
@@ -684,7 +684,7 @@
     }
 
     .thumbnail-btn-ai {
-        font-size: 0.75rem;
+        font-size: var(--font-size-xs);
         padding: 8px 0;
     }
 
@@ -704,7 +704,7 @@
 }
 
 .thumbnail-multi-label {
-    font-size: 0.78rem;
+    font-size: var(--font-size-xs);
     font-weight: 600;
     color: var(--color-text-sub);
     margin-bottom: 4px;
@@ -713,7 +713,7 @@
 
 /* 사진 수 카운트 */
 .thumbnail-photo-count {
-    font-size: 0.72rem;
+    font-size: var(--font-size-xs);
     font-weight: 600;
     color: var(--color-brand, #FF6B35);
     margin-left: 6px;
@@ -728,7 +728,7 @@
 }
 
 .thumbnail-slot-label {
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     font-weight: 600;
     color: var(--color-text-sub);
     min-width: 32px;
@@ -756,7 +756,7 @@
     border-radius: 50%;
     background: var(--color-brand, #FF6B35);
     color: #fff;
-    font-size: 0.65rem;
+    font-size: var(--font-size-xs);
     font-weight: 700;
     display: flex;
     align-items: center;
@@ -789,7 +789,7 @@
 .thumbnail-add-slot-btn {
     width: 100%;
     padding: 6px;
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     color: var(--color-brand, #FF6B35);
     background: transparent;
     border: 1px dashed var(--color-brand, #FF6B35);
@@ -822,7 +822,7 @@
     border-radius: 50%;
     background: var(--color-brand, #FF6B35);
     color: #fff;
-    font-size: 0.65rem;
+    font-size: var(--font-size-xs);
     font-weight: 700;
     display: flex;
     align-items: center;
@@ -831,7 +831,7 @@
 }
 
 .thumbnail-multi-hint {
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub);
     padding: 8px 0;
 }
@@ -842,7 +842,7 @@
 
 .thumbnail-seg.compact .thumbnail-seg-btn {
     padding: 4px 12px;
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
 }
 
 /* 사진별 확대 슬라이더 */
@@ -858,7 +858,7 @@
 }
 
 .thumbnail-zoom-row.compact label {
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-sub);
     min-width: 48px;
     flex-shrink: 0;
