@@ -1,30 +1,22 @@
-# 피클잇 (Piklit) - 세션 워크스루 (2026-03-23 오후)
+# 피클잇 (Piklit) - 세션 워크스루 (2026-03-23 세션 4)
 
 ## 프로젝트 개요
 네이버 블로그 SEO 최적화 AI 작성기 (React 19 + Vite 7 + TipTap + Google Gemini 2.5 Flash API)
 
 ## 이번 세션 요약
-CSS font-size 토큰화 전체 완료 (~400건, 10개 파일) + 자연스러움 가중치 조정 + 도입부 프롬프트 튜닝 + 회원가입 디스코드 알림
+협찬/체험단 가이드 파싱 개선 (유형 구분 + 필드 확장) + 글 생성 후 가이드 준수 체크 자동 실행 UX 추가
 
 ## 수정 파일
 
 | 파일 | 변경 사항 |
 |------|----------|
-| `src/styles/ErrorBoundary.css` | 간격/폰트/컬러 전체 토큰화 |
-| `src/styles/toast.css` | font-size + spacing 토큰화 |
-| `src/styles/ImageGeneratorPanel.css` | font-size 9건 토큰화 |
-| `src/styles/WannabeStyle.css` | font-size 14건 + border-radius 2건 토큰화 |
-| `src/styles/PhotoUploader.css` | font-size 20건 토큰화 |
-| `src/styles/ThumbnailPanel.css` | font-size 20건 + 컬러 2건 토큰화 |
-| `src/styles/history.css` | font-size 39건 토큰화 |
-| `src/styles/tiptap.css` | font-size 59건 토큰화 |
-| `src/styles/landing.css` | font-size 39건 토큰화 |
-| `src/styles/components.css` | font-size 149건 토큰화 |
-| `src/utils/humanness.js` | 톤별 이모지/비격식 가중치 조정 |
-| `src/services/openai.js` | 도입부 글자수 반복 강조 4→2회 축소 |
-| `api/usage.js` | 신규 가입 디스코드 웹훅 알림 추가 |
+| `src/services/openai.js` | parseSponsorGuide 프롬프트 확장 (13개 신규 필드), _sponsorGuidePrompt 새 필드 반영, checkGuideCompliance 검사 항목 13개 |
+| `src/components/wizard/GuideUploadStep.jsx` | 유형 선택 버튼 3종 (맛집/상품/기자단) + 결과 카드 확장 |
+| `src/components/analysis/GuideCompliancePanel.jsx` | autoRun 자동 체크 + 통과/미충족 배지 + 상세 칩 + 접기/펼치기 |
+| `src/pages/EditorPage.jsx` | 축하 카드에 가이드 준수 체크 버튼 (협찬 모드) + autoRunCompliance 상태 |
+| `src/styles/components.css` | guide-type-btn, guide-compliance-badge, guide-check-details 스타일 추가 |
 
 ## 현재 릴리즈 상태
-- 빌드: 정상 (1.50s)
-- 마지막 커밋: 103928a
+- 빌드: 정상 (1.52s)
+- 마지막 커밋: 34293a0
 - 미푸쉬: 0건 (모두 배포 완료)

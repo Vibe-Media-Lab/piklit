@@ -1142,6 +1142,31 @@
 - [ ] 썸네일 탭 리셋 — 증상/환경(PC or 모바일)/재현 조건 미기록. 다음 세션에서 재확인 필요
 - [ ] localStorage 용량 초과 경고 — 이미지 포함 글 저장 시 발생. 클라우드 저장으로 근본 해결
 
+## 완료된 작업 (2026-03-23 세션 4) — 협찬 가이드 파싱 개선 + 준수 체크 강화
+
+### 가이드 파싱 확장
+- [x] `parseSponsorGuide`: requiredKeywords → titleKeywords + bodyKeywords 분리
+- [x] 신규 필드 추가: sponsorType, bodyKeywordMinCount, brandDescription, providedItem, minPhotos, videoRequired, videoMinSeconds, mapRequired, missionDetails
+- [x] `_sponsorGuidePrompt`: 제목 키워드, 본문 키워드 N회, 업체 소개, 지도, 동영상, 미션 상세 프롬프트 반영
+- [x] `checkGuideCompliance`: 검사 항목 8개 → 13개 확장
+
+### 유형 선택 UI
+- [x] GuideUploadStep: 가이드 업로드 전 유형 선택 버튼 3종 (맛집/상품/기자단)
+- [x] 선택된 유형을 sponsorTypeHint로 parseSponsorGuide에 전달
+- [x] 파싱 결과 카드에 새 필드 표시 (제목/본문 키워드, 업체 소개, 제공 내역, 미디어 요건, 미션 상세)
+
+### 준수 체크 개선
+- [x] 글 생성 완료 축하 카드에 "가이드 준수 체크" 버튼 추가 (협찬 모드 시)
+- [x] GuideCompliancePanel: autoRun prop으로 자동 체크 실행
+- [x] 체크 결과에 통과/미충족 배지 + 키워드별 상세 칩 + 접기/펼치기
+- [x] 제목도 함께 전달하여 제목 키워드 검사 가능
+
+### 남은 이슈 (다음 세션)
+- [ ] 실제 가이드 이미지/텍스트로 파싱 테스트 (브라우저에서 수동)
+- [ ] 글 목록 blob URL 이미지 액박
+- [ ] 썸네일 탭 리셋 재확인
+- [ ] localStorage 용량 초과 경고
+
 ## 아이디어 보관함 (Icebox)
 
 > 당장 구현하지 않지만 나중에 재검토할 수 있는 아이디어
