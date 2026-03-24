@@ -1182,8 +1182,8 @@
 
 ### 남은 이슈
 - [ ] 실제 가이드 이미지/텍스트로 파싱 테스트 (브라우저에서 수동)
-- [ ] 글 목록 blob URL 이미지 액박
-- [ ] localStorage 용량 초과 경고
+- [x] 글 목록 blob URL 이미지 액박 (2026-03-24 해결 — EditorContext blob URL 플레이스홀더 교체)
+- [x] localStorage 용량 초과 경고 (기존 해결 — base64 이미지 제거 + 플레이스홀더 처리)
 
 ## 아이디어 보관함 (Icebox)
 
