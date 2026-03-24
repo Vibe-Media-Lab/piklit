@@ -84,17 +84,16 @@ const BottomSheet = ({ isOpen, onClose, snapPoints = [0.4, 0.75, 0.9], title, ch
         };
     }, [isDragging, handleDragMove, handleDragEnd]);
 
-    if (!isOpen) return null;
-
-    const height = getHeight();
+    const height = isOpen ? getHeight() : 0;
 
     return (
         <>
-            <div className="bottomsheet-overlay" onClick={onClose} />
+            {isOpen && <div className="bottomsheet-overlay" onClick={onClose} />}
             <div
                 ref={sheetRef}
                 className="bottomsheet"
                 style={{
+                    display: isOpen ? undefined : 'none',
                     height: `${height}px`,
                     transform: `translateY(${translateY}px)`,
                     transition: isDragging ? 'none' : 'transform var(--transition-sheet), height var(--transition-sheet)',

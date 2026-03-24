@@ -4,7 +4,7 @@ import { useToast } from '../common/Toast';
 import { AIService } from '../../services/openai';
 import { generateThumbnail, generateMultiThumbnail, THUMBNAIL_STYLES, CATEGORY_FONT_MAP, getMultiPhotoRegions } from '../../utils/thumbnail';
 import { loadGoogleFont, loadGoogleFonts } from '../../utils/fontLoader';
-import { Sparkles, Loader2, ChevronDown } from 'lucide-react';
+import { Sparkles, Loader2 } from 'lucide-react';
 import '../../styles/ThumbnailPanel.css';
 
 const ThumbnailPanel = ({ onLocate } = {}) => {
@@ -26,7 +26,7 @@ const ThumbnailPanel = ({ onLocate } = {}) => {
         return urls;
     }, [photoPreviewUrls, content]);
 
-    const [isOpen, setIsOpen] = useState(window.innerWidth < 768);
+    const isOpen = true;
     const [brokenImgs, setBrokenImgs] = useState(new Set());
     const [style, setStyle] = useState('A');
     const [mainText, setMainText] = useState('');
@@ -401,20 +401,11 @@ const ThumbnailPanel = ({ onLocate } = {}) => {
 
     return (
         <div className="thumbnail-panel">
-            <button
-                className={`v3-panel-toggle ${isOpen ? 'open' : ''}`}
-                onClick={() => setIsOpen(prev => !prev)}
-            >
-                <span>썸네일 생성</span>
-                <ChevronDown size={16} className={`v3-panel-chevron ${isOpen ? 'open' : ''}`} />
-            </button>
-
-            {isOpen && (
-                <div className="thumbnail-panel-body">
+            <div className="thumbnail-panel-body">
                     <div className="thumbnail-fullscreen-topbar">
-                        <button className="thumbnail-fullscreen-close" onClick={() => setIsOpen(false)}>닫기</button>
+                        <button className="thumbnail-fullscreen-close" onClick={() => onLocate?.()}>닫기</button>
                         <span style={{ fontWeight: 600 }}>썸네일 편집</span>
-                        <button className="thumbnail-fullscreen-done" onClick={() => setIsOpen(false)}>완료</button>
+                        <button className="thumbnail-fullscreen-done" onClick={() => onLocate?.()}>완료</button>
                     </div>
                     {!hasPhotos ? (
                         <div className="thumbnail-preview-empty">
@@ -855,7 +846,6 @@ const ThumbnailPanel = ({ onLocate } = {}) => {
                         </>
                     )}
                 </div>
-            )}
         </div>
     );
 };
