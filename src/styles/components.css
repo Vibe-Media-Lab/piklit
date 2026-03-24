@@ -1427,9 +1427,8 @@
     color: var(--color-text-main);
     line-height: 1.5;
     font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    letter-spacing: -0.02em;
+    white-space: normal;
 }
 
 .outline-text.h3 {
