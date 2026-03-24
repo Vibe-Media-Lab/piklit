@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { useEditor } from '../../context/EditorContext';
 import { useToast } from '../common/Toast';
 import { AIService } from '../../services/openai';
@@ -11,8 +11,15 @@ const TitleInput = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
+    const textareaRef = useRef(null);
     const mainKeyword = keywords.main.trim();
     const startsWithKeyword = mainKeyword && title.startsWith(mainKeyword);
+
+    const autoResize = useCallback((el) => {
+        if (!el) return;
+        el.style.height = 'auto';
+        el.style.height = el.scrollHeight + 'px';
+    }, []);
 
     const handleRecommendToken = async () => {
         if (!mainKeyword) return showToast('메인 키워드를 먼저 설정해주세요.', 'warning');
@@ -85,12 +92,14 @@ const TitleInput = () => {
                 </div>
             )}
 
-            <input
+            <textarea
+                ref={(el) => { textareaRef.current = el; autoResize(el); }}
                 className="text-input title-input"
-                type="text"
+                rows={1}
                 placeholder={mainKeyword ? `${mainKeyword} + 구체적인 상황/타겟` : '제목을 입력하세요'}
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(e) => { setTitle(e.target.value); autoResize(e.target); }}
+                onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
                 style={startsWithKeyword ? { borderColor: 'var(--color-success)' } : undefined}
             />
             {!startsWithKeyword && mainKeyword && (

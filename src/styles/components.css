@@ -109,6 +109,9 @@
     color: var(--color-text-main);
     line-height: 1.35;
     margin-bottom: 4px;
+    resize: none;
+    overflow: hidden;
+    font-family: inherit;
 }
 
 .title-input::placeholder {
