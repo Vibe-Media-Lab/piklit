@@ -275,7 +275,11 @@ export const EditorProvider = ({ children }) => {
 
             setCurrentPostId(id);
             setTitle(post.title || '');
-            setContent(post.content || '<p></p>');
+            const safeContent = (post.content || '<p></p>').replace(
+                /<img[^>]*src="blob:[^"]*"[^>]*>/g,
+                '<p style="text-align:center;color:#999;font-size:0.8rem;">[이미지 — 에디터에서 확인]</p>'
+            );
+            setContent(safeContent);
             setKeywords(post.keywords || { main: '', sub: ['', '', ''] });
 
             // Start a new edit session
