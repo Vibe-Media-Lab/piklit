@@ -113,98 +113,37 @@ const HumannessPanel = ({ onLocate, suggestOnly = false, cachedAiSuggestions = n
         const { original, revised } = suggestion;
         if (!original || !revised) return;
 
-        // TipTap 에디터 전체 텍스트에서 원문 위치 찾기
-        // ProseMirror textContent는 블록 노드 사이에 구분자 없이 붙으므로
-        // 공백 정규화 후 검색, 실패 시 앞 20자 부분 매칭 시도
-        const docText = editor.state.doc.textContent;
         const searchText = original.trim();
-        let pos = docText.indexOf(searchText);
+        let found = false;
 
-        // 정확 매칭 실패 → 공백 정규화 후 재시도
-        if (pos === -1) {
-            const normalize = s => s.replace(/\s+/g, ' ').trim();
-            const normDoc = normalize(docText);
-            const normSearch = normalize(searchText);
-            pos = normDoc.indexOf(normSearch);
-        }
+        // 문단별로 순회 — 같은 문단 안에서만 교체
+        editor.state.doc.forEach((node, offset) => {
+            if (found || !node.isTextblock) return;
 
-        // 그래도 실패 → 앞 20자 부분 매칭
-        if (pos === -1) {
-            const partial = searchText.slice(0, 20).trim();
-            if (partial.length >= 8) {
-                pos = docText.indexOf(partial);
-            }
-        }
+            const paraText = node.textContent;
+            const matchIdx = paraText.indexOf(searchText);
+            if (matchIdx === -1) return;
 
-        if (pos === -1) {
-            showToast('원문을 본문에서 찾을 수 없습니다.', 'warning');
-            return;
-        }
+            // 문단 시작 위치 + 1(블록 오프닝) + 텍스트 내 위치
+            const from = offset + 1 + matchIdx;
+            const to = from + searchText.length;
 
-        // 부분 매칭일 때는 원본 길이만큼만 교체
-        const replaceLength = docText.indexOf(searchText) !== -1
-            ? searchText.length
-            : Math.min(searchText.length, docText.length - pos);
-
-        // 텍스트 오프셋 → ProseMirror position 매핑 테이블 구축
-        // 노드 경계(서식 태그 등)를 정확히 반영
-        const posMap = []; // { textOffset, pmPos }
-        let textOffset = 0;
-        editor.state.doc.descendants((node, nodePos) => {
-            if (node.isText) {
-                for (let i = 0; i < node.text.length; i++) {
-                    posMap.push({ textOffset: textOffset + i, pmPos: nodePos + i });
-                }
-                textOffset += node.text.length;
-            }
+            // ProseMirror 트랜잭션으로 텍스트만 교체
+            const { tr } = editor.state;
+            tr.insertText(revised, from, to);
+            editor.view.dispatch(tr);
+            found = true;
         });
-        // 끝 위치용: 마지막 문자 다음 position
-        if (posMap.length > 0) {
-            const last = posMap[posMap.length - 1];
-            posMap.push({ textOffset: last.textOffset + 1, pmPos: last.pmPos + 1 });
-        }
 
-        const fromEntry = posMap.find(e => e.textOffset === pos);
-        const toEntry = posMap.find(e => e.textOffset === pos + replaceLength);
-
-        if (fromEntry && toEntry) {
-            // 문단 경계 보존: setContent로 전체 HTML 교체
-            const currentHtml = editor.getHTML();
-            const escapedOriginal = original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            // 원문을 찾아 교체 (첫 번째 매치만)
-            let replaced = false;
-            const replacedHtml = currentHtml.replace(new RegExp(escapedOriginal), (match) => {
-                if (replaced) return match; // 두 번째부터는 원본 유지
-                replaced = true;
-                // 원문이 </p><p> 경계를 포함하면 수정문에도 경계 보존
-                if (match.includes('</p>') && !revised.includes('</p>')) {
-                    return `</p><p>${revised}`;
-                }
-                return revised;
-            });
-            if (replaced) {
-                // 빈 <p> 정리 후 setContent
-                const cleanHtml = replacedHtml.replace(/<p>\s*<\/p>/g, '');
-                editor.commands.setContent(cleanHtml);
-            } else {
-                // fallback: ProseMirror 위치 기반 (문단 경계 유지를 위해 <p> 래핑)
-                editor.chain()
-                    .insertContentAt({ from: fromEntry.pmPos, to: toEntry.pmPos }, `<p>${revised}</p>`)
-                    .run();
-                const updatedHtml = editor.getHTML().replace(/<p>\s*<\/p>/g, '');
-                if (updatedHtml !== editor.getHTML()) {
-                    editor.commands.setContent(updatedHtml);
-                }
-            }
+        if (found) {
             setAppliedIndices(prev => new Set([...prev, index]));
-            // 형광펜 제거 + TIP 팝업 닫기
             document.querySelectorAll('.humanness-inline-highlight').forEach(el => {
                 el.classList.remove('humanness-inline-highlight');
             });
             setHumanTip(null);
             showToast('수정안이 적용되었습니다.', 'success');
         } else {
-            showToast('원문 위치를 특정할 수 없습니다.', 'warning');
+            showToast('원문을 본문에서 찾을 수 없습니다.', 'warning');
         }
     }, [editorRef, showToast, setHumanTip]);
 
