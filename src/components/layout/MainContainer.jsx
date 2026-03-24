@@ -8,20 +8,22 @@ import { analyzeHumanness } from '../../utils/humanness';
 import ThumbnailPanel from '../analysis/ThumbnailPanel';
 import AIAnalysisDashboard from '../analysis/AIAnalysisDashboard';
 
-const MobilePanelContent = ({ activeTab, onLocate, humanCache }) => {
-    switch (activeTab) {
-        case 'analysis':
-            return <AIAnalysisDashboard onLocate={onLocate} mode="overview" humanCache={humanCache} />;
-        case 'seo':
-            return <AIAnalysisDashboard onLocate={onLocate} mode="seo" humanCache={humanCache} />;
-        case 'natural':
-            return <AIAnalysisDashboard onLocate={onLocate} mode="natural" humanCache={humanCache} />;
-        case 'thumbnail':
-            return <ThumbnailPanel onLocate={onLocate} />;
-        default:
-            return null;
-    }
-};
+const MobilePanelContent = ({ activeTab, onLocate, humanCache }) => (
+    <>
+        <div style={{ display: activeTab === 'analysis' ? 'block' : 'none' }}>
+            <AIAnalysisDashboard onLocate={onLocate} mode="overview" humanCache={humanCache} />
+        </div>
+        <div style={{ display: activeTab === 'seo' ? 'block' : 'none' }}>
+            <AIAnalysisDashboard onLocate={onLocate} mode="seo" humanCache={humanCache} />
+        </div>
+        <div style={{ display: activeTab === 'natural' ? 'block' : 'none' }}>
+            <AIAnalysisDashboard onLocate={onLocate} mode="natural" humanCache={humanCache} />
+        </div>
+        <div style={{ display: activeTab === 'thumbnail' ? 'block' : 'none' }}>
+            <ThumbnailPanel onLocate={onLocate} />
+        </div>
+    </>
+);
 
 const MainContainer = () => {
     const { analysis, content, suggestedTone } = useEditor();
